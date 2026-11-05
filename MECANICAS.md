@@ -206,7 +206,7 @@ Obs.: a faixa colorida no card indica o tema, o que dá uma pista parcial (demô
   - **Aviso** (0,7 s): ergue as asas (ataque 1→2) com brilho azul.
   - **Mergulho** (640 px/s) em linha reta até **onde o herói estava** no fim do aviso: corpo esticado (quadros 7–8) e, perto do alvo, garras e rasgo (3→6). Encostar = 10 de dano, uma vez por mergulho. **Sair do lugar desvia; o escudo bloqueia.** No mergulho ela fica na altura do herói: hora de golpear.
   - **Sobe em curva** para o outro lado (bico inclinado para cima, asas batendo rápido) até a altura de pairar e **vira** para encarar o herói: troca de lado direto, sem animar a virada (o giro horizontal ficava estranho).
-  - **Balão da mentira embaixo da ave** (em cima ficava atrás do HUD do topo), com a ponta para cima. Fica na altura de pairar: não desce junto no mergulho, só acompanha a ave na horizontal. Enquanto ela mergulha e sobe (passando por baixo dele), o balão fica quase transparente.
+  - **Balão da mentira embaixo da ave** (em cima ficava atrás do HUD do topo), com a ponta para cima. Fica na altura de pairar: não desce junto no mergulho, só acompanha a ave na horizontal. **A frase some enquanto ela mergulha e sobe** e volta quando ela fica pairando de novo.
   - Com várias aves, **só uma mergulha por vez**. Ficam dentro da arena.
 - **Cada demônio carrega UMA mentira até morrer.** Não troca com o tempo e não some ao ser refutada — só desaparece quando ele morre.
 - Cada demônio novo traz **outra mentira do seu tema**, sem repetir na mesma batalha (só repete se o repertório do tema acabar).

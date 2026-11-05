@@ -65,7 +65,8 @@ export function drawHpBar(d) {
 export function layoutBalloons() {
   ctx.font = '600 18px system-ui';
   const placed = [];
-  B.demons.filter(d => d.lie).sort((a, b) => a.x - b.x).forEach(d => {
+  // ave: a frase some no mergulho e na subida (só aparece pairando)
+  B.demons.filter(d => d.lie && !(d.s.mergulho && (d.state === 'dive' || d.state === 'rise'))).sort((a, b) => a.x - b.x).forEach(d => {
     const words = d.lie.texto.split(' '), lines = []; let ln = '';
     words.forEach(w => { if (ctx.measureText(ln + ' ' + w).width > 210 && ln) { lines.push(ln); ln = w; } else ln = ln ? ln + ' ' + w : w; });
     lines.push(ln);
@@ -82,7 +83,6 @@ export function layoutBalloons() {
 }
 export function drawBalloon({ d, lines, bw, bh, cx, y, below }) {
   ctx.save(); ctx.globalAlpha = 1 - d.lieFlash / .3; // balão nasce com fade-in quando a mentira troca
-  if (below && d.y > balloonY(d) - 25) ctx.globalAlpha *= .3; // ave mergulhando passa por baixo do balão: fica quase transparente
   ctx.font = '600 18px system-ui';
   const headY = balloonY(d);
   if (below && y > headY + 18) { ctx.strokeStyle = '#f7efe2aa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(d.x, headY); ctx.lineTo(d.x, y); ctx.stroke(); } // empurrado para baixo
