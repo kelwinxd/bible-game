@@ -1,8 +1,8 @@
 import { $ } from './utils.js';
 
 // ---------- Opções / persistência ----------
-export const opts = { sound: true, forge: 'normal', god: true };
-['Sound', 'God'].forEach(k => $('opt' + k).onchange = e => opts[k.toLowerCase()] = e.target.checked);
+export const opts = { sound: true, forge: 'normal', god: true, all: false }; // all: todos os versículos e jornadas (teste)
+['Sound', 'God', 'All'].forEach(k => $('opt' + k).onchange = e => opts[k.toLowerCase()] = e.target.checked);
 // som também nas Configurações da pausa; as duas caixas ficam sincronizadas e a escolha fica salva
 export function setSound(on) { opts.sound = on; $('optSound').checked = $('pauseSound').checked = on; try { localStorage.setItem('ef-sound', on ? '1' : '0'); } catch (e) {} }
 $('optSound').onchange = $('pauseSound').onchange = e => setSound(e.target.checked);

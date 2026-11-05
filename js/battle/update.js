@@ -1,3 +1,4 @@
+import { updateBird } from './bird.js';
 import { damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
 import { DASH_CD, DASH_SPEED, GRAV, GROUND, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
 import { B, keys } from './state.js';
@@ -21,7 +22,7 @@ export function updateBattle(rdt) {
   if (!B.over) {
     const mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
     const sp = SPEED * (B.shield ? .35 : h.swing > 0 ? .5 : 1);
-    let lo = B.arena ? B.arena.left + 50 : 50, hi = B.arena ? B.arena.right - 50 : D.fase.comprimento - 50;
+    let lo = B.arena ? B.arena.left + 50 : 50, hi = B.arena ? B.arena.right - 50 : B.fase.comprimento - 50;
     // pedra inteira bloqueia quem está na mesma altura dela (é alta demais para pular)
     const rock = B.rocks.find(r => r.hp > 0 && r.x > h.x && h.y > r.base - 158 && h.y - 200 < r.base);
     if (rock) hi = Math.min(hi, rock.x - 95);
@@ -50,7 +51,7 @@ export function updateBattle(rdt) {
     if (anim !== h.anim) { h.anim = anim; if (anim !== 'attack') h.at = 0; }
     // câmera segue o herói; numa luta fica travada na arena
     // (suave: ao destravar a arena a câmera desliza até o herói, sem salto)
-    const camT = B.arena ? B.arena.left : Math.max(0, Math.min(D.fase.comprimento - 960, h.x - 360));
+    const camT = B.arena ? B.arena.left : Math.max(0, Math.min(B.fase.comprimento - 960, h.x - 360));
     B.cam += (camT - B.cam) * Math.min(1, dt * 5);
   }
 
@@ -81,6 +82,7 @@ export function updateBattle(rdt) {
       return;
     }
     if (B.trans > 0) return;
+    if (d.s.mergulho) return updateBird(d, h, dt);
     const dist = h.x - d.x;
     if (d.s.chao) {
       if (d.state === 'idle' && Math.abs(dist) > 110) {
@@ -158,7 +160,7 @@ export function updateBattle(rdt) {
       B.demons = gr.inimigos.map((t, i) => { const d = Object.assign(makeDemon(t, order.indexOf(i), gr.vida || 1, gr.inimigos.length), { frase: gr.frases && gr.frases[i] }); pickLie(d); d.lieFlash = 0; return d; });
     } // já entram com a mentira sobre a cabeça
   }
-  if (!B.over && !B.arena && !B.demons.length && h.x >= D.fase.comprimento - 200 && B.groups.every(g => g.done)) { B.over = true; endScreen(true); }
+  if (!B.over && !B.arena && !B.demons.length && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done)) { B.over = true; endScreen(true); }
 
   // HUD DOM
   if (B.callout && (B.callout.t -= rdt) <= 0) B.callout = null;

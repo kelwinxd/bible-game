@@ -1,17 +1,21 @@
 import { BASE_DMG, DASH_BACK_WIN, DASH_CD, DASH_T, FATAL_SPIRIT_T, FATAL_T, FIRE_MAX, GROUND, SWING } from './config.js';
+import { BIRD_HOVER_Y } from './bird.js';
 import { halted, tema } from './hud.js';
 import { B } from './state.js';
 import { hitRock, rockBox } from './world.js';
 import { fatalSound, sfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
-import { dashDmg } from '../core/progress.js';
+import { dashDmg, unlockFase } from '../core/progress.js';
 import { $, D, reduced, rgbOf } from '../core/utils.js';
 
-export function balloonY(d) { return d.s.sprite ? d.y - 262 : d.s.chao ? d.y - 230 : d.y - 90; }
+// ave: balão EMBAIXO dela (em cima ficava atrás do HUD), preso à altura de pairar para não descer junto no mergulho
+export const balloonBelow = d => !!d.s.mergulho;
+export function balloonY(d) { return d.s.mergulho ? Math.min(d.y, BIRD_HOVER_Y) + 55 : d.s.sprite ? d.y - 262 : d.s.chao ? d.y - 230 : d.y - 90; }
 
 // caixas de colisão
 export const heroBox = h => [h.x - 30, GROUND + h.y - 160, h.x + 30, GROUND + h.y]; // acompanha o templário menor
 export function demonBox(d) {
+  if (d.s.mergulho) return [d.x - 70, d.y - 55, d.x + 70, d.y + 50]; // ave: corpo, sem as pontas das asas
   if (d.s.chao) return [d.x - 45, d.y - 200, d.x + 45, d.y];
   const fy = Math.sin(d.bob * 2) * 10;
   return [d.x - 50, d.y + fy - 70, d.x + 50, d.y + fy + 60];
@@ -130,10 +134,14 @@ export function endFatal() {
   }
 }
 export function endScreen(win) {
+  if (!B) return; // saiu da batalha antes da tela final
+  const fi = B.faseIdx, next = win && fi + 1 < D.fases.length;
+  if (next) unlockFase(fi + 1);
   $('endTitle').textContent = win ? 'Vitória' : 'Você caiu';
-  $('endText').textContent = win ? 'Jornada concluída. Você encontrou a Palavra e refutou as mentiras.' : 'Levante-se. Volte à forja, afie a lâmina e tente de novo.';
-  $('endBtns').innerHTML = win
-    ? `<button onclick="show('forgeList')">Voltar à forja</button><button class="primary" onclick="show('menu')">Menu</button>`
-    : `<button onclick="show('forgeList')">Voltar à forja</button><button class="primary" onclick="startBattle()">Jogar de novo</button>`;
+  $('endText').textContent = !win ? 'Levante-se. Volte à forja, afie a lâmina e tente de novo.'
+    : next ? `Jornada ${fi + 1} concluída. A jornada ${fi + 2} foi liberada.` : 'Todas as jornadas concluídas. Você encontrou a Palavra e refutou as mentiras.';
+  $('endBtns').innerHTML = `<button onclick="show('forgeList')">Voltar à forja</button>` + (!win
+    ? `<button class="primary" onclick="startBattle(${fi})">Jogar de novo</button>`
+    : next ? `<button class="primary" onclick="startBattle(${fi + 1})">Jornada ${fi + 2} →</button>` : `<button class="primary" onclick="show('menu')">Menu</button>`);
   $('endOverlay').classList.add('on');
 }

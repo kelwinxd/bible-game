@@ -5,10 +5,12 @@ export const cv = $('arena'), ctx = cv.getContext('2d');
 export const GROUND = 480;
 // Sprites de inimigos (data.js → inimigos[].sprite): tiras horizontais do mesmo tamanho de quadro.
 // ax = x dos pés/barriga dentro do quadro; a arte olha para a DIREITA.
+// ave: tira de voo (runName 'fly') e de ataque, 8 quadros cada; âncora (ax, ay) = olho vermelho
 export const ESPR = {
-  serpente: { attack: new Image(), run: new Image(), FW: 275, FH: 257, ax: 142, nRun: 7 }
+  serpente: { attack: new Image(), run: new Image(), FW: 275, FH: 257, ax: 142, nRun: 7 },
+  ave: { attack: new Image(), run: new Image(), FW: 226, FH: 285, ax: 180, ay: 162, nRun: 8, runName: 'fly' }
 };
-for (const k in ESPR) { ESPR[k].attack.src = `assets/sprites/enemy/${k}-attack.png`; ESPR[k].run.src = `assets/sprites/enemy/${k}-run.png`; }
+for (const k in ESPR) { ESPR[k].attack.src = `assets/sprites/enemy/${k}-attack.png`; ESPR[k].run.src = `assets/sprites/enemy/${k}-${ESPR[k].runName || 'run'}.png`; }
 // Herói atual (templário): tiras de mesmo quadro; ax = x do tronco no quadro, pés na base. Olha para a direita.
 // run: 8 quadros · jump: 0 parecido c/ corrida, 1 subindo, 2 espada erguida, 3 estocada, 4 descendo · death: 5 (cai até deitar)
 export const HERO = { run: new Image(), jump: new Image(), death: new Image(), FW: 267, FH: 221, ax: 116 };

@@ -3,6 +3,10 @@ import { D } from './utils.js';
 // progresso por versículo: forja 0–3 (dano) e afia 0–3 (duração do poder)
 export let prog = {};
 try { prog = JSON.parse(localStorage.getItem('ef-prog') || '{}'); } catch (e) {}
+// jornadas liberadas: índice da última (vencer uma libera a próxima)
+export let faseMax = 0;
+try { faseMax = +localStorage.getItem('ef-fase') || 0; } catch (e) {}
+export function unlockFase(i) { if (i <= faseMax) return; faseMax = i; try { localStorage.setItem('ef-fase', i); } catch (e) {} }
 export const saveProg = () => { try { localStorage.setItem('ef-prog', JSON.stringify(prog)); } catch (e) {} };
 // versículos já encontrados na jornada (livro dourado); a forja só mostra estes
 export let found = [];

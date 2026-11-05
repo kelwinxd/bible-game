@@ -3,7 +3,7 @@ import { B } from '../state.js';
 import { D, hash, mix } from '../../core/utils.js';
 
 export function drawSky(cam) {
-  const W = 960, H = 540, t = Math.min(1, cam / (D.fase.comprimento - W));
+  const W = 960, H = 540, t = Math.min(1, cam / (B.fase.comprimento - W));
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, mix('#1b1020', '#2c2a52', t)); g.addColorStop(.7, mix('#3a1a14', '#8a5a2a', t)); g.addColorStop(1, '#120a08');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);

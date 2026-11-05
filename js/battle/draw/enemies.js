@@ -54,3 +54,21 @@ export function drawDuvida(d) {
   ctx.fillStyle = '#b48cff'; ctx.font = '800 34px serif'; ctx.fillText('?', 0, 30);
   ctx.restore();
 }
+// ave (mergulho): voo = tira fly em loop (bate mais rápido subindo); aviso = ataque 0→1 (ergue as asas);
+// mergulho = 6/7 (corpo esticado) e, perto do alvo, 2→5 (garras e rasgo); na subida inclina o bico para cima
+export function drawBird(d) {
+  const S = ESPR.ave;
+  if (!S.attack.naturalWidth || !S.run.naturalWidth) return drawDuvida(d);
+  let img = S.run, fr;
+  if (d.state === 'arm') { img = S.attack; fr = d.arm > d.s.tell / 2 ? 0 : 1; }
+  else if (d.state === 'dive') { img = S.attack; const p = d.dived / d.diveLen; fr = p < .55 ? 6 + Math.floor(d.bob * 12) % 2 : 2 + Math.min(3, Math.floor((p - .55) / .45 * 4)); }
+  else fr = Math.floor(d.bob * (d.state === 'rise' ? 16 : 10)) % S.nRun;
+  const bobY = d.state === 'idle' || d.state === 'enter' ? Math.sin(d.bob * 2) * 8 : 0;
+  ctx.save(); ctx.translate(d.x, d.y + bobY); ctx.scale(d.face, 1);
+  if (d.state === 'rise') ctx.rotate(-.35);
+  if (d.state === 'dead') ctx.scale(1.12, 1.12);
+  if (d.flash > 0) ctx.filter = 'brightness(3) saturate(0)';
+  else if (d.state === 'arm') ctx.filter = 'drop-shadow(0 0 14px #5fb8ff)';
+  ctx.drawImage(img, fr * S.FW, 0, S.FW, S.FH, 60 - S.ax, 10 - S.ay, S.FW, S.FH); // olho 60 px à frente do centro do corpo
+  ctx.restore();
+}

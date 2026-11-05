@@ -4,33 +4,36 @@ import { buildHotbar, toggleDeck, togglePeek } from './hud.js';
 import { B, setB } from './state.js';
 import { sfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
-import { markFound, shieldMax } from '../core/progress.js';
+import { faseMax, found, markFound, shieldMax } from '../core/progress.js';
 import { $, D, byId, rand, reduced } from '../core/utils.js';
 import { show } from '../ui/screens.js';
 import { burst, sp } from '../ui/sparks.js';
 
-// Jornada: o herói começa SEM versículos e os encontra em pedras brilhantes pelo caminho (data.js → fase).
-// all = true (Batalha rápida/teste): começa já com todos os versículos.
+// Jornada fi (data.js → fases): o herói começa só com os versículos achados nas jornadas anteriores e encontra
+// os novos em pedras brilhantes pelo caminho. all = true (teste): começa já com todos os versículos.
 export const ROCK_HP = 3; // golpes para quebrar a pedra
-export function startBattle(all = false) {
+export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = opts.all) {
   show('battle');
+  const fase = D.fases[fi];
+  const prev = D.fases.slice(0, fi).flatMap(f => f.eventos.filter(e => e.tipo === 'pedra' && found.includes(e.verso)).map(e => byId[e.verso]));
   setB({
+    fase, faseIdx: fi,
     hp: 100, demons: [], fireballs: [], slashes: [], fx: [], floats: [], shards: [], embers: [], shake: 0,
-    shield: false, power: null, deck: all ? D.versiculos.slice() : [], cd: {}, peek: -1, usedLies: [], shieldE: shieldMax, shieldLock: false, dashCd: 0, dashBack: 0, dashQueued: false, ghosts: [], fire: all ? FIRE_MAX : 0, notice: null,
-    tut: all ? null : { refuted: false, killed: false, done: false }, // tutorial só na jornada normal
+    shield: false, power: null, deck: all ? D.versiculos.slice() : prev, cd: {}, peek: -1, usedLies: [], shieldE: shieldMax, shieldLock: false, dashCd: 0, dashBack: 0, dashQueued: false, ghosts: [], fire: all ? FIRE_MAX : 0, notice: fase.dica && !all ? { lines: fase.dica, t: 7, c: '#9fc3ff' } : null,
+    tut: all || fi > 0 ? null : { refuted: false, killed: false, done: false }, // tutorial só na 1ª jornada normal
     hero: { x: 200, y: 0, vy: 0, face: 1, anim: 'idle', at: 0, hurt: 0, swing: 0, hitDone: true, ground: true, safe: null, dash: 0, dashHit: null },
     time: 0, trans: 0, fatal: null, over: false,
     cam: 0, arena: null, holes: [], terrain: [], platforms: [], rocks: [], books: [], groups: []
   });
   // y do mundo: 0 = chão normal, negativo = mais alto, positivo = mais baixo, Infinity = buraco
-  D.fase.eventos.forEach(e => {
+  fase.eventos.forEach(e => {
     if (e.tipo === 'buraco') { B.holes.push({ x: e.x, w: e.w }); B.terrain.push({ x: e.x + 18, w: e.w - 36, top: Infinity }); }
     else if (e.tipo === 'terreno') B.terrain.push({ x: e.x, w: e.w, top: -e.altura });
     else if (e.tipo === 'plataforma') B.platforms.push({ x: e.x, w: e.w, top: -e.altura });
     else if (e.tipo === 'inimigos') B.groups.push({ ...e, done: false });
   });
   // pedras ficam apoiadas no que estiver embaixo delas (chão, terreno alto/baixo ou plataforma)
-  D.fase.eventos.filter(e => e.tipo === 'pedra').forEach(e => {
+  fase.eventos.filter(e => e.tipo === 'pedra').forEach(e => {
     const base = Math.min(terrainTop(e.x), ...B.platforms.filter(pl => e.x > pl.x && e.x < pl.x + pl.w).map(pl => pl.top));
     B.rocks.push({ x: e.x, base, v: byId[e.verso], hp: ROCK_HP, maxHp: ROCK_HP, flash: 0 });
   });

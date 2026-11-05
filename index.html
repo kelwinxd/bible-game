@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>Espada Forjada — protótipo</title>
+<title>Sword of God — protótipo</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style/global.css">
 </head>
@@ -11,17 +11,38 @@
 
 <!-- MENU -->
 <section id="menu" class="screen on">
-  <h1>Espada Forjada</h1>
-  <p class="muted">Protótipo · forje versículos na lâmina e refute as mentiras.</p>
-  <div class="opt"><input type="checkbox" id="optSound" checked><label for="optSound">Som</label></div>
-  <div class="opt"><label for="optForge">Forja:</label>
-    <select id="optForge"><option value="normal">Normal</option><option value="calma">Calma (faixa lenta)</option><option value="sempressa">Sem pressa (faixa parada)</option></select></div>
-  <div class="opt"><input type="checkbox" id="optGod" checked><label for="optGod">Jogador imortal (teste)</label></div>
-  <p class="muted">Forja: <b>Espaço</b>/toque = martelar. Batalha: <b>A/D</b> andar, <b>W</b>/<b>Espaço</b> pular, <b>K</b>/<b>clique</b> atacar, segure <b>J</b>/<b>S</b>/<b>botão direito</b> para o escudo, <b>L</b> Espírito (impulso), <b>1–9</b> versículos (👁 lê o texto), <b>P</b> pausa. Menus: <b>setas</b> + <b>Enter</b>.</p>
-  <div class="row">
-    <button class="primary" onclick="startBattle()">⚔ Começar a jornada</button>
-    <button onclick="show('forgeList')">Forja</button>
-    <button onclick="startBattle(true)">Jornada com todos os versículos (teste)</button>
+  <div class="menu-art" aria-hidden="true"></div>
+  <div class="menu-panel">
+    <h1>Sword of God</h1>
+    <p class="menu-tag">Forje versículos na lâmina e refute as mentiras.</p>
+    <!-- principal -->
+    <nav class="menu-list" id="menuMain">
+      <button class="primary" onclick="showMenuView('play')">Jogar</button>
+      <button onclick="show('forgeList')">Habilidades<small>Forja dos versículos</small></button>
+      <button onclick="showMenuView('settings')">Configurações</button>
+    </nav>
+    <!-- Jogar: uma entrada por jornada -->
+    <div class="menu-sub" id="menuPlay" hidden>
+      <h2>Jogar</h2>
+      <div class="menu-list" id="journeys"></div>
+      <button class="menu-back" onclick="showMenuView('main')">← Voltar</button>
+    </div>
+    <!-- Configurações -->
+    <div class="menu-sub" id="menuSettings" hidden>
+      <h2>Configurações</h2>
+      <label class="setting"><span><b>Som</b><span class="muted">Efeitos sonoros do jogo</span></span>
+        <input type="checkbox" id="optSound" checked><span class="switch"></span></label>
+      <details class="menu-test">
+        <summary>Opções de teste do protótipo</summary>
+        <label class="setting"><span><b>Faixa da forja</b><span class="muted">Velocidade das palavras ao martelar</span></span>
+          <select id="optForge"><option value="normal">Normal</option><option value="calma">Calma</option><option value="sempressa">Parada</option></select></label>
+        <label class="setting"><span><b>Jogador imortal</b><span class="muted">A vida não cai</span></span>
+          <input type="checkbox" id="optGod" checked><span class="switch"></span></label>
+        <label class="setting"><span><b>Tudo liberado</b><span class="muted">Todos os versículos, 3 fogos e todas as jornadas</span></span>
+          <input type="checkbox" id="optAll"><span class="switch"></span></label>
+      </details>
+      <button class="menu-back" onclick="showMenuView('main')">← Voltar</button>
+    </div>
   </div>
 </section>
 

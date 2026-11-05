@@ -13,9 +13,12 @@ Como rodar: `python -m http.server 5500` na pasta e abrir http://localhost:5500 
 
 Menu → **Jornada** (fase com rolagem) → Vitória / Derrota. A Forja (lista de versículos + Exercitar a fé) é opcional, para melhorar versículos.
 
-- Menu: **⚔ Começar a jornada** · **Forja** · **Jornada com todos os versículos (teste)**.
+- **Menu inicial "Sword of God"**: título e botões **alinhados à esquerda** sobre a arte do templário contra a serpente (`assets/img/menu.webp`), escurecida e com degradê escuro à esquerda para os botões e o nome ficarem legíveis; no celular a arte fica atrás, mais escura. Três botões:
+  - **Jogar** → lista das jornadas (Jornada 1 · A Palavra no caminho, Jornada 2 · O vale da sombra) + Voltar. Jornada trancada aparece com 🔒 e desabilitada; **vencer uma jornada libera a próxima** (salvo no navegador). **No protótipo todas estão abertas** (`data.js` → `jornadasLiberadas: true`); `false` volta a travar. A vitória mostra **Jornada N →** (na última, Menu); "Jogar de novo" repete a mesma; "Ir para a jornada" da forja abre a última liberada.
+  - **Habilidades** → a Forja.
+  - **Configurações** → **Som** (interruptor, sincronizado com o da pausa e salvo). Abaixo, recolhidas em "Opções de teste do protótipo": faixa da forja (Normal / Calma / Parada), **Jogador imortal** (ligado por padrão) e **Tudo liberado** (todos os versículos, 3 fogos e todas as jornadas).
+  - Esc ou "← Voltar" retorna à lista principal. A ajuda de teclas saiu do menu (fica em Pausa → Controles).
 - As antigas "3 ondas" na tela fixa foram substituídas pela jornada (seção 4b).
-- Opções no menu: som, modo da forja (Normal / Calma / Sem pressa), **Jogador imortal (teste)** (ligado por padrão; inimigos atacam e o feedback aparece, mas a vida não cai).
 - Na forja, botões **☰ Menu** e **← Lista** sempre visíveis, inclusive no meio do martelar.
 
 ## 2. Forja (conquistar versículos)
@@ -96,7 +99,7 @@ O herói **é controlado** (o GDD previa herói fixo; mudou no teste).
 
 ## 4b. Jornada (fase com rolagem lateral)
 
-O herói **começa com 0 versículos** e os encontra pelo caminho. A fase é uma lista de eventos em `data.js` → `fase` (fácil de montar novas fases).
+Na 1ª jornada o herói **começa com 0 versículos**; nas seguintes, **só com os versículos achados nas jornadas anteriores**. Os novos ele encontra pelo caminho. Cada jornada é uma lista de eventos em `data.js` → `fases` (fácil de montar novas). Uma jornada pode ter `dica`: aviso no topo ao começar (7 s). A faixa de entrada mostra "Jornada N · nome".
 
 - **Câmera** segue o herói **suavemente** (fase de 11 100 px). Ao fim de uma luta ela desliza de volta ao herói — antes dava um salto e parecia que a fase "resetava". HUD mostra `Jornada N%`.
 - **Sensação de avanço**: o céu muda ao longo da fase (noite roxa → aurora dourada perto do fim) e o fundo tem 3 camadas de parallax (serras distantes, montanhas de alturas variadas, ruínas de colunas espaçadas). Antes o cenário era idêntico em toda a fase.
@@ -110,7 +113,7 @@ O herói **começa com 0 versículos** e os encontra pelo caminho. A fase é uma
 - **Pedra brilhante** (dourada, pulsando, veios de luz): fica **apoiada no que estiver embaixo** — chão, terreno alto, fundo do vale, topo do penhasco. **Bloqueia** quem está na mesma altura (alta demais para pular). **3 golpes** (espada ou rasgo) quebram; racha a cada golpe. De dentro **salta um livro dourado** que flutua.
 - **Tocar o livro** (ou passar por ele) → o jogo **pausa** e abre um **pergaminho que se desenrola** com "✦ NOVO VERSÍCULO ✦", a referência e o **texto completo**, com **brilho dourado pulsando** em volta (fundo escurece com halo dourado). ✕, Enter, Esc ou clique fora fecha. Ao fechar, um **📖 voa da fase até o card novo**, que surge com **faíscas douradas** — o jogador lê o versículo antes de poder usá-lo.
 - **Inimigos** surgem quando o herói chega a ~600 px do grupo (mais cedo, para o herói ficar à esquerda e sobrar espaço para os inimigos espaçados); a **câmera desliza e trava** (arena de x−740 a x+220 do grupo) até o grupo todo cair (+20 de vida ao vencer cada grupo).
-- **Tutorial no começo** (só na jornada normal): caixa no alto da tela, uma dica por vez, com as **teclas desenhadas pulsando**. Avança conforme o jogador faz:
+- **Tutorial no começo** (só na 1ª jornada, fora do modo teste): caixa no alto da tela, uma dica por vez, com as **teclas desenhadas pulsando**. Avança conforme o jogador faz:
   1. "A D andar · W ou Espaço pular — Pule o buraco!"
   2. Perto da pedra: "K atacar — golpeie a pedra brilhante: 3 golpes a quebram"
   3. "Pegue o livro dourado!"
@@ -121,7 +124,14 @@ O herói **começa com 0 versículos** e os encontra pelo caminho. A fase é uma
   2. **Mentira** ("A Bíblia é só um livro antigo…") → terreno alto → **Mentira** ("Palavras velhas e mortas…") — uma de cada vez, as duas refutadas por Hebreus 4:12
   3. caminho longo: buraco, vale, buraco largo com laje, degrau de plataforma → pedra **no topo de um penhasco**: **Tiago 4:7**
   4. **Tentação** ("Cede. Só desta vez.") → **Tentação** ("Ninguém vai saber.") — uma de cada vez, frases fixas que Tiago 4:7 refuta → fim = vitória
-  - Os outros 4 versículos (Is 41:10, 1Co 10:13, Sl 23:4, Sl 3:7) e a Dúvida ficam para as próximas jornadas (continuam na forja e no modo teste).
+  - 1Co 10:13 ainda não aparece em jornada nenhuma (continua na forja e no modo teste).
+- Ordem da fase 2 ("O vale da sombra") — **3 versículos contra o medo e 6 aves da Dúvida** (fase de 10 800 px). Começa com o aviso "A Dúvida ataca do alto: a ave mergulha onde você está / Saia do lugar ou erga o escudo [J]; pule para golpeá-la":
+  1. buraco → pedra no chão: **Isaías 41:10**
+  2. **ave** ("Você é fraco e medroso. Desista.") → terreno alto → **ave** ("Ninguém vai te socorrer.")
+  3. buraco → descida ao vale; a pedra fica **lá embaixo** ("vale da sombra da morte"): **Salmos 23:4**
+  4. **ave** ("Deus te abandonou.") → **ave** ("Você está sozinho no escuro.")
+  5. buraco largo com lajes, degrau, pedra **no topo do penhasco**: **Salmos 3:7**
+  6. final: **2 aves juntas** ("Seus inimigos são fortes demais." / "Você vai perder essa batalha.") → fim = vitória
 - Arenas de luta ficam sempre em trecho plano (regra anotada em `data.js`).
 - Regra de design: **o versículo sempre aparece antes do inimigo que ele refuta** (aprende → usa). Um grupo pode ter mentira fixa (`frases`), usado para a primeira Mentira.
 - Deck sem versículos mostra "Nenhum versículo — quebre as pedras brilhantes…". Teclas **1–9**.
@@ -132,7 +142,7 @@ O herói **começa com 0 versículos** e os encontra pelo caminho. A fase é uma
   - **0 fogos**: bloqueado ("Impulso bloqueado: nenhum fogo aceso"). Começa assim.
   - **1–2 fogos**: impulso simples (vai). Ao acender o 1º fogo: aviso "Impulso do Espírito liberado! Aperte L".
   - **3 fogos = impulso DUPLO**: depois do 1º, apertar **L de novo em até 1 s** faz o herói **voltar** pelo mesmo caminho (mesmo rastro azul, fere de novo quem atravessar), **sem esperar a recarga**. L L rápido (o 2º durante o 1º) também vale: a volta sai assim que a ida termina. Depois da volta ele encara a frente de novo e a recarga de 3 s conta a partir da volta. Botão ganha borda/brilho mais forte com 3 fogos; aviso "Impulso duplo! Aperte L L".
-- Na "Jornada com todos os versículos (teste)" começa com os 3 fogos.
+- No modo teste "Tudo liberado" começa com os 3 fogos.
 - O herói **dispara para frente** (para onde está virado) ~340 px em 0,2 s, no chão ou no ar (sem gravidade durante o avanço). Para em parede, pedra e borda da arena.
 - Durante o impulso fica **todo azul** com brilho e deixa um **rastro**: cópias azuis que somem + feixe de luz até o herói.
 - **Atravessa os inimigos**: fere cada um no caminho uma vez (dano 6 a 12, conforme a sessão Espírito Santo — seção 3b; número em azul) e fica **intocável** enquanto avança. Também acerta a pedra brilhante (1 golpe).
@@ -190,7 +200,14 @@ Obs.: a faixa colorida no card indica o tema, o que dá uma pista parcial (demô
 
 - **O demônio já entra com a mentira sobre a cabeça** (antes ela só aparecia depois que ele terminava de entrar, 2–3 s). Enquanto ele ainda está fora da tela, o balão fica preso na borda. Dá para refutar já durante a entrada. Entrada mais rápida (320 px/s).
 - **Distância mínima entre inimigos: 270 px (~3 demônios)**, para os balões não se sobreporem. Cada um tem uma vaga fixa (direita → esquerda: os que voam ficam mais à direita, os de chão mais perto do herói); entram em fila já espaçados e, ao perseguir o herói, não chegam a menos de 270 px de outro. Se mesmo assim dois balões se tocarem, um sobe acima do outro com uma linha até a cabeça do dono.
-- **Todos os inimigos de chão (Tentação e Mentira) = serpente vermelha com sprite** (alude à serpente do Éden, pai da mentira). Só a Dúvida (voa) continua desenhada por código. Tiras `assets/sprites/enemy/serpente-run.png` (7 quadros, anda/parado em loop — parado mais lento) e `assets/sprites/enemy/serpente-attack.png` (5 quadros): durante o aviso (`tell`) passa pelos quadros 1→3 (abre a boca, brilho vermelho), no golpe mostra o **bote com o rasgo** (quadro 4) e volta (5). Recortadas da folha enviada; a fileira de movimento era menor e foi **igualada pela altura**, todos os quadros alinhados pela barriga e pela base. Barra de vida acima da cabeça e balão um pouco mais alto. Os outros inimigos continuam desenhados por código (`data.js` → `inimigos[].sprite` liga um sprite a qualquer tipo).
+- **Todos os inimigos de chão (Tentação e Mentira) = serpente vermelha com sprite** (alude à serpente do Éden, pai da mentira). Tiras `assets/sprites/enemy/serpente-run.png` (7 quadros, anda/parado em loop — parado mais lento) e `assets/sprites/enemy/serpente-attack.png` (5 quadros): durante o aviso (`tell`) passa pelos quadros 1→3 (abre a boca, brilho vermelho), no golpe mostra o **bote com o rasgo** (quadro 4) e volta (5). Recortadas da folha enviada; a fileira de movimento era menor e foi **igualada pela altura**, todos os quadros alinhados pela barriga e pela base. Barra de vida acima da cabeça e balão um pouco mais alto. Os outros inimigos continuam desenhados por código (`data.js` → `inimigos[].sprite` liga um sprite a qualquer tipo).
+- **Dúvida = ave de rapina com sprite** (`assets/sprites/enemy/ave-fly.png` e `ave-attack.png`, 8 quadros cada, recortados da folha enviada; mesmo tamanho nas duas fileiras, ~160 px de envergadura no jogo, quadros alinhados pelo **olho vermelho**). Os rasgos do golpe saem à frente do bico.
+  - **Paira** no alto (y 200) batendo asas, sempre **virada para o herói**. Só alcançável **pulando**, ou quando ela desce.
+  - **Aviso** (0,7 s): ergue as asas (ataque 1→2) com brilho azul.
+  - **Mergulho** (640 px/s) em linha reta até **onde o herói estava** no fim do aviso: corpo esticado (quadros 7–8) e, perto do alvo, garras e rasgo (3→6). Encostar = 10 de dano, uma vez por mergulho. **Sair do lugar desvia; o escudo bloqueia.** No mergulho ela fica na altura do herói: hora de golpear.
+  - **Sobe em curva** para o outro lado (bico inclinado para cima, asas batendo rápido) até a altura de pairar e **vira** para encarar o herói: troca de lado direto, sem animar a virada (o giro horizontal ficava estranho).
+  - **Balão da mentira embaixo da ave** (em cima ficava atrás do HUD do topo), com a ponta para cima. Fica na altura de pairar: não desce junto no mergulho, só acompanha a ave na horizontal. Enquanto ela mergulha e sobe (passando por baixo dele), o balão fica quase transparente.
+  - Com várias aves, **só uma mergulha por vez**. Ficam dentro da arena.
 - **Cada demônio carrega UMA mentira até morrer.** Não troca com o tempo e não some ao ser refutada — só desaparece quando ele morre.
 - Cada demônio novo traz **outra mentira do seu tema**, sem repetir na mesma batalha (só repete se o repertório do tema acabar).
 - 12 mentiras no total: as 5 do GDD + variações com frases diferentes que pedem o mesmo versículo (anti-decoreba).
@@ -198,10 +215,10 @@ Obs.: a faixa colorida no card indica o tema, o que dá uma pista parcial (demô
 | | Tentação | Dúvida | Mentira |
 |---|---|---|---|
 | Vida base | 70 | 60 | 60 |
-| Comportamento | Persegue o herói no chão (90 px/s) | Flutua alto e parado | Persegue no chão, mais lento (70 px/s); corpo marrom-oliva |
-| Ataque | Corpo a corpo, 10 dano, alcance 150 px; **pular desvia** | Bola de fogo, 9 dano, voa em linha reta (380 px/s) para onde o herói estava — dá para desviar | Corpo a corpo, 8 dano |
-| Aviso | 0,55 s, brilho vermelho | 0,6 s, boca brilha | 0,6 s |
-| Cadência | 1,5 s | 2,4 s | 1,8 s |
+| Comportamento | Persegue o herói no chão (90 px/s) | Ave: paira alto e mergulha | Persegue no chão, mais lento (70 px/s) |
+| Ataque | Corpo a corpo, 10 dano, alcance 150 px; **pular desvia** | Mergulho até onde o herói estava, 10 dano; sair do lugar desvia | Corpo a corpo, 8 dano |
+| Aviso | 0,55 s, brilho vermelho | 0,7 s, ergue as asas, brilho azul | 0,6 s |
+| Cadência | 1,5 s | 2,2 s | 1,8 s |
 | Refutado por | Tiago 4:7, 1 Co 10:13 | Isaías 41:10, Salmos 23:4, Salmos 3:7 | Hebreus 4:12 |
 
 - Mentiras da Mentira: "A Bíblia é só um livro antigo. Não serve pra nada hoje." · "Palavras velhas e mortas. Isso não muda ninguém." · "Isso é coisa do passado, não tem poder nenhum."

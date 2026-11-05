@@ -160,7 +160,7 @@ window.DATA = {
     { texto: "Cede. Só desta vez.", tipo: "tentacao", ideal: ["tg4-7"] },
     { texto: "Você não aguenta mais.", tipo: "tentacao", ideal: ["1co10-13"] },
     { texto: "Deus te abandonou.", tipo: "duvida", ideal: ["sl23-4"] },
-    { texto: "Tenha medo, ninguém te ajuda.", tipo: "duvida", ideal: ["is41-10"] },
+    { texto: "Você é fraco e medroso. Desista.", tipo: "duvida", ideal: ["is41-10"] },
     { texto: "Seus inimigos são fortes demais.", tipo: "duvida", ideal: ["sl3-7"] },
     // variações: frases diferentes que pedem o mesmo versículo (anti-decoreba, GDD 6.3)
     { texto: "Ninguém vai saber.", tipo: "tentacao", ideal: ["tg4-7"] },
@@ -185,12 +185,14 @@ window.DATA = {
     mentira:  { nome: "Mentira",  cor: "#ff9a4d", claro: "#ffe0c4", brilho: "#ff8a2a" }  // laranja
   },
   inimigos: {
-    // chao: anda no chão e ataca corpo a corpo (passo = px/s); sem chao: flutua e cospe fogo
+    // chao: anda no chão e ataca corpo a corpo (passo = px/s); sem chao: flutua e cospe fogo;
+    // mergulho: ave que paira no alto e mergulha no herói (sprite assets/sprites/enemy/ave-*.png)
     tentacao: { nome: "Demônio da Tentação", vida: 70, dano: 10, tell: 0.55, cadencia: 1.5, chao: true, passo: 90, cor: "#6e0f12", sprite: "serpente" },
-    duvida:   { nome: "Demônio da Dúvida",   vida: 60, dano: 9,  tell: 0.6,  cadencia: 2.4, cor: "#3d1a5c" },
-    mentira:  { nome: "Demônio da Mentira",  vida: 60, dano: 8,  tell: 0.6,  cadencia: 1.8, chao: true, passo: 70, cor: "#9a1c1c", sprite: "serpente" }  // serpente: sprites/serpente-*.png
+    duvida:   { nome: "Ave da Dúvida",       vida: 60, dano: 10, tell: 0.7,  cadencia: 2.2, cor: "#4a3426", sprite: "ave", mergulho: true },
+    mentira:  { nome: "Demônio da Mentira",  vida: 60, dano: 8,  tell: 0.6,  cadencia: 1.8, chao: true, passo: 70, cor: "#9a1c1c", sprite: "serpente" }  // serpente: assets/sprites/enemy/serpente-*.png
   },
-  // Jornada (fase 1): o herói começa SEM versículos. Eventos em ordem de x (pixels do mundo):
+  // Jornadas (fases), em ordem: vencer uma libera a próxima. O herói começa só com os versículos achados nas
+  // jornadas anteriores. dica (opcional) = aviso no topo ao começar. Eventos em ordem de x (pixels do mundo):
   //  buraco     = obstáculo para pular (cair = volta ao último ponto firme, -10 de vida)
   //  terreno    = trecho com outra altura: altura > 0 = mais alto (parede: precisa pular), < 0 = vale mais baixo
   //  plataforma = laje flutuante; sobe pulando por baixo e fica em cima
@@ -200,7 +202,9 @@ window.DATA = {
   //               frases (opcional) = mentira fixa de cada inimigo do grupo (texto igual ao de `mentiras`)
   //  Arenas ficam no plano: deixe ~740 px antes e ~220 px depois do x de `inimigos` sem desnível.
   //  Pulo: sobe até ~130 px e alcança ~185 px na horizontal.
-  fase: {
+  // protótipo: true = todas as jornadas abertas no menu, sem precisar vencer a anterior (false = trava até vencer)
+  jornadasLiberadas: true,
+  fases: [{
     // Jornada 1: só 2 versículos, bem separados. Cada um vem antes de 2 monstros (um por vez) que ele refuta.
     nome: "A Palavra no caminho", comprimento: 9300,
     eventos: [
@@ -223,7 +227,34 @@ window.DATA = {
       { tipo: "inimigos", x: 7200, inimigos: ["tentacao"], vida: 0.6, frases: ["Cede. Só desta vez."] },
       { tipo: "inimigos", x: 8500, inimigos: ["tentacao"], vida: 0.75, frases: ["Ninguém vai saber."] }
     ]
-  },
+  }, {
+    // Jornada 2: a Dúvida ataca do alto (aves que mergulham). 3 versículos contra o medo, cada um antes das aves que ele refuta.
+    nome: "O vale da sombra", comprimento: 10800,
+    dica: ["A Dúvida ataca do alto: a ave mergulha onde você está", "Saia do lugar ou erga o escudo [J]; pule para golpeá-la"],
+    eventos: [
+      // 1) buraco e pedra no chão → Isaías 41:10
+      { tipo: "buraco", x: 700, w: 150 },
+      { tipo: "pedra", x: 1250, verso: "is41-10" },
+      //    → 2 aves, uma de cada vez, com um terreno alto entre elas
+      { tipo: "inimigos", x: 2200, inimigos: ["duvida"], vida: 0.7, frases: ["Você é fraco e medroso. Desista."] },
+      { tipo: "terreno", x: 2650, w: 400, altura: 100 },
+      { tipo: "inimigos", x: 3900, inimigos: ["duvida"], vida: 0.75, frases: ["Ninguém vai te socorrer."] },
+      // 2) buraco e descida ao vale: a pedra fica lá embaixo ("vale da sombra da morte") → Salmos 23:4
+      { tipo: "buraco", x: 4400, w: 170 },
+      { tipo: "terreno", x: 4900, w: 560, altura: -90 },
+      { tipo: "pedra", x: 5180, verso: "sl23-4" },
+      { tipo: "inimigos", x: 6400, inimigos: ["duvida"], vida: 0.8, frases: ["Deus te abandonou."] },
+      { tipo: "inimigos", x: 7500, inimigos: ["duvida"], vida: 0.85, frases: ["Você está sozinho no escuro."] },
+      // 3) buraco largo com lajes e penhasco com a pedra no topo → Salmos 3:7
+      { tipo: "buraco", x: 8000, w: 330 },
+      { tipo: "plataforma", x: 8100, w: 130, altura: 50 },
+      { tipo: "plataforma", x: 8420, w: 140, altura: 70 },
+      { tipo: "terreno", x: 8580, w: 460, altura: 140 },
+      { tipo: "pedra", x: 8850, verso: "sl3-7" },
+      //    → final: 2 aves juntas (mergulham uma de cada vez)
+      { tipo: "inimigos", x: 10050, inimigos: ["duvida", "duvida"], vida: 0.7, frases: ["Seus inimigos são fortes demais.", "Você vai perder essa batalha."] }
+    ]
+  }],
   // Exercitar a fé: leitura + quiz sobre os heróis de Hebreus 11. Passar no quiz aumenta a duração do escudo.
   // Afiação nível 1: perguntas SÓ sobre a pessoa do autor (não sobre o contexto da carta/livro).
   // Uma é sorteada a cada partida, depois do "quem escreveu?". Autores compartilhados entre versículos (ex.: Davi).

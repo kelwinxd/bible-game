@@ -1,4 +1,4 @@
-import { balloonY } from '../combat.js';
+import { balloonBelow, balloonY } from '../combat.js';
 import { ctx } from '../config.js';
 import { tema } from '../hud.js';
 import { B } from '../state.js';
@@ -48,7 +48,7 @@ export function drawHUD() {
   bar(490, 14, 200, 22, B.shieldE / shieldMax, B.shieldLock ? '#4a5a72' : '#5d8fd8', B.shieldLock ? 'Escudo recarregando…' : `Escudo ${B.shieldE.toFixed(1)}s / ${shieldMax}s`);
   const P = B.power;
   bar(240, 14, 236, 22, P ? P.t / P.dur : 0, !P ? '#f2c84b' : B.shield ? '#6a6a6a' : tema(P.v).cor, P ? (B.shield ? 'Poder (pausado — escudo)' : `Poder · ${P.v.ref}`) : 'Espada inerte — refute');
-  ctx.fillStyle = '#f3e7d3'; ctx.font = '700 20px Cinzel, serif'; ctx.textAlign = 'right'; ctx.fillText(`Jornada ${Math.min(100, Math.round(B.hero.x / D.fase.comprimento * 100))}%`, W - 16, 33); ctx.textAlign = 'center';
+  ctx.fillStyle = '#f3e7d3'; ctx.font = '700 20px Cinzel, serif'; ctx.textAlign = 'right'; ctx.fillText(`Jornada ${Math.min(100, Math.round(B.hero.x / B.fase.comprimento * 100))}%`, W - 16, 33); ctx.textAlign = 'center';
 }
 export function bar(x, y, w, hh, p, c, label) {
   ctx.fillStyle = '#2a1d16'; ctx.fillRect(x, y, w, hh);
@@ -57,7 +57,7 @@ export function bar(x, y, w, hh, p, c, label) {
   ctx.fillStyle = '#fff'; ctx.font = '600 13px system-ui'; ctx.textAlign = 'left'; ctx.fillText(label, x + 6, y + 16); ctx.textAlign = 'center';
 }
 export function drawHpBar(d) {
-  const y = d.s.sprite ? d.y - 252 : d.s.chao ? d.y - 200 : d.y - 85; // sprite: acima da cabeça
+  const y = d.s.mergulho ? d.y - 140 : d.s.sprite ? d.y - 252 : d.s.chao ? d.y - 200 : d.y - 85; // sprite: acima da cabeça
   ctx.fillStyle = '#000'; ctx.fillRect(d.x - 40, y, 80, 8);
   ctx.fillStyle = d.vuln && d.lastVerse ? tema(d.lastVerse).cor : '#e04a3a'; ctx.fillRect(d.x - 40, y, 80 * Math.max(0, d.hp) / d.maxHp, 8);
 }
@@ -70,26 +70,31 @@ export function layoutBalloons() {
     words.forEach(w => { if (ctx.measureText(ln + ' ' + w).width > 210 && ln) { lines.push(ln); ln = w; } else ln = ln ? ln + ' ' + w : w; });
     lines.push(ln);
     const bw = Math.max(...lines.map(l => ctx.measureText(l).width)) + 28, bh = lines.length * 24 + 16;
-    const b = { d, lines, bw, bh, cx: Math.min(B.cam + 960 - bw / 2 - 8, Math.max(B.cam + bw / 2 + 8, d.x)), y: balloonY(d) - bh };
+    const below = balloonBelow(d);
+    const b = { d, lines, bw, bh, below, cx: Math.min(B.cam + 960 - bw / 2 - 8, Math.max(B.cam + bw / 2 + 8, d.x)), y: below ? balloonY(d) + 14 : balloonY(d) - bh };
     for (let moved = true, n = 0; moved && n < 6; n++) {
       moved = false;
-      for (const o of placed) if (Math.abs(b.cx - o.cx) < (b.bw + o.bw) / 2 + 6 && b.y < o.y + o.bh + 6 && b.y + b.bh > o.y - 6) { b.y = o.y - b.bh - 10; moved = true; }
+      for (const o of placed) if (Math.abs(b.cx - o.cx) < (b.bw + o.bw) / 2 + 6 && b.y < o.y + o.bh + 6 && b.y + b.bh > o.y - 6) { b.y = b.below ? o.y + o.bh + 10 : o.y - b.bh - 10; moved = true; }
     }
     placed.push(b);
   });
   return placed;
 }
-export function drawBalloon({ d, lines, bw, bh, cx, y }) {
+export function drawBalloon({ d, lines, bw, bh, cx, y, below }) {
   ctx.save(); ctx.globalAlpha = 1 - d.lieFlash / .3; // balão nasce com fade-in quando a mentira troca
+  if (below && d.y > balloonY(d) - 25) ctx.globalAlpha *= .3; // ave mergulhando passa por baixo do balão: fica quase transparente
   ctx.font = '600 18px system-ui';
   const headY = balloonY(d);
-  if (y + bh < headY - 4) { ctx.strokeStyle = '#f7efe2aa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(d.x, y + bh); ctx.lineTo(d.x, headY); ctx.stroke(); } // balão empurrado para cima: linha até a cabeça
+  if (below && y > headY + 18) { ctx.strokeStyle = '#f7efe2aa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(d.x, headY); ctx.lineTo(d.x, y); ctx.stroke(); } // empurrado para baixo
+  if (!below && y + bh < headY - 4) { ctx.strokeStyle = '#f7efe2aa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(d.x, y + bh); ctx.lineTo(d.x, headY); ctx.stroke(); } // balão empurrado para cima: linha até a cabeça
   // refutada (poder ativo contra ele): borda e brilho na cor do versículo; a frase continua até ele morrer
   const tc = d.vuln && d.lastVerse && tema(d.lastVerse);
   ctx.fillStyle = '#f7efe2'; ctx.strokeStyle = tc ? tc.cor : '#5a1010'; ctx.lineWidth = tc ? 4 : 3;
   if (tc) { ctx.shadowColor = tc.brilho; ctx.shadowBlur = 16; }
   ctx.beginPath(); ctx.roundRect(cx - bw / 2, y, bw, bh, 10); ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
-  ctx.beginPath(); ctx.moveTo(d.x - 10, y + bh); ctx.lineTo(d.x, y + bh + 14); ctx.lineTo(d.x + 10, y + bh); ctx.fill();
+  ctx.beginPath(); // ponta virada para o dono (para cima quando o balão fica embaixo)
+  if (below) { ctx.moveTo(d.x - 10, y); ctx.lineTo(d.x, y - 14); ctx.lineTo(d.x + 10, y); } else { ctx.moveTo(d.x - 10, y + bh); ctx.lineTo(d.x, y + bh + 14); ctx.lineTo(d.x + 10, y + bh); }
+  ctx.fill();
   ctx.fillStyle = '#3a0c0c'; lines.forEach((l, i) => ctx.fillText(l, cx, y + 30 + i * 24));
   ctx.restore();
 }

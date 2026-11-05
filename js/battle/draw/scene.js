@@ -1,5 +1,5 @@
 import { GROUND, HERO, HERO_IDLE, HERO_SCALE, HERO_THRUST, SWING_HIT, ctx } from '../config.js';
-import { drawDuvida, drawSpriteDemon, drawTentacao } from './enemies.js';
+import { drawBird, drawDuvida, drawSpriteDemon, drawTentacao } from './enemies.js';
 import { drawBalloon, drawFatal, drawHUD, drawHpBar, drawTip, layoutBalloons } from './hud.js';
 import { drawBook, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky } from './world.js';
 import { halted, tema } from '../hud.js';
@@ -17,7 +17,7 @@ export function drawBattle() {
   drawGround(cam);
   B.holes.forEach(drawHole);
   B.platforms.forEach(drawPlatform);
-  drawGoal(D.fase.comprimento - 160);
+  drawGoal(B.fase.comprimento - 160);
   B.rocks.forEach(r => r.hp > 0 ? drawRock(r) : drawRubble(r));
   B.books.forEach(drawBook);
 
@@ -66,7 +66,7 @@ export function drawBattle() {
   }
 
   // demônios
-  B.demons.forEach(d => { if (d.state === 'dead' && !(d.pop > 0)) return; d.s.sprite ? drawSpriteDemon(d) : d.s.chao ? drawTentacao(d) : drawDuvida(d); }); // morto: só o clarão antes de estourar
+  B.demons.forEach(d => { if (d.state === 'dead' && !(d.pop > 0)) return; d.s.mergulho ? drawBird(d) : d.s.sprite ? drawSpriteDemon(d) : d.s.chao ? drawTentacao(d) : drawDuvida(d); }); // morto: só o clarão antes de estourar
   B.demons.forEach(d => { if (d.state !== 'dead') drawHpBar(d); });
   layoutBalloons().forEach(drawBalloon);
 
@@ -112,7 +112,7 @@ export function drawBattle() {
   drawHUD();
   if (B.trans > 0 && !B.fatal && B.peek < 0) {
     ctx.fillStyle = '#000a'; ctx.fillRect(0, 230, W, 70);
-    ctx.fillStyle = '#f2c84b'; ctx.font = '800 36px Cinzel, serif'; ctx.fillText(D.fase.nome, W / 2, 278);
+    ctx.fillStyle = '#f2c84b'; ctx.font = '800 36px Cinzel, serif'; ctx.fillText(`Jornada ${B.faseIdx + 1} · ${B.fase.nome}`, W / 2, 278);
   }
   if (!B.fatal && !(B.trans > 0)) drawTip();
   if (B.fatal) drawFatal();
