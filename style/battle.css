@@ -1,0 +1,4 @@
+/* Batalha: canvas da arena */
+/* Batalha */
+#battle { padding:8px; }
+#arena { width:100%; aspect-ratio:16/9; display:block; background:#000; border-radius:8px; }

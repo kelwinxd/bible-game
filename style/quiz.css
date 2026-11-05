@@ -1,0 +1,7 @@
+/* Quiz (Exercitar a fé / Espírito Santo) */
+.quiz-opts { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin:14px 0; }
+.quiz-opts button { font-size:18px; text-align:left; }
+.quiz-opts button.ok { background:#2f5a2a; border-color:#7dff8a; opacity:1; }
+.quiz-opts button.bad { background:#6a1d18; border-color:#ff8a7a; opacity:1; }
+.qprog { display:flex; gap:6px; margin-bottom:10px; }
+.qprog span { width:28px; height:28px; border-radius:50%; display:grid; place-items:center; background:#2c211a; border:1px solid #5a4030; font-size:14px; font-weight:700; }

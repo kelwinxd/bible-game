@@ -1,6 +1,6 @@
 # Espada Forjada — Mecânicas validadas no protótipo
 
-Registro do que já foi implementado e testado no protótipo HTML (`index.html` + `data.js`).
+Registro do que já foi implementado e testado no protótipo HTML (`index.html` + `script.js`/`js/` + `data.js`).
 Serve de base para o jogo oficial. **Atualizar sempre que uma mecânica mudar** — só o que importa
 para o design, não detalhe de código. O GDD original é `espada-forjada-gdd.md` (v0.3, fora do repo, em Downloads); onde este arquivo
 diverge do GDD, **vale este arquivo** (são decisões tomadas testando).
@@ -86,13 +86,13 @@ O herói **é controlado** (o GDD previa herói fixo; mudou no teste).
 
 - Esquema só-teclado possível: **A/D + W andam/pulam, K ataca, J defende** (mão esquerda move, direita age, estilo jogo de luta).
 - **Menus sem mouse**: em todas as telas fora da luta (menu, forja, hub do versículo, Afiação, fé, pausa, fim de batalha) as **setas** movem o foco para o botão mais próximo naquela direção e **Enter** confirma. A primeira seta foca o botão principal da tela. Em seletor (modo da forja), ← → trocam a opção. Durante a luta as setas continuam movendo o herói.
-- **Sprite do herói = templário** (capa branca, cruz vermelha). Tiras `sprites/heroi-run.png` (8 quadros), `heroi-jump.png` (5) e `heroi-death.png` (5), recortadas das folhas enviadas; a 2ª folha (pulo/morte) era menor e foi igualada à corrida; todos alinhados pelo tronco e pelos pés; desenhado a **0,78×** no jogo (~150 px correndo — 190 ficava grande demais). Caixa de colisão do herói reduzida junto (160 px de altura).
-  - **Correr**: 8 quadros em loop · **Parado (idle)**: `heroi-idle.png`, 4 quadros em pé (escudo e espada baixos) a 5 quadros/s; em pé ~205 px na folha (um pouco mais alto que a corrida agachada).
+- **Sprite do herói = templário** (capa branca, cruz vermelha). Tiras `assets/sprites/hero/run.png` (8 quadros), `jump.png` (5) e `death.png` (5), recortadas das folhas enviadas; a 2ª folha (pulo/morte) era menor e foi igualada à corrida; todos alinhados pelo tronco e pelos pés; desenhado a **0,78×** no jogo (~150 px correndo — 190 ficava grande demais). Caixa de colisão do herói reduzida junto (160 px de altura).
+  - **Correr**: 8 quadros em loop · **Parado (idle)**: `idle.png`, 4 quadros em pé (escudo e espada baixos) a 5 quadros/s; em pé ~205 px na folha (um pouco mais alto que a corrida agachada).
   - **Pular**: subindo = quadro 2 · topo = quadro 1 · descendo = quadro 5.
   - **Golpe (K)**: espada erguida (quadro 3 do pulo) → **estocada** (quadro 4) no instante do acerto. Também é a pose do **Impulso** e do rastro azul.
   - **Morte**: 5 quadros (cambaleia → ajoelha → deita) em ~0,8 s; a tela "Você caiu" espera 1,4 s para dar tempo de ver.
   - Ainda não há sprite próprio de **ataque no chão** (usa as poses do pulo).
-  - O herói antigo (sprites `run`/`attack`) foi guardado em `sprites/heroi-antigo/`.
+  - O herói antigo (sprites `run`/`attack`) foi guardado em `assets/sprites/hero/antigo/`.
 
 ## 4b. Jornada (fase com rolagem lateral)
 
@@ -101,7 +101,7 @@ O herói **começa com 0 versículos** e os encontra pelo caminho. A fase é uma
 - **Câmera** segue o herói **suavemente** (fase de 11 100 px). Ao fim de uma luta ela desliza de volta ao herói — antes dava um salto e parecia que a fase "resetava". HUD mostra `Jornada N%`.
 - **Sensação de avanço**: o céu muda ao longo da fase (noite roxa → aurora dourada perto do fim) e o fundo tem 3 camadas de parallax (serras distantes, montanhas de alturas variadas, ruínas de colunas espaçadas). Antes o cenário era idêntico em toda a fase.
 - **Terreno variado** (não é sempre buraco):
-  - **Buraco**: pular. Cair = volta ao **último ponto firme**, −10 de vida. Todo buraco tem **3 mãos em chamas** (`sprites/mao-fogo.png`, 10 quadros recortados da folha enviada; a fileira "afundando" era menor e foi igualada pelo monte de brasas). O fogo é só o da própria arte (o fogo desenhado por código foi removido a pedido).
+  - **Buraco**: pular. Cair = volta ao **último ponto firme**, −10 de vida. Todo buraco tem **3 mãos em chamas** (`assets/sprites/hazard/mao-fogo.png`, 10 quadros recortados da folha enviada; a fileira "afundando" era menor e foi igualada pelo monte de brasas). O fogo é só o da própria arte (o fogo desenhado por código foi removido a pedido).
     - Pequenas (~0,55×, tamanhos levemente diferentes, espelhadas alternadas, **de propósito desalinhadas na altura**: uma mais alta, outra mais baixa, ~30 px de diferença; a base de todas fica abaixo da borda da tela, sem faixa preta embaixo), saindo do fundo da tela: **sobem e agarram** (quadros 1–5 em loop, cada uma no seu ritmo) quando o herói chega a ~280 px, **uma depois da outra**, e **afundam** (quadros 6–10) quando ele se afasta. Desenhadas na frente do herói: quem cai some entre elas.
     - Em buraco com laje no meio, as mãos ficam só nos vãos livres.
   - **Terreno mais alto**: parede na frente; precisa pular (até ~130 px).
@@ -190,7 +190,7 @@ Obs.: a faixa colorida no card indica o tema, o que dá uma pista parcial (demô
 
 - **O demônio já entra com a mentira sobre a cabeça** (antes ela só aparecia depois que ele terminava de entrar, 2–3 s). Enquanto ele ainda está fora da tela, o balão fica preso na borda. Dá para refutar já durante a entrada. Entrada mais rápida (320 px/s).
 - **Distância mínima entre inimigos: 270 px (~3 demônios)**, para os balões não se sobreporem. Cada um tem uma vaga fixa (direita → esquerda: os que voam ficam mais à direita, os de chão mais perto do herói); entram em fila já espaçados e, ao perseguir o herói, não chegam a menos de 270 px de outro. Se mesmo assim dois balões se tocarem, um sobe acima do outro com uma linha até a cabeça do dono.
-- **Todos os inimigos de chão (Tentação e Mentira) = serpente vermelha com sprite** (alude à serpente do Éden, pai da mentira). Só a Dúvida (voa) continua desenhada por código. Tiras `sprites/serpente-run.png` (7 quadros, anda/parado em loop — parado mais lento) e `sprites/serpente-attack.png` (5 quadros): durante o aviso (`tell`) passa pelos quadros 1→3 (abre a boca, brilho vermelho), no golpe mostra o **bote com o rasgo** (quadro 4) e volta (5). Recortadas da folha enviada; a fileira de movimento era menor e foi **igualada pela altura**, todos os quadros alinhados pela barriga e pela base. Barra de vida acima da cabeça e balão um pouco mais alto. Os outros inimigos continuam desenhados por código (`data.js` → `inimigos[].sprite` liga um sprite a qualquer tipo).
+- **Todos os inimigos de chão (Tentação e Mentira) = serpente vermelha com sprite** (alude à serpente do Éden, pai da mentira). Só a Dúvida (voa) continua desenhada por código. Tiras `assets/sprites/enemy/serpente-run.png` (7 quadros, anda/parado em loop — parado mais lento) e `assets/sprites/enemy/serpente-attack.png` (5 quadros): durante o aviso (`tell`) passa pelos quadros 1→3 (abre a boca, brilho vermelho), no golpe mostra o **bote com o rasgo** (quadro 4) e volta (5). Recortadas da folha enviada; a fileira de movimento era menor e foi **igualada pela altura**, todos os quadros alinhados pela barriga e pela base. Barra de vida acima da cabeça e balão um pouco mais alto. Os outros inimigos continuam desenhados por código (`data.js` → `inimigos[].sprite` liga um sprite a qualquer tipo).
 - **Cada demônio carrega UMA mentira até morrer.** Não troca com o tempo e não some ao ser refutada — só desaparece quando ele morre.
 - Cada demônio novo traz **outra mentira do seu tema**, sem repetir na mesma batalha (só repete se o repertório do tema acabar).
 - 12 mentiras no total: as 5 do GDD + variações com frases diferentes que pedem o mesmo versículo (anti-decoreba).

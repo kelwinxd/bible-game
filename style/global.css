@@ -1,0 +1,8 @@
+/* Estilo do jogo: importa cada parte */
+@import url('base.css');
+@import url('forge.css');
+@import url('quiz.css');
+@import url('battle.css');
+@import url('hud.css');
+@import url('peek.css');
+@import url('overlay.css');

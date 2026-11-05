@@ -1,0 +1,61 @@
+/* Forja: lista de versículos, pergaminho, faixa de palavras, martelo, afiação, níveis */
+/* Lista da forja */
+.vlist { display:grid; gap:10px; margin:12px 0; }
+.vitem { display:flex; justify-content:space-between; align-items:center; gap:10px; background:var(--panel); border:1px solid #3d2c20; border-radius:10px; padding:12px; cursor:pointer; }
+.vitem:hover { border-color:var(--ember); }
+.tag { font-size:12px; padding:2px 8px; border-radius:20px; background:#2c211a; color:var(--muted); }
+
+/* Forja */
+.scroll { background:linear-gradient(#e9d8b0,#d6bf8e); color:#3b2612; border-radius:6px; padding:18px 20px; font-family:Georgia,serif; font-size:clamp(17px,2.6vw,21px); line-height:1.6; box-shadow:inset 0 0 30px #8a5a2a88; }
+.scroll .ref { font-family:Cinzel,serif; font-weight:800; margin-bottom:6px; }
+.gap { display:inline-block; min-width:90px; border-bottom:3px solid #3b2612; text-align:center; background:radial-gradient(#2a1a0c55,transparent 70%); color:transparent; }
+.gap.active { border-color:var(--ember); background:radial-gradient(#ff7a1a66,transparent 70%); animation:pulse 1s infinite; }
+.gap.done { color:#3b2612; font-weight:700; background:none; border-color:transparent; }
+.gap.blot { filter:blur(1px); }
+.caret { color:var(--ember); animation:blink .6s steps(1) infinite; }
+@keyframes blink { 50% { opacity:0; } }
+@keyframes pulse { 50% { box-shadow:0 0 12px var(--ember); } }
+.strip { position:relative; height:78px; margin:18px 0 10px; background:#0c0807; border:2px solid #3d2c20; border-radius:10px; overflow:hidden; cursor:pointer; }
+.strip .zone { position:absolute; top:0; bottom:0; left:50%; transform:translateX(-50%); background:linear-gradient(90deg,transparent,#ff7a1a55,#ffb36688,#ff7a1a55,transparent); border-left:1px dashed #ff7a1a; border-right:1px dashed #ff7a1a; }
+.strip .w { position:absolute; top:50%; transform:translate(-50%,-50%); padding:8px 14px; border-radius:6px; background:#2e221b; border:1px solid #5a4030; white-space:nowrap; font-size:18px; font-family:Georgia,serif; }
+.strip.shake { animation:shake .3s; }
+/* martelo sob a faixa: a cabeça fica sobre a bigorna, no centro (zona/mira); a cada toque desce inclinando e volta */
+.smith { position:relative; height:86px; margin:-6px 0 2px; pointer-events:none; }
+.smith .anvil { position:absolute; left:50%; bottom:8px; width:96px; transform:translateX(-50%); }
+.smith .hammer { position:absolute; left:calc(50% - 23px); top:14px; width:96px; height:48px; transform-origin:92% 52%; transform:rotate(20deg); }
+.smith .hammer.hit { animation:strike .26s cubic-bezier(.5,0,.7,.4); }
+@keyframes strike { 0% { transform:rotate(20deg); } 38% { transform:rotate(-9deg); } 52% { transform:rotate(-5deg); } 100% { transform:rotate(20deg); } }
+.strip.static { display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; height:auto; min-height:78px; padding:10px; cursor:default; }
+.strip.static .w { position:static; transform:none; cursor:pointer; }
+@keyframes shake { 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+.anvil { display:flex; align-items:center; gap:14px; }
+.hammer { font-size:20px; padding:14px 28px; }
+#sparks { position:fixed; inset:0; pointer-events:none; }
+.bars { display:inline-flex; gap:3px; vertical-align:middle; }
+.bars i { width:18px; height:9px; border-radius:2px; background:#2c211a; border:1px solid #5a4030; }
+.bars.gold i.on { background:linear-gradient(#ffe08a,#c9971f); border-color:#f2c84b; box-shadow:0 0 6px #f2c84b88; }
+.bars.silver i.on { background:linear-gradient(#ffffff,#9aa8b8); border-color:#dfe8f0; box-shadow:0 0 6px #dfe8f088; }
+.vbars { display:flex; flex-direction:column; gap:4px; align-items:flex-end; font-size:13px; color:var(--muted); }
+.vbars span { display:flex; gap:8px; align-items:center; }
+.track { background:var(--panel); border:1px solid #3d2c20; border-radius:10px; padding:12px; margin-top:12px; }
+.track-head { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px; }
+.lvls { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:8px; }
+.lvl { display:flex; flex-direction:column; align-items:flex-start; gap:2px; text-align:left; }
+.lvl small { color:var(--muted); }
+.lvl.done { border-color:#7a6a3a; }
+.lvl.next { border-color:var(--ember); background:#4b3020; }
+.pass { color:#7dff8a; font-weight:700; } .fail { color:#ff8a7a; font-weight:700; }
+.sharp-opts { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:10px; margin:14px 0 4px; }
+.sharp-opts button { font-size:17px; text-align:left; position:relative; padding-left:34px; }
+.sharp-opts button .k { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--muted); }
+.sharp-opts button.bad { background:#6a1d18; border-color:#ff8a7a; }
+/* --p (0–100%) = quanto já foi afiado: o pergaminho vai virando prata a cada acerto */
+.strip.sharp { --p:0%; background:linear-gradient(color-mix(in srgb,#e9d8b0,#f2f6fa var(--p)),color-mix(in srgb,#d6bf8e,#a9b6c4 var(--p))); border-color:color-mix(in srgb,#8a6534,#dfe8f0 var(--p)); cursor:default; transition:background .5s, border-color .5s; }
+.strip.sharp::after { content:''; position:absolute; inset:0; background:#ffd84a; opacity:0; pointer-events:none; }
+.strip.sharp.flash::after { animation:flashY .55s ease-out; }
+@keyframes flashY { 0%{opacity:.85} 30%{opacity:.15} 50%{opacity:.6} 100%{opacity:0} }
+.strip .mira { position:absolute; top:0; bottom:0; left:50%; transform:translateX(-50%); border-left:2px solid #7a2a12; border-right:2px solid #7a2a12; background:#7a2a1218; }
+.strip .mira::before, .strip .mira::after { content:''; position:absolute; left:50%; width:2px; height:12px; background:#7a2a12; transform:translateX(-50%); }
+.strip .mira::before { top:0; } .strip .mira::after { bottom:0; }
+.stain.silver { background:radial-gradient(ellipse at 40% 45%, #ffffff 0%, #e4ecf3ee 35%, #9fb0c299 60%, transparent 72%); filter:drop-shadow(0 0 6px #ffffffcc); }
+.stain { position:absolute; top:50%; width:74px; height:50px; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(ellipse at 45% 50%, #120a05 0%, #1a0f0bee 40%, #2a1a0c88 60%, transparent 72%); pointer-events:none; }

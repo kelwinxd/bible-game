@@ -10,7 +10,18 @@ python -m http.server 5500
 
 Abra http://localhost:5500 (Ctrl+F5 depois de mudanças).
 
-- `index.html` — jogo (canvas + HUD)
-- `data.js` — versículos, mentiras, inimigos, quizzes e a fase
-- `sprites/` — herói (templário), serpente, mãos em chamas
-- `MECANICAS.md` — registro das mecânicas validadas no protótipo
+- `index.html`: só a marcação das telas (menu, forja, batalha, pausa)
+- `style/global.css`: importa os estilos de cada parte (`base`, `forge`, `quiz`, `battle`, `hud`, `peek`, `overlay`)
+- `script.js`: ponto de entrada. Importa os módulos ES, expõe ao HTML as funções dos `onclick` e roda o loop do jogo
+- `js/`:
+  - `core/`: utilitários, opções, progresso salvo, som
+  - `ui/`: troca de telas, faíscas, navegação por setas
+  - `forge/`: lista, versículo, forja, afiação, quizzes
+  - `battle/`: configuração e sprites, estado, mundo, HUD, combate, atualização
+  - `battle/draw/`: desenho da cena, do cenário, do HUD e dos inimigos
+  - `input/`: teclado, mouse e escudo
+- `data.js`: versículos, mentiras, inimigos, quizzes e a fase
+- `assets/sprites/`: `hero/` (templário; `antigo/` = herói anterior), `enemy/` (serpente), `hazard/` (mãos em chamas)
+- `MECANICAS.md`: registro das mecânicas validadas no protótipo
+
+O jogo usa módulos ES, então precisa ser aberto por um servidor (não funciona abrindo o arquivo direto).
