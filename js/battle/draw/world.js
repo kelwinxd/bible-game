@@ -49,8 +49,77 @@ export function drawSky(cam) {
     for (let c = 0; c < k; c++) { const ch = 70 + hash(n * 3 + c) * 120; ctx.fillRect(x + c * 46, GROUND - ch, 22, ch); ctx.fillRect(x + c * 46 - 5, GROUND - ch, 32, 8); }
   }
 }
+// Chão com imagem (data.js → fases[].chao): uma laje de terra e pedras. O miolo vira uma faixa repetível
+// (fim dissolvido no começo, como o fundo) e as pontas arredondadas viram "tampas" nas bordas de buracos e desníveis.
+// Medidas no arquivo recortado (2000×388): superfície onde se pisa em y=100, pontas de 120 px, faixa de rochas em y 160–340.
+const GSRC = { cap: 120, surf: 100, band: [160, 340], fade: 160, s: .5 };
+function groundKit(img) {
+  const { cap, fade, s, band } = GSRC, H = Math.round(img.naturalHeight * s), cw = cap * s;
+  const mk = (w, h) => { const c = Object.assign(document.createElement('canvas'), { width: w, height: h }); return [c, c.getContext('2d')]; };
+  // miolo repetível, com a base arredondada (usado nas lajes flutuantes)
+  const midSrc = img.naturalWidth - 2 * cap, W = midSrc * s, P = W - fade * s;
+  const [mid, mc] = mk(P, H); mc.drawImage(img, cap, 0, midSrc, img.naturalHeight, 0, 0, W, H);
+  const [f, fc] = mk(fade * s, H); fc.drawImage(img, cap + midSrc - fade, 0, fade, img.naturalHeight, 0, 0, fade * s, H);
+  const g = fc.createLinearGradient(0, 0, fade * s, 0); g.addColorStop(0, '#000'); g.addColorStop(1, '#0000');
+  fc.globalCompositeOperation = 'destination-in'; fc.fillStyle = g; fc.fillRect(0, 0, fade * s, H); mc.drawImage(f, 0, 0);
+  // chão alto: o miolo até o fim das rochas e, abaixo, a faixa de rochas repetida (escurecendo com a profundidade)
+  const b0 = band[0] * s, b1 = band[1] * s, [tall, tc] = mk(P, 420);
+  tc.drawImage(mid, 0, 0, P, b1, 0, 0, P, b1);
+  // cada repetição entra dissolvendo por cima da anterior (sem linha reta na emenda)
+  const bh = b1 - b0, ov = 24, [bd, bc] = mk(P, bh);
+  bc.drawImage(mid, 0, b0, P, bh, 0, 0, P, bh);
+  const bg2 = bc.createLinearGradient(0, 0, 0, ov); bg2.addColorStop(0, '#0000'); bg2.addColorStop(1, '#000');
+  bc.globalCompositeOperation = 'destination-in'; bc.fillStyle = bg2; bc.fillRect(0, 0, P, bh);
+  for (let y = b1 - ov; y < 420; y += bh - ov) tc.drawImage(bd, 0, y);
+  const dg = tc.createLinearGradient(0, 140, 0, 420); dg.addColorStop(0, 'rgba(20,10,5,0)'); dg.addColorStop(1, 'rgba(20,10,5,.75)');
+  tc.globalCompositeOperation = 'source-atop'; tc.fillStyle = dg; tc.fillRect(0, 140, P, 280);
+  // pontas: o lado de dentro se dissolve no miolo (que continua por baixo delas)
+  const capCv = (sx, inner) => {
+    const [c, x] = mk(cw, H); x.drawImage(img, sx, 0, cap, img.naturalHeight, 0, 0, cw, H);
+    const gg = x.createLinearGradient(0, 0, cw, 0);
+    gg.addColorStop(inner ? 0 : .45, inner ? '#0000' : '#000'); gg.addColorStop(inner ? .55 : 1, inner ? '#000' : '#0000');
+    x.globalCompositeOperation = 'destination-in'; x.fillStyle = gg; x.fillRect(0, 0, cw, H);
+    return c;
+  };
+  const capL = capCv(0, false), capR = capCv(img.naturalWidth - cap, true);
+  return { mid, tall, capL, capR, cw, surf: GSRC.surf * s, pat: ctx.createPattern(tall, 'repeat-x'), patMid: ctx.createPattern(mid, 'repeat-x') };
+}
+const GK = {};
+function groundImg() {
+  const F = B.fase.chao; if (!F) return null;
+  const img = BG[F] || (BG[F] = Object.assign(new Image(), { src: F }));
+  return img.naturalWidth ? (GK[F] || (GK[F] = groundKit(img))) : null;
+}
+// um pedaço de laje entre a e b com a superfície em y; tampas arredondadas onde capL/capR
+function slab(k, a, b, y, capL, capR, sc = 1, fundo = false) {
+  const cw = k.cw * sc, top = y - k.surf * sc, h = (fundo ? k.mid.height : k.tall.height) * sc;
+  const ma = capL ? a + cw * .2 : a, mb = capR ? b - cw * .2 : b; // o miolo começa onde a ponta ainda é opaca; a ponta se dissolve sobre ele
+  if (mb > ma) {
+    const p = fundo ? k.patMid : k.pat; p.setTransform(new DOMMatrix().translate(0, top).scale(sc));
+    ctx.fillStyle = p; ctx.fillRect(ma, top, mb - ma, h);
+  }
+  if (capL) ctx.drawImage(k.capL, a - cw * .25, top, cw, k.capL.height * sc);
+  if (capR) ctx.drawImage(k.capR, b - cw * .75, top, cw, k.capR.height * sc);
+}
+function drawGroundImg(k, cam) {
+  const x0 = cam - 80, x1 = cam + 1040;
+  // trechos visíveis com a altura de cada um (buracos = Infinity)
+  let segs = [{ a: x0, b: x1, top: 0 }];
+  const cut = (x, w, top) => {
+    segs = segs.flatMap(s => s.b <= x || s.a >= x + w ? [s]
+      : [{ ...s, b: x }, { a: Math.max(s.a, x), b: Math.min(s.b, x + w), top }, { ...s, a: x + w }].filter(q => q.b > q.a));
+  };
+  B.terrain.filter(t => t.top !== Infinity).forEach(t => cut(t.x, t.w, t.top));
+  B.holes.forEach(o => cut(o.x + 14, o.w - 28, Infinity)); // a laje avança um pouco sobre a borda do buraco, onde ainda dá pé
+  // fundo dos buracos: escuridão por trás das lajes
+  B.holes.forEach(o => { const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
+  // do mais baixo para o mais alto: a parede de quem é mais alto fica na frente
+  segs.map((s, i) => ({ s, l: segs[i - 1], r: segs[i + 1] })).filter(q => q.s.top !== Infinity).sort((p, q) => q.s.top - p.s.top)
+    .forEach(({ s, l, r }) => slab(k, s.a, s.b, GROUND + s.top, l && l.top > s.top, r && r.top > s.top));
+}
 // chão em faixas: terreno normal, mais alto ou mais baixo (buracos são desenhados por cima)
 export function drawGround(cam) {
+  const k = groundImg(); if (k) return drawGroundImg(k, cam);
   const H = 540, x0 = cam - 20, x1 = cam + 980;
   const strip = (a, b, top) => {
     if (b <= a) return;
@@ -69,13 +138,15 @@ export function drawGround(cam) {
   strip(cur, x1, 0);
 }
 export function drawPlatform(pl) {
-  const y = GROUND + pl.top;
+  const y = GROUND + pl.top, k = groundImg();
+  if (k) return slab(k, pl.x, pl.x + pl.w, y + 4, true, true, .5, true); // laje flutuante pequena, com a base arredondada
   ctx.fillStyle = '#4a3a2e'; ctx.beginPath(); ctx.roundRect(pl.x, y, pl.w, 18, 4); ctx.fill();
   ctx.fillStyle = '#6b5240'; ctx.fillRect(pl.x + 3, y, pl.w - 6, 4);
   ctx.fillStyle = '#2e241c'; // pedrinhas penduradas
   for (let x = pl.x + 14; x < pl.x + pl.w - 10; x += 26) { ctx.beginPath(); ctx.moveTo(x, y + 18); ctx.lineTo(x + 8, y + 30); ctx.lineTo(x + 16, y + 18); ctx.fill(); }
 }
 export function drawHole(o) {
+  if (groundImg()) return; // com chão de imagem, o fundo do buraco já foi desenhado atrás das lajes
   const gr = ctx.createLinearGradient(0, GROUND, 0, 540); gr.addColorStop(0, '#000'); gr.addColorStop(1, '#0a0503');
   ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND, o.w, 540 - GROUND);
   ctx.fillStyle = '#3a2418'; ctx.fillRect(o.x - 4, GROUND, 6, 540 - GROUND); ctx.fillRect(o.x + o.w - 2, GROUND, 6, 540 - GROUND);

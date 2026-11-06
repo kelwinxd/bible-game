@@ -210,6 +210,7 @@ window.DATA = {
     nome: "Exodus", comprimento: 9300,
     // fundo (opcional): imagem que rola devagar (parallax) e se repete espelhada, emendando sem corte; escuro = véu por cima
     fundo: { img: "assets/img/fundo-exodus.webp", parallax: 0.35, escuro: 0.15 },
+      chao: "assets/img/chao-exodus.webp", // laje de terra e pedras (miolo repetido + pontas nas bordas)
     eventos: [
       // 1) buraco e pedra no chão → Hebreus 4:12
       { tipo: "buraco", x: 650, w: 140 },
