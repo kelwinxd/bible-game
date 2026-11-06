@@ -192,7 +192,8 @@ window.DATA = {
     mentira:  { nome: "Demônio da Mentira",  vida: 60, dano: 8,  tell: 0.6,  cadencia: 1.8, chao: true, passo: 70, cor: "#9a1c1c", sprite: "serpente" }  // serpente: assets/sprites/enemy/serpente-*.png
   },
   // Jornadas (fases), em ordem: vencer uma libera a próxima. O herói começa só com os versículos achados nas
-  // jornadas anteriores. dica (opcional) = aviso no topo ao começar. Eventos em ordem de x (pixels do mundo):
+  // jornadas anteriores. dica (opcional) = aviso no topo ao começar; fundo (opcional) = imagem de fundo (sem ele, céu desenhado).
+  // Eventos em ordem de x (pixels do mundo):
   //  buraco     = obstáculo para pular (cair = volta ao último ponto firme, -10 de vida)
   //  terreno    = trecho com outra altura: altura > 0 = mais alto (parede: precisa pular), < 0 = vale mais baixo
   //  plataforma = laje flutuante; sobe pulando por baixo e fica em cima
@@ -206,7 +207,9 @@ window.DATA = {
   jornadasLiberadas: true,
   fases: [{
     // Jornada 1: só 2 versículos, bem separados. Cada um vem antes de 2 monstros (um por vez) que ele refuta.
-    nome: "A Palavra no caminho", comprimento: 9300,
+    nome: "Exodus", comprimento: 9300,
+    // fundo (opcional): imagem que rola devagar (parallax) e se repete espelhada, emendando sem corte; escuro = véu por cima
+    fundo: { img: "assets/img/fundo-exodus.webp", parallax: 0.35, escuro: 0.15 },
     eventos: [
       // 1) buraco e pedra no chão → Hebreus 4:12
       { tipo: "buraco", x: 650, w: 140 },

@@ -14,7 +14,7 @@ Como rodar: `python -m http.server 5500` na pasta e abrir http://localhost:5500 
 Menu → **Jornada** (fase com rolagem) → Vitória / Derrota. A Forja (lista de versículos + Exercitar a fé) é opcional, para melhorar versículos.
 
 - **Menu inicial "Sword of God"**: título e botões **alinhados à esquerda** sobre a arte do templário contra a serpente (`assets/img/menu.webp`), escurecida e com degradê escuro à esquerda para os botões e o nome ficarem legíveis; no celular a arte fica atrás, mais escura. Três botões:
-  - **Jogar** → lista das jornadas (Jornada 1 · A Palavra no caminho, Jornada 2 · O vale da sombra) + Voltar. Jornada trancada aparece com 🔒 e desabilitada; **vencer uma jornada libera a próxima** (salvo no navegador). **No protótipo todas estão abertas** (`data.js` → `jornadasLiberadas: true`); `false` volta a travar. A vitória mostra **Jornada N →** (na última, Menu); "Jogar de novo" repete a mesma; "Ir para a jornada" da forja abre a última liberada.
+  - **Jogar** → lista das jornadas (Jornada 1 · Exodus, Jornada 2 · O vale da sombra) + Voltar. Jornada trancada aparece com 🔒 e desabilitada; **vencer uma jornada libera a próxima** (salvo no navegador). **No protótipo todas estão abertas** (`data.js` → `jornadasLiberadas: true`); `false` volta a travar. A vitória mostra **Jornada N →** (na última, Menu); "Jogar de novo" repete a mesma; "Ir para a jornada" da forja abre a última liberada.
   - **Habilidades** → a Forja.
   - **Configurações** → **Som** (interruptor, sincronizado com o da pausa e salvo). Abaixo, recolhidas em "Opções de teste do protótipo": faixa da forja (Normal / Calma / Parada), **Jogador imortal** (ligado por padrão) e **Tudo liberado** (todos os versículos, 3 fogos e todas as jornadas).
   - Esc ou "← Voltar" retorna à lista principal. A ajuda de teclas saiu do menu (fica em Pausa → Controles).
@@ -102,6 +102,7 @@ O herói **é controlado** (o GDD previa herói fixo; mudou no teste).
 Na 1ª jornada o herói **começa com 0 versículos**; nas seguintes, **só com os versículos achados nas jornadas anteriores**. Os novos ele encontra pelo caminho. Cada jornada é uma lista de eventos em `data.js` → `fases` (fácil de montar novas). Uma jornada pode ter `dica`: aviso no topo ao começar (7 s). A faixa de entrada mostra "Jornada N · nome".
 
 - **Câmera** segue o herói **suavemente** (fase de 11 100 px). Ao fim de uma luta ela desliza de volta ao herói — antes dava um salto e parecia que a fase "resetava". HUD mostra `Jornada N%`.
+- **Fundo com imagem** (jornada 1, Exodus: ruínas, pirâmides e céu vermelho-escuro — `assets/img/fundo-exodus.webp`): ocupa a altura da tela e **rola a 35% da câmera** (parallax). Como a fase é bem mais longa que a imagem, ela **se repete**: o fim da imagem se **dissolve no começo dela mesma** (faixa de transição de 320 px), então o cenário volta ao início sem corte nem espelho. Véu escuro leve (15%) para o herói e os inimigos destacarem. Qualquer jornada pode ter imagem própria (`data.js` → `fases[].fundo`); sem ela, usa o céu desenhado abaixo.
 - **Sensação de avanço**: o céu muda ao longo da fase (noite roxa → aurora dourada perto do fim) e o fundo tem 3 camadas de parallax (serras distantes, montanhas de alturas variadas, ruínas de colunas espaçadas). Antes o cenário era idêntico em toda a fase.
 - **Terreno variado** (não é sempre buraco):
   - **Buraco**: pular. Cair = volta ao **último ponto firme**, −10 de vida. Todo buraco tem **3 mãos em chamas** (`assets/sprites/hazard/mao-fogo.png`, 10 quadros recortados da folha enviada; a fileira "afundando" era menor e foi igualada pelo monte de brasas). O fogo é só o da própria arte (o fogo desenhado por código foi removido a pedido).
@@ -119,7 +120,7 @@ Na 1ª jornada o herói **começa com 0 versículos**; nas seguintes, **só com 
   3. "Pegue o livro dourado!"
   4. Depois de ler o versículo novo: "Os versículos são suas armas contra as mentiras. Use o versículo CERTO para refutar: aperte 1 ou clique no card"
   5. Depois de refutar: "Sua lâmina brilha: K ataque o demônio · segure J para erguer o escudo" → some ao derrotar o primeiro inimigo.
-- Ordem da fase 1 ("A Palavra no caminho") — **só 2 versículos e 4 monstros**, versículos bem separados (fase de 9 300 px, ~1 min jogando direto):
+- Ordem da fase 1 (**"Exodus"**, antes "A Palavra no caminho") — **só 2 versículos e 4 monstros**, versículos bem separados (fase de 9 300 px, ~1 min jogando direto):
   1. buraco → pedra no chão: **Hebreus 4:12**
   2. **Mentira** ("A Bíblia é só um livro antigo…") → terreno alto → **Mentira** ("Palavras velhas e mortas…") — uma de cada vez, as duas refutadas por Hebreus 4:12
   3. caminho longo: buraco, vale, buraco largo com laje, degrau de plataforma → pedra **no topo de um penhasco**: **Tiago 4:7**

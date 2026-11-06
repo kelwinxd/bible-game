@@ -2,7 +2,32 @@ import { GROUND, ctx } from '../config.js';
 import { B } from '../state.js';
 import { D, hash, mix } from '../../core/utils.js';
 
+// fundo com imagem (data.js → fases[].fundo): na altura da tela, rola devagar (parallax) e se repete
+// sempre na mesma orientação; o fim da imagem se dissolve no começo dela mesma (faixa de transição de 320 px),
+// então o cenário "volta ao início" sem corte nem espelho
+const BG = {}, BG_FADE = 320;
+function bgTile(img) { // monta 1x a peça repetível: [fim da imagem → começo] dissolvidos + o resto da imagem
+  const H = 540, w = Math.round(img.naturalWidth * H / img.naturalHeight), P = w - BG_FADE;
+  const t = Object.assign(document.createElement('canvas'), { width: P, height: H }), c = t.getContext('2d');
+  c.drawImage(img, 0, 0, w, H);
+  const f = Object.assign(document.createElement('canvas'), { width: BG_FADE, height: H }), fc = f.getContext('2d');
+  fc.drawImage(img, -P, 0, w, H); // últimos BG_FADE px da imagem
+  const g = fc.createLinearGradient(0, 0, BG_FADE, 0); g.addColorStop(0, '#000'); g.addColorStop(1, '#0000');
+  fc.globalCompositeOperation = 'destination-in'; fc.fillStyle = g; fc.fillRect(0, 0, BG_FADE, H);
+  c.drawImage(f, 0, 0);
+  return t;
+}
+function drawImageBg(F, img, off) {
+  const t = F.tile || (F.tile = bgTile(img)), P = t.width;
+  for (let x = -Math.round(off % P); x < 960; x += P) ctx.drawImage(t, x, 0);
+  if (F.escuro) { ctx.fillStyle = `rgba(10, 5, 3, ${F.escuro})`; ctx.fillRect(0, 0, 960, 540); }
+}
 export function drawSky(cam) {
+  const F = B.fase.fundo;
+  if (F) {
+    const img = BG[F.img] || (BG[F.img] = Object.assign(new Image(), { src: F.img }));
+    if (img.naturalWidth) return drawImageBg(F, img, cam * F.parallax);
+  }
   const W = 960, H = 540, t = Math.min(1, cam / (B.fase.comprimento - W));
   const g = ctx.createLinearGradient(0, 0, 0, H);
   g.addColorStop(0, mix('#1b1020', '#2c2a52', t)); g.addColorStop(.7, mix('#3a1a14', '#8a5a2a', t)); g.addColorStop(1, '#120a08');
