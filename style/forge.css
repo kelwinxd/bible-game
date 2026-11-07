@@ -3,6 +3,15 @@
 .vlist { display:grid; gap:10px; margin:12px 0; }
 .vitem { display:flex; justify-content:space-between; align-items:center; gap:10px; background:var(--panel); border:1px solid #3d2c20; border-radius:10px; padding:12px; cursor:pointer; }
 .vitem:hover { border-color:var(--ember); }
+/* busca + filtro por tema acima da lista; a lista rola a partir do 5º versículo (altura calculada em list.js) */
+.vtools { display:flex; gap:8px; margin:12px 0 0; }
+.vtools[hidden] { display:none; }
+.vtools input, .vtools select { font:inherit; font-size:15px; color:var(--ink); background:#2a1f18; border:1px solid #6b4a32; border-radius:8px; padding:9px 12px; min-height:42px; }
+.vtools input { flex:1; min-width:0; }
+.vtools input::placeholder { color:var(--muted); }
+.vtools input:focus-visible, .vtools select:focus-visible { border-color:var(--gold); }
+.vscroll { position:relative; overflow-y:auto; overscroll-behavior:contain; padding-right:4px; scrollbar-width:thin; scrollbar-color:#6b4a32 transparent; }
+.vhidden:empty { display:none; }
 .tag { font-size:12px; padding:2px 8px; border-radius:20px; background:#2c211a; color:var(--muted); }
 
 /* Forja */

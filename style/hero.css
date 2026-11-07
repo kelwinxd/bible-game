@@ -1,0 +1,46 @@
+/* Forja: lista à esquerda e, à direita, o templário parado no chão de areia com as habilidades dele em cima (60/40) */
+#forgeList { max-width:1180px; }
+.forge-layout { display:grid; grid-template-columns:minmax(0, 3fr) minmax(0, 2fr); gap:28px; align-items:start; }
+.hero-card { position:sticky; top:16px; display:flex; flex-direction:column; align-items:center; gap:4px; padding:16px 16px 12px;
+  background:radial-gradient(ellipse at 50% 80%, #f2c84b22, transparent 60%), linear-gradient(#1f1713, #160f0c); border:1px solid #3d2c20; border-radius:14px; }
+.hero-stats { width:100%; display:grid; gap:6px; }
+.hero-stats h3 { margin:0 0 4px; text-align:center; font-family:Cinzel, serif; color:var(--gold); font-size:20px; letter-spacing:1px; }
+.hstat { display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:10px; padding:7px 10px; border-radius:9px; background:#2a1f18cc; border:1px solid #3d2c20; }
+.hico { font-size:18px; text-align:center; }
+.hstat b { display:block; font-size:14px; }
+.hstat small { display:block; font-size:12px; color:var(--muted); }
+.hval { display:flex; flex-direction:column; align-items:flex-end; gap:3px; font-family:Cinzel, serif; font-weight:800; font-size:18px; color:var(--ink); }
+.hval .bars i { width:12px; height:7px; }
+
+/* palco: o herói (sprite idle, 4 quadros) em pé na laje de areia (a mesma arte do chão do Exodus).
+   --laje = altura da laje (acompanha a largura do palco); os pés pisam na superfície dela (y≈100 de 388 na arte → 72% de baixo) */
+.hero-stage { position:relative; width:100%; height:330px; margin-top:10px; container-type:inline-size; }
+.hero-stage > * { --laje:calc(100cqw * 388 / 2000); --pe:calc(var(--laje) * .72); }
+.hero-idle { position:absolute; z-index:2; left:50%; bottom:var(--pe); width:148px; height:211px; margin-left:-83px; /* âncora dos pés (ax = 83) */
+  background:url('../assets/sprites/hero/idle.png') 0 0 / 592px 211px no-repeat; animation:heroIdle .8s steps(4) infinite;
+  filter:drop-shadow(0 0 18px #f2c84b33); }
+@keyframes heroIdle { to { background-position:-592px 0; } }
+/* sombra projetada no chão, embaixo dos pés (achatada, mais escura no centro), sobre um círculo de luz dourada
+   na terra — sem a luz, a sombra some no chão escuro */
+.hero-shadow { position:absolute; z-index:1; left:50%; bottom:calc(var(--pe) - 12px); width:130px; height:24px; margin-left:-62px;
+  border-radius:50%; background:radial-gradient(closest-side, #000e, #000a 50%, #0000); }
+.hero-shadow::before { content:''; position:absolute; z-index:-1; left:50%; top:50%; width:260px; height:56px; transform:translate(-50%, -50%);
+  border-radius:50%; background:radial-gradient(closest-side, #f2b45a66, #f2c84b22 55%, #0000); }
+/* laje: imagem do chão tingida com a mesma cor do jogo (CHAO_COR em js/battle/draw/world.js) */
+.hero-ground { --chao:#804a2e; position:absolute; left:0; right:0; bottom:0; aspect-ratio:2000 / 388;
+  background:url('../assets/img/chao-exodus.webp') center / 100% 100% no-repeat, var(--chao); background-blend-mode:multiply;
+  -webkit-mask:url('../assets/img/chao-exodus.webp') center / 100% 100% no-repeat; mask:url('../assets/img/chao-exodus.webp') center / 100% 100% no-repeat; }
+@media (prefers-reduced-motion:reduce) { .hero-idle { animation:none; } }
+
+/* telas estreitas: o herói vai para baixo da lista, menor, com as métricas ao lado */
+@media (max-width:760px) {
+  .forge-layout { grid-template-columns:1fr; gap:16px; }
+  .hero-card { position:static; display:grid; grid-template-columns:1fr 130px; align-items:end; gap:10px; padding:12px; }
+  .hero-stage { height:180px; }
+  .hero-idle { transform:scale(.7); transform-origin:83px 100%; }
+  .hero-shadow { transform:scale(.7); transform-origin:60px 50%; }
+}
+
+/* ícones dos títulos e do aviso de versículos escondidos: traço dourado, como o resto do projeto */
+.h-ico { width:1.05em; height:1.05em; vertical-align:-.14em; margin-right:.35em; color:var(--gold); }
+.i-ico { width:15px; height:15px; vertical-align:-2px; margin-right:6px; color:var(--gold); }

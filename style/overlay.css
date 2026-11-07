@@ -20,6 +20,7 @@
 .key.k-jump { border-color:#7dff8a; color:#7dff8a; }
 .key.k-shield { border-color:#5d8fd8; color:#9fc3ff; }
 .key.k-attack { border-color:#ff7a1a; color:#ffb366; }
+.key.k-spirit { border-color:#4fc3ff; color:#9fe0ff; } /* azul do Impulso do Espírito */
 .dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
 .dot.k-move { background:#f2c84b; } .dot.k-jump { background:#7dff8a; } .dot.k-shield { background:#5d8fd8; }
 .mouse { width:48px; height:72px; }

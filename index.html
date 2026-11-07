@@ -51,22 +51,38 @@
 
 <!-- LISTA DA FORJA -->
 <section id="forgeList" class="screen">
-  <h2>A Forja</h2>
-  <p class="muted">Os versículos você <b>encontra na jornada</b>. Aqui você os forja (mais dano) e afia (poder dura mais).</p>
-  <div class="vlist" id="vlist"></div>
-  <h2 style="margin-top:22px">Exercitar a fé</h2>
-  <div class="vitem" tabindex="0" onclick="openFaith()">
-    <div><b>Heróis da fé</b> <span class="tag">Hebreus 11 · quiz</span><div class="muted" style="margin-top:4px">Acerte ao menos 4 de 5 para fortalecer o escudo (+1s).</div></div>
-    <div id="shieldInfo"></div>
-  </div>
-  <div class="vitem" tabindex="0" onclick="openFaith('espirito')">
-    <div><b>Espírito Santo</b> <span class="tag">Atos 1:8 · quiz</span><div class="muted" style="margin-top:4px">Acerte ao menos 4 de 5 para fortalecer o Impulso do Espírito (+dano).</div></div>
-    <div id="spiritInfo"></div>
-  </div>
-  <div class="row" style="margin-top:14px">
-    <button onclick="show('menu')">Menu</button>
-    <button onclick="forgeAll()">Forjar tudo (teste)</button>
-    <button class="primary" id="goBattle" onclick="startBattle()">Ir para a jornada ⚔</button>
+  <div class="forge-layout">
+    <div class="forge-main">
+      <h2><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h13v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M4 19a2 2 0 0 1 2-2h13"/><path d="M11.5 6.5v7M9 9h5"/></svg>Forjar versículos</h2>
+      <p class="muted">Os versículos você <b>encontra na jornada</b>. Aqui você os forja (mais dano) e afia (poder dura mais).</p>
+      <div class="vtools" id="vtools">
+        <input type="search" id="vSearch" placeholder="Buscar versículo ou palavra…" aria-label="Buscar versículo ou palavra" autocomplete="off">
+        <select id="vTema" aria-label="Filtrar por tema"></select>
+      </div>
+      <div class="vlist vscroll" id="vlist"></div>
+      <p class="muted vhidden" id="vhidden"></p>
+      <h2 style="margin-top:22px"><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M12 7.5v9M8.5 11h7"/></svg>Exercitar a fé</h2>
+      <div class="vlist">
+        <div class="vitem" tabindex="0" onclick="openFaith()">
+          <div><b>Heróis da fé</b> <span class="tag">Hebreus 11 · quiz</span><div class="muted" style="margin-top:4px">Acerte ao menos 4 de 5 para fortalecer o escudo (+1s).</div></div>
+          <div id="shieldInfo"></div>
+        </div>
+        <div class="vitem" tabindex="0" onclick="openFaith('espirito')">
+          <div><b>Espírito Santo</b> <span class="tag">Atos 1:8 · quiz</span><div class="muted" style="margin-top:4px">Acerte ao menos 4 de 5 para fortalecer o Impulso do Espírito (+dano).</div></div>
+          <div id="spiritInfo"></div>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button onclick="show('menu')">Menu</button>
+        <button onclick="forgeAll()">Forjar tudo (teste)</button>
+        <button class="primary" id="goBattle" onclick="startBattle()">Ir para a jornada ⚔</button>
+      </div>
+    </div>
+    <!-- o templário parado no chão de areia, com as habilidades dele em cima -->
+    <aside class="hero-card" aria-label="Habilidades do herói">
+      <div class="hero-stats" id="heroStats"></div>
+      <div class="hero-stage" aria-hidden="true"><div class="hero-idle"></div><div class="hero-shadow"></div><div class="hero-ground"></div></div>
+    </aside>
   </div>
 </section>
 
@@ -160,7 +176,7 @@
     <div class="pause-menu" id="pauseMain">
       <button class="primary" onclick="setPause(false)">▶ Continuar</button>
       <button onclick="showPauseView('list')">📜 Ataques (versículos)</button>
-      <button onclick="showPauseView('controls')">🎮 Controles</button>
+      <button onclick="showPauseView('controls')">⌨&#xFE0E; Controles</button>
       <button onclick="showPauseView('settings')">⚙ Configurações</button>
       <button onclick="show('menu')">☰ Sair ao menu</button>
     </div>
@@ -203,6 +219,14 @@
             <rect x="29" y="14" width="6" height="14" rx="3" fill="#6b4a32"/>
           </svg></div>
           <div class="ctl-txt"><b>Escudo — J ou botão direito (segurar)</b><span>Bloqueia golpes e bolas de fogo. Dura pouco: veja a barra azul no topo.</span></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-keys"><span class="key k-spirit">L</span><span class="muted">ou</span><span class="key key-wide k-spirit">Espírito</span></div>
+          <div class="ctl-txt"><b>Impulso do Espírito — L</b><span>Dispara para frente atravessando os inimigos, intocável enquanto avança. Precisa de ao menos 1 fogo do Espírito (derrote inimigos para acender). Recarga de 3s.</span></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-keys"><span class="key k-spirit">L</span><span class="muted">+</span><span class="key k-spirit">L</span></div>
+          <div class="ctl-txt"><b>Combo: Impulso duplo — L + L</b><span>Com os 3 fogos do Espírito acesos, aperte L de novo em até 1s: o herói volta pelo mesmo caminho e fere de novo quem atravessar, sem esperar a recarga.</span></div>
         </div>
         <div class="ctl">
           <div class="ctl-keys"><span class="key">1</span><span class="key">2</span><span class="key">3</span><span class="key key-wide">… 9</span></div>

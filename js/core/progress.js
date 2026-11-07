@@ -17,7 +17,7 @@ export const forged = id => progOf(id).forja > 0;
 export const verseMult = id => D.niveis.forja.mult[progOf(id).forja - 1] || 1;
 export const powerDur = id => D.niveis.afiacao.base + progOf(id).afia * D.niveis.afiacao.ganho;
 export const gradeIdx = id => 3 - progOf(id).forja; // índice em D.graus: 0 Temperado, 1 Forjado, 2 Bruto
-export const barsHTML = (n, cls) => `<span class="bars ${cls}" title="${n} de 3">${[1, 2, 3].map(i => `<i class="${i <= n ? 'on' : ''}"></i>`).join('')}</span>`;
+export const barsHTML = (n, cls, max = 3) => `<span class="bars ${cls}" title="${n} de ${max}">${Array.from({ length: max }, (_, k) => `<i class="${k < n ? 'on' : ''}"></i>`).join('')}</span>`;
 export let shieldMax = D.fe.escudoBase; // segundos de escudo; sobe passando no quiz da fé
 try { shieldMax = Math.min(D.fe.escudoMax, Math.max(D.fe.escudoBase, +localStorage.getItem('ef-shield') || 0)); } catch (e) {}
 export const setShieldMax = s => { shieldMax = Math.min(D.fe.escudoMax, s); try { localStorage.setItem('ef-shield', shieldMax); } catch (e) {} };

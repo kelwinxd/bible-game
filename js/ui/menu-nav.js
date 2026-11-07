@@ -4,7 +4,7 @@ import { $ } from '../core/utils.js';
 // ---------- Navegação dos menus pelo teclado ----------
 // Setas movem o foco para o botão mais próximo naquela direção; Enter ativa. Vale em toda tela,
 // menos na batalha em andamento (lá as setas movem o herói) — na pausa e no fim da batalha vale.
-export const NAV_SEL = 'button, .vitem, input[type=checkbox], select, summary';
+export const NAV_SEL = 'button, .vitem, input[type=checkbox], input[type=search], select, summary';
 export const NAV_DIR = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
 export function navScope() {
   for (const id of ['pauseOverlay', 'endOverlay']) if ($(id).classList.contains('on')) return $(id);
@@ -38,6 +38,8 @@ addEventListener('keydown', e => {
   const scope = navScope(), el = document.activeElement;
   if (!scope) return;
   if (NAV_DIR[e.code]) {
+    // campo de texto (busca da forja): ← → andam no texto; ↑ ↓ saem dele
+    if (el && el.tagName === 'INPUT' && el.type === 'search' && (e.code === 'ArrowLeft' || e.code === 'ArrowRight')) return;
     // select: ← → trocam a opção, ↑ ↓ saem dele
     if (el && el.tagName === 'SELECT' && (e.code === 'ArrowLeft' || e.code === 'ArrowRight')) {
       e.preventDefault(); const n = el.options.length;
@@ -45,7 +47,7 @@ addEventListener('keydown', e => {
       el.dispatchEvent(new Event('change', { bubbles: true })); return;
     }
     e.preventDefault(); navMove(e.code);
-  } else if (e.code === 'Enter' && el && scope.contains(el) && el.tagName !== 'BUTTON' && el.tagName !== 'SELECT' && el.tagName !== 'SUMMARY') {
+  } else if (e.code === 'Enter' && el && scope.contains(el) && !['BUTTON', 'SELECT', 'SUMMARY'].includes(el.tagName) && el.type !== 'search') {
     e.preventDefault(); el.click(); // .vitem e checkbox não ativam com Enter por padrão
   }
 });
