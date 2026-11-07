@@ -68,16 +68,27 @@
 .strip .mira::before { top:0; } .strip .mira::after { bottom:0; }
 .stain.silver { background:radial-gradient(ellipse at 40% 45%, #ffffff 0%, #e4ecf3ee 35%, #9fb0c299 60%, transparent 72%); filter:drop-shadow(0 0 6px #ffffffcc); }
 .stain { position:absolute; top:50%; width:74px; height:50px; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(ellipse at 45% 50%, #120a05 0%, #1a0f0bee 40%, #2a1a0c88 60%, transparent 72%); pointer-events:none; }
-/* Forja dos versículos: versículo + botão à esquerda; forjador (sprite 4 quadros) e faixa à direita */
-.forge-grid { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,1fr); gap:22px; align-items:start; }
-.forge-left .anvil { margin-top:14px; }
-.forge-right { display:flex; flex-direction:column; align-items:center; }
-.forge-right .strip { width:100%; margin:4px 0 0; }
+/* Forja dos versículos: ocupa a tela (não o limite de 980 px das outras). Grade de 2 linhas:
+   em cima o versículo (esq.) e o forjador (dir.); embaixo o botão Martelar e a faixa de palavras, na mesma linha.
+   .forge-left/.forge-right só agrupam no HTML (display:contents): os filhos entram direto na grade */
+#forge { max-width:1320px; padding:20px clamp(16px, 3vw, 40px); --smith:min(340px, calc((100vh - 320px) * 300 / 396)); } /* largura do forjador */
+#forge.on { display:flex; flex-direction:column; min-height:100vh; min-height:100dvh; }
+.forge-grid { flex:1; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); grid-template-areas:"scroll smith" "anvil strip";
+  align-content:center; column-gap:clamp(24px, 4vw, 60px); row-gap:clamp(10px, 1.8vh, 18px); padding:clamp(8px, 2vh, 28px) 0; }
+.forge-left, .forge-right { display:contents; }
+#forge .scroll { grid-area:scroll; align-self:start; margin-top:calc(var(--smith) * 396 / 300 * .078); /* topo fixo na altura da cabeça do forjador (7,8% do sprite); cresce só para baixo */ font-size:clamp(18px, 1.45vw, 24px); line-height:1.65; padding:clamp(16px, 1.8vw, 28px) clamp(18px, 2.2vw, 34px); }
+#forge .scroll .ref { font-size:1.1em; margin-bottom:8px; }
+.forge-left .anvil { grid-area:anvil; align-self:center; margin:0; }
+#forge .hammer { font-size:clamp(19px, 1.35vw, 23px); padding:clamp(12px, 1.1vw, 16px) clamp(24px, 2.2vw, 36px); }
+#forge #forgeInfo { font-size:clamp(14px, .95vw, 16px); }
+#forge .smith-sprite { grid-area:smith; justify-self:center; align-self:end; }
+.forge-right .strip { grid-area:strip; align-self:center; width:100%; margin:0; height:clamp(74px, 8vh, 90px); }
+#forge .strip .w { font-size:clamp(17px, 1.2vw, 21px); padding:clamp(7px, .6vw, 10px) clamp(12px, 1vw, 16px); }
 /* quadros: 0 parado · 1 martelo erguido · 2 impacto (faíscas) · 3 depois do golpe */
-.smith-sprite { width:min(270px, 70%); aspect-ratio:300/396; background:url('../assets/sprites/forge/forjador.webp') 0 0 / 400% 100% no-repeat; }
+.smith-sprite { width:min(var(--smith, 340px), 75%); aspect-ratio:300/396; background:url('../assets/sprites/forge/forjador.webp') 0 0 / 400% 100% no-repeat; }
 .smith-sprite.f1 { background-position-x:33.333%; } .smith-sprite.f2 { background-position-x:66.667%; } .smith-sprite.f3 { background-position-x:100%; }
 .smith-sprite.ok { animation:smithGold .6s ease-out; } /* o piscar é o aviso de certo/errado: fica mesmo com "reduzir movimento" */
 .smith-sprite.bad { animation:smithRed .6s ease-out; }
 @keyframes smithGold { 0%,35% { filter:brightness(1.45) saturate(1.3) drop-shadow(0 0 16px #ffd34d); } 100% { filter:none; } }
 @keyframes smithRed { 0%,35% { filter:grayscale(1) sepia(1) hue-rotate(-50deg) saturate(9) brightness(.8) drop-shadow(0 0 16px #ff2a2a); } 100% { filter:none; } }
-@media (max-width:720px) { .forge-grid { grid-template-columns:1fr; gap:10px; } .smith-sprite { width:min(190px, 55%); } }
+@media (max-width:720px) { #forge.on { min-height:0; } .forge-grid { grid-template-columns:1fr; grid-template-areas:"scroll" "anvil" "smith" "strip"; gap:10px; padding:0; } #forge .scroll { margin-top:0; } .smith-sprite { width:min(190px, 55%); } }
