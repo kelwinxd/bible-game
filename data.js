@@ -197,7 +197,7 @@ window.DATA = {
   //  buraco     = obstáculo para pular (cair = volta ao último ponto firme, -10 de vida)
   //  terreno    = trecho com outra altura: altura > 0 = mais alto (parede: precisa pular), < 0 = vale mais baixo
   //  plataforma = laje flutuante; sobe pulando por baixo e fica em cima
-  //  pedra      = pedra brilhante com o livro dourado do versículo; fica apoiada no que estiver embaixo
+  //  pedra      = ídolo (bezerro de ouro) com o livro dourado do versículo; fica apoiada no que estiver embaixo
   //               (chão, terreno alto, vale ou plataforma). 3 golpes; tocar no livro = versículo no HUD
   //  inimigos   = grupo que surge quando o herói chega perto; a câmera trava até todos caírem. vida = multiplicador;
   //               frases (opcional) = mentira fixa de cada inimigo do grupo (texto igual ao de `mentiras`)

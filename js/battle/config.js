@@ -18,6 +18,12 @@ for (const k of ['run', 'jump', 'death']) HERO[k].src = `assets/sprites/hero/${k
 // parado (idle): 4 quadros, em pé; tira com quadro próprio (mais estreito), mesma escala visual das outras
 export const HERO_IDLE = { img: new Image(), FW: 148, FH: 211, ax: 83, n: 4 };
 HERO_IDLE.img.src = 'assets/sprites/hero/idle.png';
+// Ídolo (bezerro de ouro) no lugar da pedra do versículo: 4 quadros 420×580, base do pedestal em y=566, centro x=210.
+// Quadro = estado por golpe (inteiro · rachado · quebrado · só o pedestal com entulho). No último, as peças de
+// bezerro-pecas.png caem: [sx, sy, w, h, x, y no quadro]
+export const IDOL = { img: new Image(), pecas: new Image(), W: 420, H: 580, foot: 566, cx: 210, sc: .32,
+  pieces: [[0, 0, 210, 293, 43, 96], [212, 0, 29, 33, 217, 196], [243, 0, 44, 52, 253, 224], [289, 0, 159, 159, 224, 279], [450, 0, 52, 64, 39, 341], [504, 0, 21, 24, 387, 374], [527, 0, 26, 28, 100, 390]] };
+IDOL.img.src = 'assets/sprites/object/bezerro.png'; IDOL.pecas.src = 'assets/sprites/object/bezerro-pecas.png';
 export const HERO_THRUST = 3; // quadro da estocada: golpe e impulso
 export const HERO_SCALE = .78; // tamanho do templário no jogo (~150 px correndo)
 export const CALLOUT_T = 1.1; // segundos da referência escolhida acima do herói

@@ -11,7 +11,7 @@ export const tema = v => D.temas[v.tema]; // cores do tema do versículo
 // "1 Coríntios 10:13" → "1Co 10:13" (livro sem abreviação cadastrada: 2 primeiras letras)
 export const abrevRef = ref => { const m = ref.match(/^(.+) (\d+:\d+.*)$/); return m ? `${D.abrev[m[1]] || m[1].slice(0, 2)} ${m[2]}` : ref; };
 export function buildHotbar() {
-  $('hotbar').innerHTML = !B.deck.length ? '<div class="deck-empty">Nenhum versículo — quebre as pedras brilhantes para encontrar a Palavra</div>' : B.deck.map((v, i) => `
+  $('hotbar').innerHTML = !B.deck.length ? '<div class="deck-empty">Nenhum versículo — derrube os ídolos de ouro para encontrar a Palavra</div>' : B.deck.map((v, i) => `
     <div class="card" id="card${i}" style="--tc:${tema(v).cor}" title="${v.ref}">
       <button class="use" id="use${i}" onclick="useVerse(${i})">
         <span class="k">${i + 1}</span>

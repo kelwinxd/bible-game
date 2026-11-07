@@ -3,7 +3,7 @@ import { $, D } from '../core/utils.js';
 
 export function renderList() {
   const vs = D.versiculos.filter(v => found.includes(v.id)), hidden = D.versiculos.length - vs.length;
-  $('vlist').innerHTML = (vs.length ? '' : '<p class="muted">Nenhum versículo ainda. Quebre as pedras brilhantes na jornada para encontrá-los.</p>') + vs.map(v => `
+  $('vlist').innerHTML = (vs.length ? '' : '<p class="muted">Nenhum versículo ainda. Derrube os ídolos de ouro na jornada para encontrá-los.</p>') + vs.map(v => `
     <div class="vitem" tabindex="0" onclick="openVerse(byId['${v.id}'])">
       <div><b>${v.ref}</b> <span class="tag">${D.temas[v.tema].nome}</span></div>
       <div class="vbars"><span>Forja ${barsHTML(progOf(v.id).forja, 'gold')}</span><span>Afiação ${barsHTML(progOf(v.id).afia, 'silver')}</span></div>

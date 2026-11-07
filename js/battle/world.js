@@ -1,5 +1,5 @@
 import { heroDies, renderFires } from './combat.js';
-import { FIRE_MAX, GROUND, cv } from './config.js';
+import { FIRE_MAX, GROUND, IDOL, cv } from './config.js';
 import { buildHotbar, toggleDeck, togglePeek } from './hud.js';
 import { B, setB } from './state.js';
 import { sfx } from '../core/audio.js';
@@ -64,15 +64,34 @@ export function makeDemon(type, k, vidaMult, n = 1) {
     lie: null, myLie: null, lastVerse: null, vuln: false, flash: 0, bob: Math.random() * 6, face: -1
   };
 }
-// pedra brilhante: 3 golpes (ou rasgos) quebram; de dentro salta o livro dourado com o versículo
+// ídolo (bezerro de ouro): 3 golpes (ou rasgos) derrubam; de dentro salta o livro dourado com o versículo
 export function hitRock(r) {
   r.hp--; r.flash = .12; sfx('block');
   const n = reduced ? 4 : 10;
-  for (let k = 0; k < n; k++) B.shards.push({ x: r.x + (Math.random() - .5) * 80, y: GROUND + r.base - 60 - Math.random() * 70, vx: (Math.random() - .5) * 320, vy: -Math.random() * 320, r: Math.random() * 6, t: .7, c: '150,130,110' });
+  for (let k = 0; k < n; k++) B.shards.push({ x: r.x + (Math.random() - .5) * 80, y: GROUND + r.base - 60 - Math.random() * 70, vx: (Math.random() - .5) * 320, vy: -Math.random() * 320, r: Math.random() * 6, t: .7, c: '214,160,60' });
   if (r.hp > 0) return;
   sfx('refute');
-  for (let k = 0; k < n * 2; k++) B.shards.push({ x: r.x + (Math.random() - .5) * 110, y: GROUND + r.base - Math.random() * 140, vx: (Math.random() - .5) * 520, vy: -Math.random() * 480, r: Math.random() * 6, t: 1, c: k % 3 ? '120,105,90' : '255,214,90' });
+  // o bezerro desmorona: cada pedaço cai com gravidade, gira, quica uma vez e assenta no entulho (ou no chão, se cair fora do pedestal)
+  const { sc, foot, cx } = IDOL, gy = GROUND + r.base;
+  r.pieces = IDOL.pieces.map(([sx, sy, w, h, px, py], i) => {
+    const x = r.x + (px + w / 2 - cx) * sc, onBase = px + w / 2 > 30 && px + w / 2 < 390;
+    return { sx, sy, w, h, x, y: gy - (foot - py - h / 2) * sc, vx: Math.sign(x - r.x || 1) * (30 + Math.random() * 70), vy: -60 - Math.random() * 120,
+      a: 0, va: (Math.random() - .5) * (h > 150 ? 3 : 8), floor: gy - (onBase ? (52 + (i % 3) * 8) * sc : 0), rest: false };
+  });
+  for (let k = 0; k < n * 2; k++) B.shards.push({ x: r.x + (Math.random() - .5) * 110, y: GROUND + r.base - Math.random() * 140, vx: (Math.random() - .5) * 520, vy: -Math.random() * 480, r: Math.random() * 6, t: 1, c: k % 3 ? '170,120,50' : '255,214,90' });
   B.books.push({ x: r.x, y: GROUND + r.base - 90, restY: GROUND + r.base - 100, vy: -420, t: 0, v: r.v });
+}
+export function stepIdol(r, dt) {
+  r.pieces.forEach(p => {
+    if (p.rest) return;
+    p.vy += 1500 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.a += p.va * dt;
+    const hh = p.h * IDOL.sc / 2;
+    if (p.y + hh >= p.floor) {
+      p.y = p.floor - hh;
+      if (p.vy > 220) { p.vy *= -.3; p.vx *= .5; p.va *= .4; }
+      else Object.assign(p, { vy: 0, vx: 0, va: 0, rest: true });
+    }
+  });
 }
 // tocar no livro (ou passar por ele) adiciona o versículo ao HUD
 export function collectBook(b) {

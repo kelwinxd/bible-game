@@ -2,7 +2,7 @@ import { updateBird } from './bird.js';
 import { damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
 import { DASH_CD, DASH_SPEED, GRAV, GROUND, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
 import { B, keys } from './state.js';
-import { ENEMY_GAP, collectBook, fallInHole, floorAt, hitRock, makeDemon, moveX, pickLie, restoreLie, rockBox, terrainTop } from './world.js';
+import { ENEMY_GAP, stepIdol, collectBook, fallInHole, floorAt, hitRock, makeDemon, moveX, pickLie, restoreLie, rockBox, terrainTop } from './world.js';
 import { sfx } from '../core/audio.js';
 import { shieldMax } from '../core/progress.js';
 import { $, D, reduced } from '../core/utils.js';
@@ -145,7 +145,7 @@ export function updateBattle(rdt) {
   B.demons.forEach(d => { if (d.pop) d.pop = Math.max(0, d.pop - rdt); });
 
   // livros dourados: saltam da pedra, flutuam; tocar (ou passar por eles) coleta
-  B.rocks.forEach(r => r.flash = Math.max(0, r.flash - dt));
+  B.rocks.forEach(r => { r.flash = Math.max(0, r.flash - dt); if (r.pieces) stepIdol(r, dt); });
   B.books.forEach(b => {
     b.t += dt;
     if (!b.rest) { b.vy += 1200 * dt; b.y += b.vy * dt; if (b.vy > 0 && b.y >= b.restY) { b.y = b.restY; b.rest = true; } }

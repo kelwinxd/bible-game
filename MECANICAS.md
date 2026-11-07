@@ -37,7 +37,7 @@ Menu → **Jornada** (fase com rolagem) → Vitória / Derrota. A batalha ocupa 
 | Janela de acerto | ±60 px | ±90 px |
 
 - Modo **Sem pressa**: faixa parada, toca na palavra.
-- **A forja só lista versículos já encontrados** na jornada (tocar o livro dourado salva no navegador). Sem nenhum: "Nenhum versículo ainda. Quebre as pedras brilhantes…"; os que faltam aparecem só como contagem ("🔒 N versículos ainda escondidos pelo caminho"). "Forjar tudo (teste)" vale só para os encontrados. A jornada de teste (todos os versículos) não marca nada como encontrado.
+- **A forja só lista versículos já encontrados** na jornada (tocar o livro dourado salva no navegador). Sem nenhum: "Nenhum versículo ainda. Derrube os ídolos de ouro…"; os que faltam aparecem só como contagem ("🔒 N versículos ainda escondidos pelo caminho"). "Forjar tudo (teste)" vale só para os encontrados. A jornada de teste (todos os versículos) não marca nada como encontrado.
 - **Não há mais pré-requisito**: os versículos são **encontrados na jornada**. A forja só melhora (dano/duração); versículo nunca forjado vale dano ×1,0 e poder 4 s.
 
 ## 2b. Duas trilhas por versículo: Forja e Afiação (3 níveis cada)
@@ -112,12 +112,12 @@ Na 1ª jornada o herói **começa com 0 versículos**; nas seguintes, **só com 
   - **Terreno mais alto**: parede na frente; precisa pular (até ~130 px).
   - **Vale (terreno mais baixo)**: desce andando; para sair, a parede exige pulo.
   - **Plataforma** (laje flutuante): passa por baixo, pula para subir e fica em cima. Serve de ponte em buraco largo e de degrau para penhasco alto (190 px, impossível sem o degrau).
-- **Pedra brilhante** (dourada, pulsando, veios de luz): fica **apoiada no que estiver embaixo** — chão, terreno alto, fundo do vale, topo do penhasco. **Bloqueia** quem está na mesma altura (alta demais para pular). **3 golpes** (espada ou rasgo) quebram; racha a cada golpe. De dentro **salta um livro dourado** que flutua.
+- **Ídolo — bezerro de ouro** (`assets/sprites/object/bezerro.png`, no lugar da antiga pedra brilhante; no data.js segue `tipo: "pedra"`): fica **apoiado no que estiver embaixo** — chão, terreno alto, fundo do vale, topo do penhasco — e brilha dourado. **Bloqueia** quem está na mesma altura (alto demais para pular). **3 golpes** (espada, rasgo ou impulso) o derrubam; **cada golpe muda o quadro**: inteiro → rachado → quebrado (lascas douradas a cada golpe). No 3º golpe ele **desmorona**: sobra o pedestal com entulho e os pedaços (cabeça, pata, lascas — `bezerro-pecas.png`) **caem com gravidade, giram, quicam uma vez e assentam** sobre o entulho. De dentro **salta um livro dourado** que flutua.
 - **Tocar o livro** (ou passar por ele) → o jogo **pausa** e abre um **pergaminho que se desenrola** com "✦ NOVO VERSÍCULO ✦", a referência e o **texto completo**, com **brilho dourado pulsando** em volta (fundo escurece com halo dourado). ✕, Enter, Esc ou clique fora fecha. Ao fechar, um **📖 voa da fase até o card novo**, que surge com **faíscas douradas** — o jogador lê o versículo antes de poder usá-lo.
 - **Inimigos** surgem quando o herói chega a ~600 px do grupo (mais cedo, para o herói ficar à esquerda e sobrar espaço para os inimigos espaçados); a **câmera desliza e trava** (arena de x−740 a x+220 do grupo) até o grupo todo cair (+20 de vida ao vencer cada grupo).
 - **Tutorial no começo** (só na 1ª jornada, fora do modo teste): caixa no alto da tela, uma dica por vez, com as **teclas desenhadas pulsando**. Avança conforme o jogador faz:
   1. "A D andar · W ou Espaço pular — Pule o buraco!"
-  2. Perto da pedra: "K atacar — golpeie a pedra brilhante: 3 golpes a quebram"
+  2. Perto da pedra: "K atacar — golpeie o bezerro de ouro: 3 golpes o derrubam"
   3. "Pegue o livro dourado!"
   4. Depois de ler o versículo novo: "Os versículos são suas armas contra as mentiras. Use o versículo CERTO para refutar: aperte 1 ou clique no card"
   5. Depois de refutar: "Sua lâmina brilha: K ataque o demônio · segure J para erguer o escudo" → some ao derrotar o primeiro inimigo.
@@ -136,7 +136,7 @@ Na 1ª jornada o herói **começa com 0 versículos**; nas seguintes, **só com 
   6. final: **2 aves juntas** ("Seus inimigos são fortes demais." / "Você vai perder essa batalha.") → fim = vitória
 - Arenas de luta ficam sempre em trecho plano (regra anotada em `data.js`).
 - Regra de design: **o versículo sempre aparece antes do inimigo que ele refuta** (aprende → usa). Um grupo pode ter mentira fixa (`frases`), usado para a primeira Mentira.
-- Deck sem versículos mostra "Nenhum versículo — quebre as pedras brilhantes…". Teclas **1–9**.
+- Deck sem versículos mostra "Nenhum versículo — derrube os ídolos de ouro…". Teclas **1–9**.
 
 ## 4c. Impulso do Espírito (L)
 
@@ -147,7 +147,7 @@ Na 1ª jornada o herói **começa com 0 versículos**; nas seguintes, **só com 
 - No modo teste "Tudo liberado" começa com os 3 fogos.
 - O herói **dispara para frente** (para onde está virado) ~340 px em 0,2 s, no chão ou no ar (sem gravidade durante o avanço). Para em parede, pedra e borda da arena.
 - Durante o impulso fica **todo azul** com brilho e deixa um **rastro**: cópias azuis que somem + feixe de luz até o herói.
-- **Atravessa os inimigos**: fere cada um no caminho uma vez (dano 6 a 12, conforme a sessão Espírito Santo — seção 3b; número em azul) e fica **intocável** enquanto avança. Também acerta a pedra brilhante (1 golpe).
+- **Atravessa os inimigos**: fere cada um no caminho uma vez (dano 6 a 12, conforme a sessão Espírito Santo — seção 3b; número em azul) e fica **intocável** enquanto avança. Também acerta o ídolo (1 golpe).
 - **Inimigo morto pelo impulso**: no lugar da referência/"Está escrito" em vermelho, a tela mostra **"O Espírito sopra / para onde quer" em azul, em 2 linhas** (fonte menor, não ocupa a tela toda) e fica **~2,9 s** (as referências normais ficam 1,8 s).
 - Recarga **3 s** (era 1,2 s; ficava fácil demais spammar; barra azul no botão). Não funciona com o escudo erguido. Não usa o poder do versículo: o dano é sempre o do impulso.
 

@@ -9,7 +9,7 @@ export function tutTip() {
   const T = B.tut; if (!T || T.done || B.peek >= 0 || B.pendingFly) return null;
   const h = B.hero, hole = B.holes[0], rock = B.rocks[0];
   if (hole && h.x < hole.x + hole.w + 40) return ['[A] [D] andar   ·   [W] ou [Espaço] pular', 'Pule o buraco!'];
-  if (rock && rock.hp > 0) return h.x > rock.x - 330 ? ['[K] atacar', 'Golpeie a pedra brilhante: 3 golpes a quebram'] : ['Há uma luz no caminho… siga em frente'];
+  if (rock && rock.hp > 0) return h.x > rock.x - 330 ? ['[K] atacar', 'Golpeie o bezerro de ouro: 3 golpes o derrubam'] : ['Há uma luz no caminho… siga em frente'];
   if (!B.deck.length) return ['Pegue o livro dourado!'];
   if (!T.refuted) return ['Os versículos são suas armas contra as mentiras.', 'Use o versículo CERTO para refutar: aperte [1] ou clique no card'];
   if (!T.killed) return ['Mentira refutada! Sua lâmina brilha: [K] ataque o demônio', 'Segure [J] para erguer o escudo'];

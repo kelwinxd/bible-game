@@ -1,4 +1,4 @@
-import { GROUND, ctx } from '../config.js';
+import { GROUND, IDOL, ctx } from '../config.js';
 import { B } from '../state.js';
 import { D, hash, mix } from '../../core/utils.js';
 
@@ -198,28 +198,27 @@ export function drawHoleFire(o) {
     ctx.restore();
   });
 }
-// fissuras que aparecem a cada golpe na pedra
-export const CRACKS = [[[-12, -150], [-4, -112], [-26, -84], [-14, -50]], [[40, -128], [16, -98], [24, -60]], [[-56, -70], [-30, -58], [-22, -18]]];
+// Ídolo (bezerro de ouro): um quadro por golpe; brilha dourado (o livro está lá dentro). Derrubado: pedestal + peças caindo
 export function drawRock(r) {
-  const pulse = .5 + .5 * Math.sin(B.time * 3);
-  ctx.save(); ctx.translate(r.x, GROUND + r.base);
-  ctx.shadowColor = '#ffd34d'; ctx.shadowBlur = 18 + pulse * 26;
-  ctx.fillStyle = r.flash > 0 ? '#fff' : '#5c5046';
-  ctx.beginPath(); ctx.moveTo(-60, 0); ctx.lineTo(-66, -72); ctx.lineTo(-40, -136); ctx.lineTo(0, -158); ctx.lineTo(42, -138); ctx.lineTo(64, -80); ctx.lineTo(58, 0); ctx.closePath(); ctx.fill();
-  ctx.shadowBlur = 0;
-  // brilho do livro lá dentro, atravessando a pedra
-  const g = ctx.createRadialGradient(0, -80, 2, 0, -80, 46); g.addColorStop(0, `rgba(255,240,170,${.55 + pulse * .4})`); g.addColorStop(1, 'rgba(255,200,60,0)');
-  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, -80, 46, 0, 7); ctx.fill();
-  ctx.strokeStyle = `rgba(255,214,90,${.45 + pulse * .5})`; ctx.lineWidth = 3; // veios dourados
-  ctx.beginPath(); ctx.moveTo(-30, -36); ctx.lineTo(-10, -78); ctx.lineTo(8, -68); ctx.lineTo(26, -110); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(-46, -102); ctx.lineTo(-20, -96); ctx.stroke();
-  ctx.strokeStyle = '#140d08'; ctx.lineWidth = 3;
-  CRACKS.slice(0, r.maxHp - r.hp).forEach(c => { ctx.beginPath(); c.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); });
+  if (!IDOL.img.naturalWidth) return;
+  const { W, H, foot, cx, sc } = IDOL, fr = Math.min(2, r.maxHp - r.hp), pulse = .5 + .5 * Math.sin(B.time * 3);
+  ctx.save(); ctx.translate(r.x, GROUND + r.base); ctx.scale(sc, sc);
+  ctx.shadowColor = '#ffd34d'; ctx.shadowBlur = 14 + pulse * 22;
+  if (r.flash > 0) ctx.filter = 'brightness(1.9)';
+  ctx.drawImage(IDOL.img, fr * W, 0, W, H, -cx, -foot, W, H);
   ctx.restore();
 }
 export function drawRubble(r) {
-  ctx.fillStyle = '#4a4038';
-  [[-50, 10, 16], [-18, 8, 22], [20, 9, 18], [48, 7, 12]].forEach(([x, ry, rx]) => { ctx.beginPath(); ctx.ellipse(r.x + x, GROUND + r.base - ry / 2, rx, ry, 0, Math.PI, 0); ctx.fill(); });
+  if (!IDOL.img.naturalWidth) return;
+  const { W, H, foot, cx, sc } = IDOL;
+  ctx.save(); ctx.translate(r.x, GROUND + r.base); ctx.scale(sc, sc);
+  ctx.drawImage(IDOL.img, 3 * W, 0, W, H, -cx, -foot, W, H);
+  ctx.restore();
+  (r.pieces || []).forEach(p => {
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.scale(sc, sc);
+    ctx.drawImage(IDOL.pecas, p.sx, p.sy, p.w, p.h, -p.w / 2, -p.h / 2, p.w, p.h);
+    ctx.restore();
+  });
 }
 export function drawBook(b) {
   const y = b.y + (b.rest ? Math.sin(B.time * 3) * 6 : 0);
