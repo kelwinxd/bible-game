@@ -125,9 +125,19 @@ export function hammer() {
 }
 // martelada: reinicia a animação a cada toque (mesmo com toques rápidos seguidos)
 export function strike(id) { const h = $(id); h.classList.remove('hit'); void h.getBoundingClientRect(); h.classList.add('hit'); }
+// forjador: parado no quadro 0; a cada martelada ergue (1), bate (2, com faíscas) e solta (3), voltando ao 0.
+// No impacto pisca dourado (acertou a palavra) ou vermelho (errou)
+let smithT = [];
+function smithStrike(ok) {
+  const el = $('smithF'); smithT.forEach(clearTimeout);
+  const fr = n => { el.classList.remove('f1', 'f2', 'f3'); if (n) el.classList.add('f' + n); };
+  fr(1);
+  smithT = [setTimeout(() => { fr(2); el.classList.remove('ok', 'bad'); void el.offsetWidth; el.classList.add(ok ? 'ok' : 'bad'); }, 90),
+    setTimeout(() => fr(3), 230), setTimeout(() => fr(0), 400)];
+}
 export function judge(text, el) {
   const f = curForge, lac = f.gaps[f.gap];
-  strike('hammerF');
+  smithStrike(text === lac.certa);
   if (text === lac.certa) {
     sfx('hit'); const r = (el || $('strip')).getBoundingClientRect(); burst(r.left + r.width / 2, r.top + r.height / 2, 30, '#ffb347');
     f.gap++; f.typing = true;

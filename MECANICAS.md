@@ -27,7 +27,8 @@ Menu → **Jornada** (fase com rolagem) → Vitória / Derrota. A batalha ocupa 
 - A digitação **pausa depois da lacuna**, mostrando até **3 palavras seguintes** (ou até a pontuação) para dar contexto. Ex.: `Sujeitai-vos, pois, a Deus; ___ ao diabo,`. Pontuação colada na lacuna não conta como palavra.
 - Só nessa pausa a faixa de palavras começa a rolar. Acertou → o texto continua até a próxima lacuna, depois até o fim.
 - Martelar: Espaço / clique / toque quando a palavra certa está na zona de brasa.
-- **Martelo e bigorna** desenhados embaixo da faixa (no centro, alinhados à zona/mira), na Forja e na Afiação: a cada toque o martelo **desce inclinando** até bater na bigorna e volta (~0,26 s), acertando ou errando.
+- **Forja dos versículos — tela**: versículo à **esquerda** com o botão Martelar embaixo; à **direita** o **forjador** na bigorna (sprite de 4 quadros, `assets/sprites/forge/forjador.webp`) com a **faixa de palavras passando embaixo dele** (no celular, tudo empilhado). Sem apertar nada ele fica **parado no 1º quadro**; a cada martelada **ergue o martelo → bate (faíscas) → solta** (~0,4 s) e volta ao 1º. No impacto **pisca dourado** se acertou a palavra e **vermelho** se errou (o piscar fica mesmo com "reduzir movimento", pois é o aviso de certo/errado).
+- **Martelo e bigorna** desenhados embaixo da faixa (no centro, alinhados à mira), só na **Afiação**: a cada toque o martelo **desce inclinando** até bater na bigorna e volta (~0,26 s), acertando ou errando.
 - **Distratores são palavras diferentes, nunca conjugações/variações da certa** (decisão de teste: conjugações viravam prova de gramática, não de conhecimento do texto). Ex.: `sombra` → casa, vida, festa.
 - 4 palavras por ciclo (1 certa + 3 distratores), ordem sorteada a cada ciclo.
 
