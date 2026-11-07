@@ -1,4 +1,9 @@
 /* Batalha: canvas da arena */
 /* Batalha */
-#battle { padding:8px; }
-#arena { width:100%; aspect-ratio:16/9; display:block; background:#000; border-radius:8px; }
+/* tela cheia: a arena é o maior 16:9 que cabe acima do HUD (94px + 8px de espaço + 16px de margem), centralizada;
+   o HUD acompanha a largura da arena */
+#battle { position:fixed; inset:0; max-width:none; margin:0; padding:8px; flex-direction:column; align-items:center; justify-content:center;
+  --bw:min(100%, calc((100vh - 118px) * 16 / 9)); --bw:min(100%, calc((100dvh - 118px) * 16 / 9)); }
+#battle.on { display:flex; }
+#arena { width:var(--bw); aspect-ratio:16/9; display:block; background:#000; border-radius:8px; }
+#battle .controls { width:var(--bw); flex:none; }

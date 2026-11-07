@@ -17,16 +17,10 @@
     <p class="menu-tag">Forje versículos na lâmina e refute as mentiras.</p>
     <!-- principal -->
     <nav class="menu-list" id="menuMain">
-      <button class="primary" onclick="showMenuView('play')">Jogar</button>
+      <button class="primary" onclick="show('mapa')">Jogar</button>
       <button onclick="show('forgeList')">Habilidades<small>Forja dos versículos</small></button>
       <button onclick="showMenuView('settings')">Configurações</button>
     </nav>
-    <!-- Jogar: uma entrada por jornada -->
-    <div class="menu-sub" id="menuPlay" hidden>
-      <h2>Jogar</h2>
-      <div class="menu-list" id="journeys"></div>
-      <button class="menu-back" onclick="showMenuView('main')">← Voltar</button>
-    </div>
     <!-- Configurações -->
     <div class="menu-sub" id="menuSettings" hidden>
       <h2>Configurações</h2>
@@ -44,6 +38,15 @@
       <button class="menu-back" onclick="showMenuView('main')">← Voltar</button>
     </div>
   </div>
+</section>
+
+<!-- MAPA DAS JORNADAS (Jogar): um ponto por jornada, ligados pela trilha -->
+<section id="mapa" class="screen">
+  <div class="map-head">
+    <button class="menu-back" onclick="show('menu')">← Voltar</button>
+    <h2>Mapa da jornada</h2>
+  </div>
+  <div class="map-stage" id="mapStage"></div>
 </section>
 
 <!-- LISTA DA FORJA -->

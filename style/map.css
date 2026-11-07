@@ -1,0 +1,59 @@
+/* Mapa das jornadas (Jogar): tela cheia, pergaminho escuro; o palco é o maior 16:9 (em pé, 9:16) que cabe na tela */
+#mapa { position:fixed; inset:0; max-width:none; margin:0; padding:0; overflow:hidden;
+  background:radial-gradient(ellipse at 50% 45%, #3a2618 0%, #24170f 55%, #0b0807 100%); }
+#mapa.on { display:flex; }
+/* textura de mapa: grade fina de meridianos + vinheta */
+#mapa::before { content:''; position:absolute; inset:0; pointer-events:none; opacity:.35;
+  background:repeating-linear-gradient(0deg, #c9a45c14 0 1px, transparent 1px 64px), repeating-linear-gradient(90deg, #c9a45c14 0 1px, transparent 1px 64px); }
+#mapa::after { content:''; position:absolute; inset:0; pointer-events:none; box-shadow:inset 0 0 160px 40px #000c; }
+.map-head { position:absolute; z-index:3; top:16px; left:16px; display:flex; align-items:center; gap:16px; }
+.map-head .menu-back { margin:0; background:#1a120ecc; }
+.map-head h2 { margin:0; color:var(--gold); font-size:clamp(20px, 3vw, 30px); text-shadow:0 2px 0 #000; }
+
+.map-stage { position:relative; z-index:1; margin:auto; aspect-ratio:16/9; container-type:inline-size;
+  width:min(100vw, calc(100vh * 16 / 9)); width:min(100vw, calc(100dvh * 16 / 9)); }
+@media (orientation:portrait) {
+  .map-stage { aspect-ratio:9/16; width:min(100vw, calc(100vh * 9 / 16)); width:min(100vw, calc(100dvh * 9 / 16)); }
+}
+/* rosa dos ventos no canto */
+.map-stage::before { content:'✦'; position:absolute; right:4cqw; bottom:4cqw; font-size:9cqw; line-height:1; color:#c9a45c33; text-shadow:0 0 20px #c9a45c22; }
+
+/* trilha: tracejada; o trecho já vencido é dourado, o fim some na névoa */
+.map-trail { position:absolute; inset:0; width:100%; height:100%; overflow:visible; }
+.map-trail path { fill:none; stroke:#8a6a3a; stroke-width:3; stroke-dasharray:2 7; stroke-linecap:round; vector-effect:non-scaling-stroke; }
+.map-trail path.done { stroke:#f2c84b; filter:drop-shadow(0 0 4px #f2c84b88); }
+.map-trail path.fog { stroke:url(#fadeTrail); }
+
+/* ponto da jornada: medalhão ilustrado + legenda; região em volta brilha na cor da jornada */
+.map-node { position:absolute; transform:translate(-50%, -50%); width:11cqw; padding:0; background:none; border:0; min-height:0;
+  display:flex; flex-direction:column; align-items:center; gap:1.2cqw; }
+@media (orientation:portrait) { .map-node { width:26cqw; gap:2.4cqw; } }
+.map-node::before { content:''; position:absolute; left:50%; top:38%; width:320%; aspect-ratio:1; transform:translate(-50%, -50%); z-index:-1; pointer-events:none;
+  background:radial-gradient(circle, color-mix(in srgb, var(--c) 42%, transparent) 0%, color-mix(in srgb, var(--c) 12%, transparent) 38%, transparent 66%); }
+.map-node, .map-node.primary, .map-node:hover:not(:disabled) { background:none; border:0; } /* sem o fundo de botão (nem o laranja do .primary) */
+.medal { position:relative; display:block; width:100%; aspect-ratio:1; border-radius:50%; overflow:hidden;
+  border:.45cqw solid #c9a45c; box-shadow:0 0 0 .35cqw #1a120e, 0 0 0 .6cqw #6b4a32, 0 .8cqw 2cqw #000c; transition:transform .2s, box-shadow .2s; }
+.medal svg { display:block; width:100%; height:100%; }
+.map-node:hover:not(:disabled) .medal, .map-node:focus-visible .medal { transform:scale(1.07); border-color:var(--gold);
+  box-shadow:0 0 0 .35cqw #1a120e, 0 0 0 .6cqw var(--gold), 0 0 3cqw var(--c); }
+.map-node:focus-visible { outline:none; box-shadow:none; }
+.cap { display:flex; flex-direction:column; align-items:center; text-align:center; padding:.5cqw 1.4cqw; border-radius:.8cqw; background:#120c09d9; border:1px solid #5a4030; white-space:nowrap; }
+.cap small { font-size:clamp(10px, 1.05cqw, 14px); color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
+.cap b { font-family:Cinzel, serif; font-size:clamp(13px, 1.6cqw, 24px); color:var(--ink); }
+@media (orientation:portrait) { .cap small { font-size:clamp(10px, 2.6cqw, 14px); } .cap b { font-size:clamp(13px, 4cqw, 22px); } }
+.map-node:focus-visible .cap, .map-node:hover:not(:disabled) .cap { border-color:var(--gold); }
+
+/* jornada atual: medalhão pulsando e o escudo do templário em cima */
+.map-node.cur .medal { animation:mapPulse 2.2s ease-in-out infinite; }
+@keyframes mapPulse { 50% { box-shadow:0 0 0 .35cqw #1a120e, 0 0 0 .6cqw #6b4a32, 0 0 3.2cqw var(--c); } }
+.here { position:absolute; z-index:2; left:50%; top:0; width:28%; transform:translate(-50%, -78%); animation:mapBob 1.6s ease-in-out infinite; filter:drop-shadow(0 .4cqw .6cqw #000a); }
+.here svg { display:block; width:100%; }
+@keyframes mapBob { 50% { transform:translate(-50%, -95%); } }
+/* trancada: apagada, com cadeado · vencida: selo dourado */
+.map-node.locked .medal svg { filter:grayscale(1) brightness(.45); }
+.map-node.locked .cap { opacity:.6; }
+.map-node:disabled { opacity:1; }
+.lock { position:absolute; inset:0; display:grid; place-items:center; font-size:3.6cqw; }
+.seal { position:absolute; right:6%; bottom:6%; width:28%; aspect-ratio:1; display:grid; place-items:center; border-radius:50%;
+  background:#f2c84b; color:#1a120c; font-weight:800; font-size:1.8cqw; border:.3cqw solid #1a120e; }
+@media (prefers-reduced-motion:reduce) { .map-node.cur .medal, .here { animation:none; } }

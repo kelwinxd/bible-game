@@ -1,6 +1,7 @@
 /* Estilo do jogo: importa cada parte */
 @import url('base.css');
 @import url('menu.css');
+@import url('map.css');
 @import url('forge.css');
 @import url('quiz.css');
 @import url('battle.css');

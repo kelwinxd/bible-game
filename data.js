@@ -203,14 +203,17 @@ window.DATA = {
   //               frases (opcional) = mentira fixa de cada inimigo do grupo (texto igual ao de `mentiras`)
   //  Arenas ficam no plano: deixe ~740 px antes e ~220 px depois do x de `inimigos` sem desnível.
   //  Pulo: sobe até ~130 px e alcança ~185 px na horizontal.
+  // mapa (tela Jogar): x/y = posição do ponto em % do mapa deitado (no celular em pé, x e y se invertem);
+  //   icone = desenho do ponto (js/ui/map.js → ICONES: piramide, vale; sem ele, ruínas); cor = brilho da região em volta
   // protótipo: true = todas as jornadas abertas no menu, sem precisar vencer a anterior (false = trava até vencer)
   jornadasLiberadas: true,
   fases: [{
     // Jornada 1: só 2 versículos, bem separados. Cada um vem antes de 2 monstros (um por vez) que ele refuta.
     nome: "Exodus", comprimento: 9300,
+    mapa: { x: 24, y: 60, icone: "piramide", cor: "#e0782c" },
     // fundo (opcional): imagem que rola devagar (parallax) e se repete espelhada, emendando sem corte; escuro = véu por cima
-    fundo: { img: "assets/img/fundo-exodus.webp", parallax: 0.35, escuro: 0.15 },
-      chao: "assets/img/chao-exodus.webp", // laje de terra e pedras (miolo repetido + pontas nas bordas)
+    fundo: { img: "assets/img/fundo-exodus.webp", parallax: 0.35, escuro: 0.35 },
+    chao: "assets/img/chao-exodus.webp", // laje de terra e pedras (miolo repetido + pontas nas bordas)
     eventos: [
       // 1) buraco e pedra no chão → Hebreus 4:12
       { tipo: "buraco", x: 650, w: 140 },
@@ -234,6 +237,7 @@ window.DATA = {
   }, {
     // Jornada 2: a Dúvida ataca do alto (aves que mergulham). 3 versículos contra o medo, cada um antes das aves que ele refuta.
     nome: "O vale da sombra", comprimento: 10800,
+    mapa: { x: 58, y: 38, icone: "vale", cor: "#5d7fb8" },
     dica: ["A Dúvida ataca do alto: a ave mergulha onde você está", "Saia do lugar ou erga o escudo [J]; pule para golpeá-la"],
     eventos: [
       // 1) buraco e pedra no chão → Isaías 41:10

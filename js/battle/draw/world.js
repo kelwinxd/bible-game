@@ -53,13 +53,23 @@ export function drawSky(cam) {
 // (fim dissolvido no começo, como o fundo) e as pontas arredondadas viram "tampas" nas bordas de buracos e desníveis.
 // Medidas no arquivo recortado (2000×388): superfície onde se pisa em y=100, pontas de 120 px, faixa de rochas em y 160–340.
 const GSRC = { cap: 120, surf: 100, band: [160, 340], fade: 160, s: .5 };
+// cor do chão: multiplica a arte (areia clara) para a terra avermelhada e escura do fundo do Exodus.
+// Mais escuro/vermelho = baixar os canais; '#ffffff' = arte original.
+export const CHAO_COR = '#804a2e';
+function tingir(img, cor) { // cópia da imagem multiplicada pela cor, mantendo a transparência
+  const c = Object.assign(document.createElement('canvas'), { width: img.naturalWidth, height: img.naturalHeight }), x = c.getContext('2d');
+  x.drawImage(img, 0, 0);
+  x.globalCompositeOperation = 'multiply'; x.fillStyle = cor; x.fillRect(0, 0, c.width, c.height);
+  x.globalCompositeOperation = 'destination-in'; x.drawImage(img, 0, 0);
+  return c;
+}
 function groundKit(img) {
-  const { cap, fade, s, band } = GSRC, H = Math.round(img.naturalHeight * s), cw = cap * s;
+  const { cap, fade, s, band } = GSRC, H = Math.round(img.height * s), cw = cap * s;
   const mk = (w, h) => { const c = Object.assign(document.createElement('canvas'), { width: w, height: h }); return [c, c.getContext('2d')]; };
   // miolo repetível, com a base arredondada (usado nas lajes flutuantes)
-  const midSrc = img.naturalWidth - 2 * cap, W = midSrc * s, P = W - fade * s;
-  const [mid, mc] = mk(P, H); mc.drawImage(img, cap, 0, midSrc, img.naturalHeight, 0, 0, W, H);
-  const [f, fc] = mk(fade * s, H); fc.drawImage(img, cap + midSrc - fade, 0, fade, img.naturalHeight, 0, 0, fade * s, H);
+  const midSrc = img.width - 2 * cap, W = midSrc * s, P = W - fade * s;
+  const [mid, mc] = mk(P, H); mc.drawImage(img, cap, 0, midSrc, img.height, 0, 0, W, H);
+  const [f, fc] = mk(fade * s, H); fc.drawImage(img, cap + midSrc - fade, 0, fade, img.height, 0, 0, fade * s, H);
   const g = fc.createLinearGradient(0, 0, fade * s, 0); g.addColorStop(0, '#000'); g.addColorStop(1, '#0000');
   fc.globalCompositeOperation = 'destination-in'; fc.fillStyle = g; fc.fillRect(0, 0, fade * s, H); mc.drawImage(f, 0, 0);
   // chão alto: o miolo até o fim das rochas e, abaixo, a faixa de rochas repetida (escurecendo com a profundidade)
@@ -75,20 +85,23 @@ function groundKit(img) {
   tc.globalCompositeOperation = 'source-atop'; tc.fillStyle = dg; tc.fillRect(0, 140, P, 280);
   // pontas: o lado de dentro se dissolve no miolo (que continua por baixo delas)
   const capCv = (sx, inner) => {
-    const [c, x] = mk(cw, H); x.drawImage(img, sx, 0, cap, img.naturalHeight, 0, 0, cw, H);
+    const [c, x] = mk(cw, H); x.drawImage(img, sx, 0, cap, img.height, 0, 0, cw, H);
     const gg = x.createLinearGradient(0, 0, cw, 0);
     gg.addColorStop(inner ? 0 : .45, inner ? '#0000' : '#000'); gg.addColorStop(inner ? .55 : 1, inner ? '#000' : '#0000');
     x.globalCompositeOperation = 'destination-in'; x.fillStyle = gg; x.fillRect(0, 0, cw, H);
     return c;
   };
-  const capL = capCv(0, false), capR = capCv(img.naturalWidth - cap, true);
+  const capL = capCv(0, false), capR = capCv(img.width - cap, true);
   return { mid, tall, capL, capR, cw, surf: GSRC.surf * s, pat: ctx.createPattern(tall, 'repeat-x'), patMid: ctx.createPattern(mid, 'repeat-x') };
 }
 const GK = {};
 function groundImg() {
   const F = B.fase.chao; if (!F) return null;
-  const img = BG[F] || (BG[F] = Object.assign(new Image(), { src: F }));
-  return img.naturalWidth ? (GK[F] || (GK[F] = groundKit(img))) : null;
+  if (!BG[F]) { // monta o kit só depois de decodificar: antes disso o tingimento saía chapado, sem a textura
+    BG[F] = Object.assign(new Image(), { src: F });
+    BG[F].decode().then(() => { GK[F] = groundKit(tingir(BG[F], CHAO_COR)); });
+  }
+  return GK[F] || null;
 }
 // um pedaço de laje entre a e b com a superfície em y; tampas arredondadas onde capL/capR
 function slab(k, a, b, y, capL, capR, sc = 1, fundo = false) {
