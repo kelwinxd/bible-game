@@ -12,7 +12,7 @@ export function drawBattle() {
   const W = 960, H = 540, h = B.hero, cam = B.cam;
   drawSky(cam);
 
-  const sh = B.shake * 30; // tremor da explosão
+  const sh = B.shake * 30, screen = ctx.getTransform(); // tremor da explosão; screen = coordenadas da tela (para a dica)
   ctx.save(); ctx.translate(-cam + (Math.random() - .5) * sh, (Math.random() - .5) * sh); // daqui até o restore: coordenadas do mundo
   drawGround(cam);
   B.holes.forEach(drawHole);
@@ -68,6 +68,8 @@ export function drawBattle() {
   // demônios
   B.demons.forEach(d => { if (d.state === 'dead' && !(d.pop > 0)) return; d.s.mergulho ? drawBird(d) : d.s.sprite ? drawSpriteDemon(d) : d.s.chao ? drawTentacao(d) : drawDuvida(d); }); // morto: só o clarão antes de estourar
   B.demons.forEach(d => { if (d.state !== 'dead') drawHpBar(d); });
+  // dica/aviso no alto da tela: desenhada antes dos balões, para a mentira do inimigo ficar na frente dela
+  if (!B.fatal && !(B.trans > 0)) { ctx.save(); ctx.setTransform(screen); drawTip(); ctx.restore(); }
   layoutBalloons().forEach(drawBalloon);
 
   B.fireballs.forEach(f => {
@@ -114,7 +116,6 @@ export function drawBattle() {
     ctx.fillStyle = '#000a'; ctx.fillRect(0, 230, W, 70);
     ctx.fillStyle = '#f2c84b'; ctx.font = '800 36px Cinzel, serif'; ctx.fillText(`Jornada ${B.faseIdx + 1} · ${B.fase.nome}`, W / 2, 278);
   }
-  if (!B.fatal && !(B.trans > 0)) drawTip();
   if (B.fatal) drawFatal();
   if (halted()) { ctx.fillStyle = '#000a'; ctx.fillRect(0, 0, W, H); }
 }

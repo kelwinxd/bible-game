@@ -1,5 +1,6 @@
 import { balloonBelow, balloonY } from '../combat.js';
 import { ctx } from '../config.js';
+import { Rachaduras } from './cracks.js';
 import { tema } from '../hud.js';
 import { B } from '../state.js';
 import { shieldMax } from '../../core/progress.js';
@@ -9,10 +10,13 @@ export function tutTip() {
   const T = B.tut; if (!T || T.done || B.peek >= 0 || B.pendingFly) return null;
   const h = B.hero, hole = B.holes[0], rock = B.rocks[0];
   if (hole && h.x < hole.x + hole.w + 40) return ['[A] [D] andar   ·   [W] ou [Espaço] pular', 'Pule o buraco!'];
-  if (rock && rock.hp > 0) return h.x > rock.x - 330 ? ['[K] atacar', 'Golpeie o bezerro de ouro: 3 golpes o derrubam'] : ['Há uma luz no caminho… siga em frente'];
+  // cada dica some assim que o jogador faz o que ela pede (não espera o objetivo inteiro)
+  if (rock && rock.hp > 0) return rock.hp < rock.maxHp ? null : h.x > rock.x - 330 ? ['[K] atacar', 'Destrua o bezerro de ouro'] : ['Há uma luz no caminho… siga em frente'];
   if (!B.deck.length) return ['Pegue o livro dourado!'];
-  if (!T.refuted) return ['Os versículos são suas armas contra as mentiras.', 'Use o versículo CERTO para refutar: aperte [1] ou clique no card'];
-  if (!T.killed) return ['Mentira refutada! Sua lâmina brilha: [K] ataque o demônio', 'Segure [J] para erguer o escudo'];
+  if (!T.refuted) return ['Os versículos são suas armas. Utilize o certo para refutar e atacar.', 'Pressione [1] ou clique no card'];
+  // depois de refutar: uma linha por ação; cada uma some quando a tecla é usada
+  const left = [!T.attacked && 'Sua lâmina brilha: [K] ataque o demônio', !T.shielded && 'Segure [J] para erguer o escudo'].filter(Boolean);
+  if (!T.killed && left.length) return left;
   T.done = true; return null;
 }
 // caixa no alto da tela; trechos entre [ ] viram teclas desenhadas
@@ -84,6 +88,12 @@ export function layoutBalloons() {
 export function drawBalloon({ d, lines, bw, bh, cx, y, below }) {
   ctx.save(); ctx.globalAlpha = 1 - d.lieFlash / .3; // balão nasce com fade-in quando a mentira troca
   ctx.font = '600 18px system-ui';
+  // o balão racha junto com a vida do demônio (inteiro → rachado → despedaçado); a cada estágio caem lascas de papel
+  const R = d.rachas || (d.rachas = new Rachaduras(Math.random() * 1e9 | 0)), x0 = cx - bw / 2;
+  const est = Rachaduras.estagio(Math.max(0, d.hp) / d.maxHp);
+  if (est > (d.balaoEst || 0)) B.shards.push(...R.lascas(x0, y, bw, bh, est));
+  d.balaoEst = est; d.balao = { x: x0, y, w: bw, h: bh }; // combat.js estoura o balão daqui quando ele morre
+  R.recortar(ctx, x0, y, bw, bh, est);
   const headY = balloonY(d);
   if (below && y > headY + 18) { ctx.strokeStyle = '#f7efe2aa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(d.x, headY); ctx.lineTo(d.x, y); ctx.stroke(); } // empurrado para baixo
   if (!below && y + bh < headY - 4) { ctx.strokeStyle = '#f7efe2aa'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(d.x, y + bh); ctx.lineTo(d.x, headY); ctx.stroke(); } // balão empurrado para cima: linha até a cabeça
@@ -95,6 +105,7 @@ export function drawBalloon({ d, lines, bw, bh, cx, y, below }) {
   ctx.beginPath(); // ponta virada para o dono (para cima quando o balão fica embaixo)
   if (below) { ctx.moveTo(d.x - 10, y); ctx.lineTo(d.x, y - 14); ctx.lineTo(d.x + 10, y); } else { ctx.moveTo(d.x - 10, y + bh); ctx.lineTo(d.x, y + bh + 14); ctx.lineTo(d.x + 10, y + bh); }
   ctx.fill();
+  R.riscar(ctx, x0, y, bw, bh, est, '#5a2a1c', c => { c.beginPath(); c.roundRect(x0, y, bw, bh, 10); }); // por baixo do texto: a frase segue legível
   ctx.fillStyle = '#3a0c0c'; lines.forEach((l, i) => ctx.fillText(l, cx, y + 30 + i * 24));
   ctx.restore();
 }

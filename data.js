@@ -6,6 +6,31 @@ window.DATA = {
   //    `afiacao[1]` contexto histórico, `afiacao[2]` contexto da passagem.
   versiculos: [
     {
+      id: "ex20-3", ref: "Êxodo 20:3", tema: "idolatria", autor: "moises",
+      texto: "Não terás outros deuses diante de mim.",
+      lacunas: [
+        { certa: "deuses", distratores: ["amigos", "caminhos", "senhores"] },
+        { certa: "mim", distratores: ["eles", "nós", "todos"] }
+      ],
+      lacunas2: [
+        { certa: "outros", distratores: ["muitos", "grandes", "velhos"] },
+        { certa: "diante", distratores: ["longe", "depois", "fora"] }
+      ],
+      afiacao: [
+        [
+          { p: "Quem escreveu o livro de Êxodo?", certa: "Moisés", erradas: ["Arão", "Josué", "Samuel"] }
+        ],
+        [
+          { p: "De qual terra Deus tinha acabado de tirar Israel?", certa: "Egito", erradas: ["Babilônia", "Canaã", "Assíria"] },
+          { p: "Em qual monte Deus deu os Dez Mandamentos (Êxodo 19:20)?", certa: "Sinai", erradas: ["Carmelo", "Sião", "Das Oliveiras"] }
+        ],
+        [
+          { p: "Logo antes (Êxodo 20:2), Deus se apresenta como aquele que tirou o povo de onde?", certa: "Da casa da servidão, a terra do Egito", erradas: ["Do dilúvio", "Da cova dos leões", "Do deserto de Midiã"] },
+          { p: "Logo depois (Êxodo 20:4), o que Deus proíbe fazer?", certa: "Imagens de escultura para adorar", erradas: ["Trabalhar no sábado", "Comer carne de porco", "Casar com estrangeiros"] }
+        ]
+      ]
+    },
+    {
       id: "hb4-12", ref: "Hebreus 4:12", tema: "mentira", autor: "hebreus",
       texto: "Porque a palavra de Deus é viva, e eficaz, e mais penetrante do que qualquer espada de dois gumes, e penetra até à divisão da alma, e do espírito, e das juntas e medulas, e é apta para discernir os pensamentos e intenções do coração.",
       lacunas: [
@@ -173,23 +198,29 @@ window.DATA = {
     // demônio da Mentira: desacredita a Bíblia
     { texto: "A Bíblia é só um livro antigo. Não serve pra nada hoje.", tipo: "mentira", ideal: ["hb4-12"] },
     { texto: "Palavras velhas e mortas. Isso não muda ninguém.", tipo: "mentira", ideal: ["hb4-12"] },
-    { texto: "Isso é coisa do passado, não tem poder nenhum.", tipo: "mentira", ideal: ["hb4-12"] }
+    { texto: "Isso é coisa do passado, não tem poder nenhum.", tipo: "mentira", ideal: ["hb4-12"] },
+    // demônio da Idolatria: puxa para outros deuses (o bezerro de ouro está logo ali)
+    { texto: "Curve-se ao bezerro de ouro. Esse deus você pode ver.", tipo: "idolatria", ideal: ["ex20-3"] },
+    { texto: "Tenha quantos deuses quiser. Todos levam ao mesmo lugar.", tipo: "idolatria", ideal: ["ex20-3"] },
+    { texto: "Ponha outra coisa em primeiro lugar. Deus entende.", tipo: "idolatria", ideal: ["ex20-3"] }
   ],
   // Abreviação dos livros para os cards compactos do HUD (deck fechado): "Tiago 4:7" → "Tg 4:7".
-  abrev: { "Hebreus": "Hb", "Tiago": "Tg", "1 Coríntios": "1Co", "Isaías": "Is", "Salmos": "Sl" },
+  abrev: { "Êxodo": "Êx", "Hebreus": "Hb", "Tiago": "Tg", "1 Coríntios": "1Co", "Isaías": "Is", "Salmos": "Sl" },
 
   // Cor do poder por tema do versículo: brilho no herói, rasgo, impacto, referência, barra de poder e cards.
   temas: {
     tentacao: { nome: "Tentação", cor: "#f2c84b", claro: "#fff2b0", brilho: "#ffd34d" }, // amarelo/dourado
     duvida:   { nome: "Dúvida",   cor: "#7cc8ff", claro: "#e3f5ff", brilho: "#5fb8ff" }, // azul claro
-    mentira:  { nome: "Mentira",  cor: "#ff9a4d", claro: "#ffe0c4", brilho: "#ff8a2a" }  // laranja
+    mentira:  { nome: "Mentira",  cor: "#ff9a4d", claro: "#ffe0c4", brilho: "#ff8a2a" }, // laranja
+    idolatria: { nome: "Idolatria", cor: "#c88cff", claro: "#f0e0ff", brilho: "#b06aff" } // violeta
   },
   inimigos: {
     // chao: anda no chão e ataca corpo a corpo (passo = px/s); sem chao: flutua e cospe fogo;
     // mergulho: ave que paira no alto e mergulha no herói (sprite assets/sprites/enemy/ave-*.png)
     tentacao: { nome: "Demônio da Tentação", vida: 70, dano: 10, tell: 0.55, cadencia: 1.5, chao: true, passo: 90, cor: "#6e0f12", sprite: "serpente" },
     duvida:   { nome: "Ave da Dúvida",       vida: 60, dano: 10, tell: 0.7,  cadencia: 2.2, cor: "#4a3426", sprite: "ave", mergulho: true },
-    mentira:  { nome: "Demônio da Mentira",  vida: 60, dano: 8,  tell: 0.6,  cadencia: 1.8, chao: true, passo: 70, cor: "#9a1c1c", sprite: "serpente" }  // serpente: assets/sprites/enemy/serpente-*.png
+    mentira:  { nome: "Demônio da Mentira",  vida: 60, dano: 8,  tell: 0.6,  cadencia: 1.8, chao: true, passo: 70, cor: "#9a1c1c", sprite: "serpente" }, // serpente: assets/sprites/enemy/serpente-*.png
+    idolatria: { nome: "Demônio da Idolatria", vida: 60, dano: 8, tell: 0.6,  cadencia: 1.8, chao: true, passo: 70, cor: "#7a1c4a", sprite: "serpente" }
   },
   // Jornadas (fases), em ordem: vencer uma libera a próxima. O herói começa só com os versículos achados nas
   // jornadas anteriores. dica (opcional) = aviso no topo ao começar; fundo (opcional) = imagem de fundo (sem ele, céu desenhado).
@@ -208,31 +239,31 @@ window.DATA = {
   // protótipo: true = todas as jornadas abertas no menu, sem precisar vencer a anterior (false = trava até vencer)
   jornadasLiberadas: true,
   fases: [{
-    // Jornada 1: só 2 versículos, bem separados. Cada um vem antes de 2 monstros (um por vez) que ele refuta.
+    // Jornada 1: só 2 versículos (Êxodo 20:3, depois Hebreus 4:12), bem separados. Cada um vem antes de 2 serpentes (uma por vez) que ele refuta.
     nome: "Exodus", comprimento: 9300,
     mapa: { x: 24, y: 60, icone: "piramide", cor: "#e0782c" },
     // fundo (opcional): imagem que rola devagar (parallax) e se repete espelhada, emendando sem corte; escuro = véu por cima
     fundo: { img: "assets/img/fundo-exodus.webp", parallax: 0.35, escuro: 0.35 },
     chao: "assets/img/chao-exodus.webp", // laje de terra e pedras (miolo repetido + pontas nas bordas)
     eventos: [
-      // 1) buraco e pedra no chão → Hebreus 4:12
+      // 1) buraco e o bezerro de ouro no chão → Êxodo 20:3 ("Não terás outros deuses diante de mim")
       { tipo: "buraco", x: 650, w: 140 },
-      { tipo: "pedra", x: 1050, verso: "hb4-12" },
-      //    → 2 Mentiras (serpentes), uma de cada vez, com um terreno alto entre elas
-      { tipo: "inimigos", x: 1900, inimigos: ["mentira"], vida: 0.6, frases: ["A Bíblia é só um livro antigo. Não serve pra nada hoje."] },
+      { tipo: "pedra", x: 1050, verso: "ex20-3" },
+      //    → 2 serpentes da Idolatria, uma de cada vez, com um terreno alto entre elas (a 1ª provoca com o bezerro)
+      { tipo: "inimigos", x: 1900, inimigos: ["idolatria"], vida: 0.6, frases: ["Curve-se ao bezerro de ouro. Esse deus você pode ver."] },
       { tipo: "terreno", x: 2350, w: 380, altura: 90 },
-      { tipo: "inimigos", x: 3500, inimigos: ["mentira"], vida: 0.7, frases: ["Palavras velhas e mortas. Isso não muda ninguém."] },
-      // 2) caminho longo até o 2º versículo: buraco, vale, buraco largo, degrau e penhasco com a pedra no topo → Tiago 4:7
+      { tipo: "inimigos", x: 3500, inimigos: ["idolatria"], vida: 0.7, frases: ["Tenha quantos deuses quiser. Todos levam ao mesmo lugar."] },
+      // 2) caminho longo até o 2º versículo: buraco, vale, buraco largo, degrau e penhasco com a pedra no topo → Hebreus 4:12
       { tipo: "buraco", x: 4000, w: 170 },
       { tipo: "terreno", x: 4500, w: 500, altura: -90 },
       { tipo: "buraco", x: 5300, w: 330 },
       { tipo: "plataforma", x: 5400, w: 130, altura: 50 },
       { tipo: "plataforma", x: 5720, w: 140, altura: 70 },
       { tipo: "terreno", x: 5880, w: 460, altura: 140 },
-      { tipo: "pedra", x: 6150, verso: "tg4-7" },
-      //    → 2 Tentações, uma de cada vez (frases fixas: as que Tiago 4:7 refuta)
-      { tipo: "inimigos", x: 7200, inimigos: ["tentacao"], vida: 0.6, frases: ["Cede. Só desta vez."] },
-      { tipo: "inimigos", x: 8500, inimigos: ["tentacao"], vida: 0.75, frases: ["Ninguém vai saber."] }
+      { tipo: "pedra", x: 6150, verso: "hb4-12" },
+      //    → 2 Mentiras (serpentes), uma de cada vez, que desacreditam a Bíblia (Hebreus 4:12 refuta)
+      { tipo: "inimigos", x: 7200, inimigos: ["mentira"], vida: 0.6, frases: ["A Bíblia é só um livro antigo. Não serve pra nada hoje."] },
+      { tipo: "inimigos", x: 8500, inimigos: ["mentira"], vida: 0.75, frases: ["Palavras velhas e mortas. Isso não muda ninguém."] }
     ]
   }, {
     // Jornada 2: a Dúvida ataca do alto (aves que mergulham). 3 versículos contra o medo, cada um antes das aves que ele refuta.
@@ -288,6 +319,14 @@ window.DATA = {
       { p: "Antes da ressurreição, os irmãos de Jesus criam nele (João 7:5)?", certa: "Não, não criam", erradas: ["Sim, desde a infância", "Eram do grupo dos doze", "Só Tiago cria"] },
       { p: "Segundo 1 Coríntios 15:7, Jesus ressuscitado apareceu a quem?", certa: "A Tiago", erradas: ["A Nicodemos", "A Lázaro", "A José de Arimateia"] },
       { p: "Como Paulo chama Tiago em Gálatas 1:19?", certa: "Irmão do Senhor", erradas: ["Filho do trovão", "Pai da fé", "O zelote"] }
+    ] },
+    moises: { nome: "Moisés", perguntas: [
+      { p: "Quando bebê, onde Moisés foi colocado para escapar da ordem de Faraó (Êxodo 2:3)?", certa: "Num cesto de junco no rio", erradas: ["Numa caverna", "No templo", "Num poço seco"] },
+      { p: "Quem criou Moisés no palácio (Êxodo 2:10)?", certa: "A filha de Faraó", erradas: ["A rainha de Sabá", "Raabe", "Rute"] },
+      { p: "Moisés era de qual tribo de Israel (Êxodo 2:1)?", certa: "Levi", erradas: ["Judá", "Benjamim", "Dã"] },
+      { p: "Para qual terra Moisés fugiu depois de matar o egípcio (Êxodo 2:15)?", certa: "Midiã", erradas: ["Moabe", "Edom", "Filístia"] },
+      { p: "De dentro de quê Deus chamou Moisés (Êxodo 3:2)?", certa: "De uma sarça ardente", erradas: ["De uma nuvem", "De um redemoinho", "De uma rocha"] },
+      { p: "Quem Deus deu para falar ao lado de Moisés (Êxodo 4:14)?", certa: "Seu irmão Arão", erradas: ["Josué", "Calebe", "Jetro"] }
     ] },
     isaias: { nome: "Isaías", perguntas: [
       { p: "Isaías era filho de quem (Isaías 1:1)?", certa: "Amoz", erradas: ["Hilquias", "Buzi", "Jessé"] },

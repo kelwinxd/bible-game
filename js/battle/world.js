@@ -20,7 +20,7 @@ export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = op
     fase, faseIdx: fi,
     hp: 100, demons: [], fireballs: [], slashes: [], fx: [], floats: [], shards: [], embers: [], shake: 0,
     shield: false, power: null, deck: all ? D.versiculos.slice() : prev, cd: {}, peek: -1, usedLies: [], shieldE: shieldMax, shieldLock: false, dashCd: 0, dashBack: 0, dashQueued: false, ghosts: [], fire: all ? FIRE_MAX : 0, notice: fase.dica && !all ? { lines: fase.dica, t: 7, c: '#9fc3ff' } : null,
-    tut: all || fi > 0 ? null : { refuted: false, killed: false, done: false }, // tutorial só na 1ª jornada normal
+    tut: all || fi > 0 ? null : { refuted: false, attacked: false, shielded: false, killed: false, done: false }, // tutorial só na 1ª jornada normal
     hero: { x: 200, y: 0, vy: 0, face: 1, anim: 'idle', at: 0, hurt: 0, swing: 0, hitDone: true, ground: true, safe: null, dash: 0, dashHit: null },
     time: 0, trans: 0, fatal: null, over: false,
     cam: 0, arena: null, holes: [], terrain: [], platforms: [], rocks: [], books: [], groups: []

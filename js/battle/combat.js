@@ -27,6 +27,7 @@ export function attack() {
   const h = B && B.hero;
   if (!h || B.over || B.fatal || B.shield || h.swing > 0 || halted()) return;
   h.swing = SWING; h.hitDone = false; h.anim = 'attack'; h.at = 0;
+  if (B.tut && B.tut.refuted) B.tut.attacked = true; // tutorial: a dica do [K] some
 }
 export function renderFires(changed = -1, cls = '') {
   [...$('dashFires').children].forEach((f, k) => {
@@ -121,6 +122,9 @@ export function explodeDemon(d) {
     B.shards.push({ x: cx + (Math.random() - .5) * 70, y: cy + (Math.random() - .5) * 120, vx: (Math.random() - .5) * 700, vy: -200 - Math.random() * 500, r: Math.random() * 6, t: .9, c: body, sz: 1.4 + Math.random() * 1.2 });
 }
 export function startFatal(d, v, espirito = false) {
+  // o balão da mentira estoura em lascas de papel (se estava à vista: a ave esconde a frase no mergulho)
+  const shown = d.lie && d.balao && !(d.s.mergulho && (d.state === 'dive' || d.state === 'rise'));
+  if (shown) B.shards.push(...d.rachas.lascas(d.balao.x, d.balao.y, d.balao.w, d.balao.h, 3));
   d.state = 'dead'; d.lie = null; fatalSound(); explodeDemon(d);
   addFire(1); if (B.tut) B.tut.killed = true;
   const t = espirito ? FATAL_SPIRIT_T : FATAL_T;

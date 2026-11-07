@@ -57,7 +57,7 @@ Clicar num versículo da lista abre o **hub do versículo** com as duas trilhas.
 - **Afiação** = mesma faixa da forja, mas sem palavras rolando: as **4 opções ficam fixas em botões** e uma **mancha escura** atravessa a faixa. O jogador só pode responder **quando a mancha está na mira** (centro). Clique fora da mira **conta erro**, resposta errada conta erro. 2 perguntas por nível. Teclas 1–4 também respondem.
   - Normal: mancha a **250 px/s**, janela ±40 px · Calma: **140 px/s**, ±60 px · Sem pressa: sem mancha, responde quando quiser. (Mais rápida que a faixa da forja: aqui a resposta já está à vista, o desafio é o tempo.)
   - **Acerto**: a mancha fica **prata** (~0,7 s; na última pergunta fica prata de vez), a faixa **pisca amarelo** e o pergaminho vai ficando **prateado** proporcionalmente aos acertos do nível (metade na 1ª, prata total ao concluir) — a lâmina sendo afiada.
-- **Afiação nível 1 = só sobre o autor como pessoa** (nada de contexto da carta, ex.: quem aparece na saudação). Pergunta 1 é sempre "Quem escreveu…?"; a pergunta 2 é **sorteada** de um banco do autor (`data.js` → `autores`), ex. Paulo: nome antigo (Saulo), perseguia os cristãos, conversão em Damasco, Tarso, fariseu, Gamaliel, fazedor de tendas, apóstolo dos gentios. Autores são compartilhados entre versículos (os dois Salmos usam o banco de Davi). Assim refazer o nível não é decoreba.
+- **Afiação nível 1 = só sobre o autor como pessoa** (nada de contexto da carta, ex.: quem aparece na saudação). Pergunta 1 é sempre "Quem escreveu…?"; a pergunta 2 é **sorteada** de um banco do autor (`data.js` → `autores`), ex. Paulo: nome antigo (Saulo), perseguia os cristãos, conversão em Damasco, Tarso, fariseu, Gamaliel, fazedor de tendas, apóstolo dos gentios. Autores são compartilhados entre versículos (os dois Salmos usam o banco de Davi; Êxodo usa o de Moisés: cesto no rio, filha de Faraó, tribo de Levi, Midiã, sarça ardente, Arão). Assim refazer o nível não é decoreba.
 - Conteúdo dos quizzes em `data.js` → `versiculos[].afiacao` e `autores` (escrito de memória — **conferir** antes do jogo oficial).
 
 ## 3. Exercitar a fé (melhora o escudo)
@@ -115,18 +115,18 @@ Na 1ª jornada o herói **começa com 0 versículos**; nas seguintes, **só com 
 - **Ídolo — bezerro de ouro** (`assets/sprites/object/bezerro.png`, no lugar da antiga pedra brilhante; no data.js segue `tipo: "pedra"`): fica **apoiado no que estiver embaixo** — chão, terreno alto, fundo do vale, topo do penhasco — e brilha dourado. **Bloqueia** quem está na mesma altura (alto demais para pular). **3 golpes** (espada, rasgo ou impulso) o derrubam; **cada golpe muda o quadro**: inteiro → rachado → quebrado (lascas douradas a cada golpe). No 3º golpe ele **desmorona**: sobra o pedestal com entulho e os pedaços (cabeça, pata, lascas — `bezerro-pecas.png`) **caem com gravidade, giram, quicam uma vez e assentam** sobre o entulho. De dentro **salta um livro dourado** que flutua.
 - **Tocar o livro** (ou passar por ele) → o jogo **pausa** e abre um **pergaminho que se desenrola** com "✦ NOVO VERSÍCULO ✦", a referência e o **texto completo**, com **brilho dourado pulsando** em volta (fundo escurece com halo dourado). ✕, Enter, Esc ou clique fora fecha. Ao fechar, um **📖 voa da fase até o card novo**, que surge com **faíscas douradas** — o jogador lê o versículo antes de poder usá-lo.
 - **Inimigos** surgem quando o herói chega a ~600 px do grupo (mais cedo, para o herói ficar à esquerda e sobrar espaço para os inimigos espaçados); a **câmera desliza e trava** (arena de x−740 a x+220 do grupo) até o grupo todo cair (+20 de vida ao vencer cada grupo).
-- **Tutorial no começo** (só na 1ª jornada, fora do modo teste): caixa no alto da tela, uma dica por vez, com as **teclas desenhadas pulsando**. Avança conforme o jogador faz:
-  1. "A D andar · W ou Espaço pular — Pule o buraco!"
-  2. Perto da pedra: "K atacar — golpeie o bezerro de ouro: 3 golpes o derrubam"
+- **Tutorial no começo** (só na 1ª jornada, fora do modo teste): caixa no alto da tela, uma dica por vez, com as **teclas desenhadas pulsando**. Fica **atrás do balão da mentira** do inimigo (o balão nunca é coberto). **Cada dica some assim que o jogador faz o que ela pede**, sem esperar o objetivo inteiro:
+  1. "A D andar · W ou Espaço pular — Pule o buraco!" → some ao passar o buraco
+  2. Perto do ídolo: "K atacar — Destrua o bezerro de ouro" → some no 1º golpe
   3. "Pegue o livro dourado!"
-  4. Depois de ler o versículo novo: "Os versículos são suas armas contra as mentiras. Use o versículo CERTO para refutar: aperte 1 ou clique no card"
-  5. Depois de refutar: "Sua lâmina brilha: K ataque o demônio · segure J para erguer o escudo" → some ao derrotar o primeiro inimigo.
+  4. Depois de ler o versículo novo: "Os versículos são suas armas. Utilize o certo para refutar e atacar. / Pressione 1 ou clique no card" → some ao refutar
+  5. Depois de refutar, uma linha por ação: "Sua lâmina brilha: K ataque o demônio" (some ao atacar) e "Segure J para erguer o escudo" (some ao erguer o escudo); se o inimigo morrer antes, some tudo.
 - Ordem da fase 1 (**"Exodus"**, antes "A Palavra no caminho") — **só 2 versículos e 4 monstros**, versículos bem separados (fase de 9 300 px, ~1 min jogando direto):
-  1. buraco → pedra no chão: **Hebreus 4:12**
-  2. **Mentira** ("A Bíblia é só um livro antigo…") → terreno alto → **Mentira** ("Palavras velhas e mortas…") — uma de cada vez, as duas refutadas por Hebreus 4:12
-  3. caminho longo: buraco, vale, buraco largo com laje, degrau de plataforma → pedra **no topo de um penhasco**: **Tiago 4:7**
-  4. **Tentação** ("Cede. Só desta vez.") → **Tentação** ("Ninguém vai saber.") — uma de cada vez, frases fixas que Tiago 4:7 refuta → fim = vitória
-  - 1Co 10:13 ainda não aparece em jornada nenhuma (continua na forja e no modo teste).
+  1. buraco → bezerro de ouro no chão: **Êxodo 20:3** ("Não terás outros deuses diante de mim") — o 1º versículo do jogo fala justamente do ídolo que o herói acabou de derrubar
+  2. **Idolatria** ("Curve-se ao bezerro de ouro. Esse deus você pode ver.") → terreno alto → **Idolatria** ("Tenha quantos deuses quiser…") — uma de cada vez, as duas refutadas por Êxodo 20:3
+  3. caminho longo: buraco, vale, buraco largo com laje, degrau de plataforma → ídolo **no topo de um penhasco**: **Hebreus 4:12** (a Palavra viva e eficaz)
+  4. **Mentira** ("A Bíblia é só um livro antigo…") → **Mentira** ("Palavras velhas e mortas…") — uma de cada vez, frases fixas que Hebreus 4:12 refuta → fim = vitória
+  - Tiago 4:7 e 1Co 10:13 (Tentação) não aparecem em jornada nenhuma por enquanto (continuam na forja e no modo teste).
 - Ordem da fase 2 ("O vale da sombra") — **3 versículos contra o medo e 6 aves da Dúvida** (fase de 10 800 px). Começa com o aviso "A Dúvida ataca do alto: a ave mergulha onde você está / Saia do lugar ou erga o escudo [J]; pule para golpeá-la":
   1. buraco → pedra no chão: **Isaías 41:10**
   2. **ave** ("Você é fraco e medroso. Desista.") → terreno alto → **ave** ("Ninguém vai te socorrer.")
@@ -170,6 +170,7 @@ Cada **tema** de versículo tem uma cor (em `data.js` → `temas`), não cada ve
 | Tentação | amarelo / dourado |
 | Dúvida | azul claro |
 | Mentira (desacredita a Bíblia) | laranja |
+| Idolatria (outros deuses) | violeta |
 
 A cor aparece no **brilho do herói** durante o poder, no **rasgo de luz** e seu rastro, no **impacto**, no **número de dano**, na **referência sobre o herói**, na **barra de poder**, na barra de vida do demônio refutado e na **faixa lateral do card**. Novos temas = nova entrada em `temas`.
 
@@ -210,20 +211,22 @@ Obs.: a faixa colorida no card indica o tema, o que dá uma pista parcial (demô
   - **Sobe em curva** para o outro lado (bico inclinado para cima, asas batendo rápido) até a altura de pairar e **vira** para encarar o herói: troca de lado direto, sem animar a virada (o giro horizontal ficava estranho).
   - **Balão da mentira embaixo da ave** (em cima ficava atrás do HUD do topo), com a ponta para cima. Fica na altura de pairar: não desce junto no mergulho, só acompanha a ave na horizontal. **A frase some enquanto ela mergulha e sobe** e volta quando ela fica pairando de novo.
   - Com várias aves, **só uma mergulha por vez**. Ficam dentro da arena.
+- **O balão da mentira racha junto com a vida do demônio**, em 3 estágios: **inteiro** (mais de 2/3 da vida) → **rachado** (riscos saindo de cima e de baixo, até 1/3) → **despedaçado** (mais riscos e **pedaços faltando** nos cantos e numa beira). A cada estágio caem **lascas de papel**; quando o demônio morre, o balão **estoura** em lascas. Riscos ficam por baixo do texto e os buracos só na beira: a frase continua legível. Vale para todos os inimigos (serpente e ave). Cada balão racha de um jeito (sorteado), sempre igual até o fim. Feito com a classe reaproveitável `Rachaduras` (`js/battle/draw/cracks.js`), que serve para qualquer painel retangular.
 - **Cada demônio carrega UMA mentira até morrer.** Não troca com o tempo e não some ao ser refutada — só desaparece quando ele morre.
 - Cada demônio novo traz **outra mentira do seu tema**, sem repetir na mesma batalha (só repete se o repertório do tema acabar).
-- 12 mentiras no total: as 5 do GDD + variações com frases diferentes que pedem o mesmo versículo (anti-decoreba).
+- 15 mentiras no total (3 da Idolatria): as 5 do GDD + variações com frases diferentes que pedem o mesmo versículo (anti-decoreba).
 
-| | Tentação | Dúvida | Mentira |
-|---|---|---|---|
-| Vida base | 70 | 60 | 60 |
-| Comportamento | Persegue o herói no chão (90 px/s) | Ave: paira alto e mergulha | Persegue no chão, mais lento (70 px/s) |
-| Ataque | Corpo a corpo, 10 dano, alcance 150 px; **pular desvia** | Mergulho até onde o herói estava, 10 dano; sair do lugar desvia | Corpo a corpo, 8 dano |
-| Aviso | 0,55 s, brilho vermelho | 0,7 s, ergue as asas, brilho azul | 0,6 s |
-| Cadência | 1,5 s | 2,2 s | 1,8 s |
-| Refutado por | Tiago 4:7, 1 Co 10:13 | Isaías 41:10, Salmos 23:4, Salmos 3:7 | Hebreus 4:12 |
+| | Tentação | Dúvida | Mentira | Idolatria |
+|---|---|---|---|---|
+| Vida base | 70 | 60 | 60 | 60 |
+| Comportamento | Persegue o herói no chão (90 px/s) | Ave: paira alto e mergulha | Persegue no chão, mais lento (70 px/s) | Serpente, igual à Mentira |
+| Ataque | Corpo a corpo, 10 dano, alcance 150 px; **pular desvia** | Mergulho até onde o herói estava, 10 dano; sair do lugar desvia | Corpo a corpo, 8 dano | Corpo a corpo, 8 dano |
+| Aviso | 0,55 s, brilho vermelho | 0,7 s, ergue as asas, brilho azul | 0,6 s | 0,6 s |
+| Cadência | 1,5 s | 2,2 s | 1,8 s | 1,8 s |
+| Refutado por | Tiago 4:7, 1 Co 10:13 | Isaías 41:10, Salmos 23:4, Salmos 3:7 | Hebreus 4:12 | Êxodo 20:3 |
 
 - Mentiras da Mentira: "A Bíblia é só um livro antigo. Não serve pra nada hoje." · "Palavras velhas e mortas. Isso não muda ninguém." · "Isso é coisa do passado, não tem poder nenhum."
+- Mentiras da Idolatria: "Curve-se ao bezerro de ouro. Esse deus você pode ver." · "Tenha quantos deuses quiser. Todos levam ao mesmo lugar." · "Ponha outra coisa em primeiro lugar. Deus entende."
 - Vida por grupo na jornada: primeiros grupos 55–60%, depois 80–100%.
 
 ## 9. Derrota do demônio (fatality)
