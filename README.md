@@ -5,10 +5,10 @@ Protótipo HTML das mecânicas do jogo bíblico **Espada Forjada**: forjar vers�
 ## Como rodar
 
 ```bash
-python -m http.server 5500
+python serve.py
 ```
 
-Abra http://localhost:5500 (Ctrl+F5 depois de mudanças).
+Abra http://localhost:5500. O serve.py desliga o cache: um F5 já pega as mudanças.
 
 - `index.html`: só a marcação das telas (menu, forja, batalha, pausa)
 - `style/global.css`: importa os estilos de cada parte (`base`, `menu`, `map`, `forge`, `quiz`, `battle`, `hud`, `peek`, `overlay`)
