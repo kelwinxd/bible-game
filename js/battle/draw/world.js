@@ -124,8 +124,8 @@ function drawGroundImg(k, cam) {
   };
   B.terrain.filter(t => t.top !== Infinity).forEach(t => cut(t.x, t.w, t.top));
   B.holes.forEach(o => cut(o.x + 14, o.w - 28, Infinity)); // a laje avança um pouco sobre a borda do buraco, onde ainda dá pé
-  // fundo dos buracos: escuridão por trás das lajes
-  B.holes.forEach(o => { const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
+  // fundo dos buracos: escuridão por trás das lajes (no mar: o mar agitado)
+  B.holes.forEach(o => { if (o.mar) return drawSea(o); const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
   // do mais baixo para o mais alto: a parede de quem é mais alto fica na frente
   segs.map((s, i) => ({ s, l: segs[i - 1], r: segs[i + 1] })).filter(q => q.s.top !== Infinity).sort((p, q) => q.s.top - p.s.top)
     .forEach(({ s, l, r }) => slab(k, s.a, s.b, GROUND + s.top, l && l.top > s.top, r && r.top > s.top));
@@ -160,6 +160,7 @@ export function drawPlatform(pl) {
 }
 export function drawHole(o) {
   if (groundImg()) return; // com chão de imagem, o fundo do buraco já foi desenhado atrás das lajes
+  if (o.mar) return drawSea(o);
   const gr = ctx.createLinearGradient(0, GROUND, 0, 540); gr.addColorStop(0, '#000'); gr.addColorStop(1, '#0a0503');
   ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND, o.w, 540 - GROUND);
   ctx.fillStyle = '#3a2418'; ctx.fillRect(o.x - 4, GROUND, 6, 540 - GROUND); ctx.fillRect(o.x + o.w - 2, GROUND, 6, 540 - GROUND);
@@ -168,6 +169,25 @@ export function drawHole(o) {
 // afundam quando ele se afasta; cada uma com seu ritmo. Em buraco com laje, ficam nos vãos livres.
 export const HAND = { img: new Image(), FW: 177, FH: 209, ax: 89, n: 3, scale: .55 }; // quadros 0–4: agarrando (loop) · 5–9: afundando
 HAND.img.src = 'assets/sprites/hazard/mao-fogo.png';
+// Mar: buraco cheio de ondas (4 quadros 470×206 em loop). Os quadros se repetem lado a lado, um normal e o seguinte
+// espelhado (as bordas emendam sem corte); as cristas passam um pouco acima da borda do chão, por trás das lajes
+export const SEA = { img: new Image(), FW: 470, FH: 206, n: 4, sc: .5, fps: 5 };
+SEA.img.src = 'assets/sprites/hazard/mar.webp';
+export function drawSea(o) {
+  const gr = ctx.createLinearGradient(0, GROUND, 0, 540); gr.addColorStop(0, '#0e1a26'); gr.addColorStop(1, '#060c12'); // água funda atrás das ondas
+  ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND + 10, o.w, 540 - GROUND);
+  if (!SEA.img.naturalWidth) return;
+  // recorta 6 px de cada lado do quadro (a borda da arte é mais clara/transparente). Espelhando um sim, um não, os dois lados
+  // de cada emenda mostram a mesma coluna da arte; largura e posições em pixel inteiro (sem fresta de meio pixel): sem linha entre eles
+  const IN = 6, w = Math.round((SEA.FW - IN * 2) * SEA.sc), h = SEA.FH * SEA.sc, fr = Math.floor(B.time * SEA.fps) % SEA.n, y = 548 - h;
+  ctx.save(); ctx.beginPath(); ctx.rect(o.x, 0, o.w, 560); ctx.clip(); // só dentro do buraco
+  for (let i = 0, x = Math.round(o.x - 10); x < o.x + o.w; i++, x += w) {
+    ctx.save(); ctx.translate(x + (i % 2 ? w : 0), y); ctx.scale(i % 2 ? -1 : 1, 1);
+    ctx.drawImage(SEA.img, fr * SEA.FW + IN, 0, SEA.FW - IN * 2, SEA.FH, 0, 0, w + (i % 2 ? 0 : 1), h); // +1 px por baixo do vizinho
+    ctx.restore();
+  }
+  ctx.restore();
+}
 export function handSpots(o) {
   if (!o.hands) {
     // vãos livres do buraco (sem laje por cima)
@@ -188,7 +208,7 @@ export function handSpots(o) {
   return o.hands;
 }
 export function drawHoleFire(o) {
-  if (!HAND.img.naturalWidth) return;
+  if (!HAND.img.naturalWidth || o.mar) return; // no mar não há mãos de fogo
   const t = B.time, p = o.hand || 0;
   handSpots(o).forEach(hd => {
     const q = Math.max(0, Math.min(1, p * 1.5 - hd.delay)); // uma depois da outra
@@ -241,8 +261,8 @@ export function drawGoal(x) {
   ctx.fillStyle = '#5c5046'; ctx.fillRect(x - 46, GROUND - 26, 92, 26); ctx.fillRect(x - 36, GROUND - 40, 72, 16);
 }
 // rasgo em forma de meia-lua, com o lado convexo apontando na direção do voo
-export function drawCrescent(x, y, ang, alpha, sc, c) {
-  ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(sc, sc); ctx.globalAlpha = alpha;
+export function drawCrescent(x, y, ang, alpha, sc, c, sy = 1) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(sc, sc * sy); ctx.globalAlpha = alpha; // sy: estica só na altura
   ctx.shadowColor = c.brilho; ctx.shadowBlur = 25;
   const g = ctx.createLinearGradient(-10, 0, 30, 0); g.addColorStop(0, c.brilho + '00'); g.addColorStop(.6, c.claro); g.addColorStop(1, '#ffffff');
   ctx.fillStyle = g;

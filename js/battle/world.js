@@ -2,7 +2,7 @@ import { heroDies, renderFires } from './combat.js';
 import { FIRE_MAX, GROUND, IDOL, cv } from './config.js';
 import { buildHotbar, toggleDeck, togglePeek } from './hud.js';
 import { B, setB } from './state.js';
-import { sfx } from '../core/audio.js';
+import { sfx, stoneSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
 import { faseMax, found, markFound, shieldMax } from '../core/progress.js';
 import { $, D, byId, rand, reduced } from '../core/utils.js';
@@ -27,7 +27,7 @@ export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = op
   });
   // y do mundo: 0 = chão normal, negativo = mais alto, positivo = mais baixo, Infinity = buraco
   fase.eventos.forEach(e => {
-    if (e.tipo === 'buraco') { B.holes.push({ x: e.x, w: e.w }); B.terrain.push({ x: e.x + 18, w: e.w - 36, top: Infinity }); }
+    if (e.tipo === 'buraco' || e.tipo === 'mar') { B.holes.push({ x: e.x, w: e.w, mar: e.tipo === 'mar' }); B.terrain.push({ x: e.x + 18, w: e.w - 36, top: Infinity }); }
     else if (e.tipo === 'terreno') B.terrain.push({ x: e.x, w: e.w, top: -e.altura });
     else if (e.tipo === 'plataforma') B.platforms.push({ x: e.x, w: e.w, top: -e.altura });
     else if (e.tipo === 'inimigos') B.groups.push({ ...e, done: false });
@@ -66,7 +66,9 @@ export function makeDemon(type, k, vidaMult, n = 1) {
 }
 // ídolo (bezerro de ouro): 3 golpes (ou rasgos) derrubam; de dentro salta o livro dourado com o versículo
 export function hitRock(r) {
-  r.hp--; r.flash = .12; sfx('block');
+  r.hp--; r.flash = .12;
+  // som de construção: trinca a cada golpe (mais forte quanto mais rachado); no último, desaba
+  if (r.hp > 0) stoneSfx('crack', 1 - r.hp / r.maxHp); else stoneSfx('collapse');
   const n = reduced ? 4 : 10;
   for (let k = 0; k < n; k++) B.shards.push({ x: r.x + (Math.random() - .5) * 80, y: GROUND + r.base - 60 - Math.random() * 70, vx: (Math.random() - .5) * 320, vy: -Math.random() * 320, r: Math.random() * 6, t: .7, c: '214,160,60' });
   if (r.hp > 0) return;
@@ -121,9 +123,12 @@ export function flyToCard(b, i) {
   }, 750);
 }
 export function fallInHole(h) {
+  const mar = B.holes.find(o => o.mar && h.x > o.x - 20 && h.x < o.x + o.w + 20);
+  if (mar) for (let k = 0; k < (reduced ? 6 : 16); k++) // espirro d'água onde ele afundou
+    B.shards.push({ x: h.x + (Math.random() - .5) * 60, y: GROUND + 20, vx: (Math.random() - .5) * 260, vy: -150 - Math.random() * 300, r: Math.random() * 6, t: .8, c: '214,232,240', sz: .4 + Math.random() * .5 });
   const sp = h.safe || { x: 200, y: 0 }; h.x = sp.x; h.y = sp.y; h.vy = 0; // volta ao último ponto firme
   sfx('hurt'); if (!opts.god) B.hp = Math.max(0, B.hp - 10); h.hurt = .3;
-  B.floats.push({ x: h.x, y: GROUND - 250, t: 1, s: 'Caiu! -10', c: '#ff5a4a' });
+  B.floats.push({ x: h.x, y: GROUND - 250, t: 1, s: mar ? 'Caiu no mar! -10' : 'Caiu! -10', c: '#ff5a4a' });
   if (B.hp <= 0) heroDies();
 }
 // Cada demônio carrega uma única mentira do seu tema até morrer; o próximo traz outra ainda não usada.

@@ -226,6 +226,7 @@ window.DATA = {
   // jornadas anteriores. dica (opcional) = aviso no topo ao começar; fundo (opcional) = imagem de fundo (sem ele, céu desenhado).
   // Eventos em ordem de x (pixels do mundo):
   //  buraco     = obstáculo para pular (cair = volta ao último ponto firme, -10 de vida)
+  //  mar        = buraco cheio de mar agitado (sprite animado, sem as mãos de fogo); cair = igual ao buraco. Ponha uma plataforma em cima
   //  terreno    = trecho com outra altura: altura > 0 = mais alto (parede: precisa pular), < 0 = vale mais baixo
   //  plataforma = laje flutuante; sobe pulando por baixo e fica em cima
   //  pedra      = ídolo (bezerro de ouro) com o livro dourado do versículo; fica apoiada no que estiver embaixo
@@ -253,10 +254,11 @@ window.DATA = {
       { tipo: "inimigos", x: 1900, inimigos: ["idolatria"], vida: 0.6, frases: ["Curve-se ao bezerro de ouro. Esse deus você pode ver."] },
       { tipo: "terreno", x: 2350, w: 380, altura: 90 },
       { tipo: "inimigos", x: 3500, inimigos: ["idolatria"], vida: 0.7, frases: ["Tenha quantos deuses quiser. Todos levam ao mesmo lugar."] },
-      // 2) caminho longo até o 2º versículo: buraco, vale, buraco largo, degrau e penhasco com a pedra no topo → Hebreus 4:12
+      // 2) caminho longo até o 2º versículo: buraco, mar com uma laje no meio, mar largo com 2 lajes, penhasco com a pedra no topo → Hebreus 4:12
       { tipo: "buraco", x: 4000, w: 170 },
-      { tipo: "terreno", x: 4500, w: 500, altura: -90 },
-      { tipo: "buraco", x: 5300, w: 330 },
+      { tipo: "mar", x: 4500, w: 500 },
+      { tipo: "plataforma", x: 4640, w: 200, altura: 40 },
+      { tipo: "mar", x: 5300, w: 330 },
       { tipo: "plataforma", x: 5400, w: 130, altura: 50 },
       { tipo: "plataforma", x: 5720, w: 140, altura: 70 },
       { tipo: "terreno", x: 5880, w: 460, altura: 140 },

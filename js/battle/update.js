@@ -1,5 +1,5 @@
 import { updateBird } from './bird.js';
-import { damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
+import { attack, damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
 import { DASH_CD, DASH_SPEED, GRAV, GROUND, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
 import { B, keys } from './state.js';
 import { ENEMY_GAP, stepIdol, collectBook, fallInHole, floorAt, hitRock, makeDemon, moveX, pickLie, restoreLie, rockBox, terrainTop } from './world.js';
@@ -21,7 +21,7 @@ export function updateBattle(rdt) {
   // herói
   if (!B.over) {
     const mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
-    const sp = SPEED * (B.shield ? .35 : h.swing > 0 ? .5 : 1);
+    const sp = SPEED * (B.shield ? .35 : h.swing > 0 ? (h.ground ? 0 : .5) : 1); // golpeando no chão ele finca os pés (a arte do ataque é parada); no ar segue o pulo
     let lo = B.arena ? B.arena.left + 50 : 50, hi = B.arena ? B.arena.right - 50 : B.fase.comprimento - 50;
     // pedra inteira bloqueia quem está na mesma altura dela (é alta demais para pular)
     const rock = B.rocks.find(r => r.hp > 0 && r.x > h.x && h.y > r.base - 158 && h.y - 200 < r.base);
@@ -44,7 +44,8 @@ export function updateBattle(rdt) {
     if (h.y > 420) fallInHole(h);
     if (h.swing > 0) {
       h.swing -= dt;
-      if (!h.hitDone && SWING - h.swing >= SWING_HIT) { h.hitDone = true; swingHit(); }
+      if (!h.hitDone && (h.swingT || SWING) - h.swing >= (h.swingHit || SWING_HIT)) { h.hitDone = true; swingHit(); }
+      if (h.swing <= 0) { h.swingEnd = B.time; if (h.comboQ) attack(); } // combo: o golpe guardado sai em seguida
     }
     const moving = mx !== 0 && h.ground;
     const anim = h.dash > 0 ? 'dash' : h.swing > 0 ? 'attack' : moving ? 'run' : 'idle';
@@ -118,9 +119,8 @@ export function updateBattle(rdt) {
   B.fireballs = B.fireballs.filter(f => !f.dead);
 
   B.slashes.forEach(sl => {
-    sl.trail.unshift({ x: sl.x, y: sl.y }); sl.trail.length = Math.min(sl.trail.length, 8);
     sl.x += sl.vx * dt; sl.y += sl.vy * dt;
-    const box = [sl.x - 30, sl.y - 40, sl.x + 30, sl.y + 40];
+    const box = [sl.x - 30, sl.y - 45 * sl.sy, sl.x + 30, sl.y + 45 * sl.sy]; // do tamanho da lâmina desenhada (~45 px de meia altura)
     B.demons.forEach(d => {
       if (d.state === 'dead' || d.state === 'enter' || sl.hit.has(d) || !overlap(box, demonBox(d))) return;
       sl.hit.add(d);

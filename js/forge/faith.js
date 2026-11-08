@@ -68,6 +68,6 @@ export function nextQuiz() {
     : `Você acertou ${acertos} de ${quiz.qs.length}! ${Q.ganhar()}`;
   $('faithShield').innerHTML = Q.info();
   $('faithBody').innerHTML = `<div class="scroll" style="text-align:center"><div class="ref">${passed ? Q.titulo : 'Continue firme'}</div>${msg}</div>
-    <div class="row" style="margin-top:14px"><button onclick="startQuiz()">Fazer outro quiz</button><button class="primary" onclick="show('forgeList')">Voltar à forja</button></div>`;
+    <div class="row" style="margin-top:14px"><button onclick="startQuiz()">Fazer outro quiz</button><button class="primary" onclick="habView('fe')">Voltar</button></div>`;
   if (passed) { const r = $('faithBody').getBoundingClientRect(); burst(r.left + r.width / 2, r.top + 40, 40, QUIZ[quizKind].cor); }
 }

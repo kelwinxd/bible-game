@@ -21,8 +21,8 @@ addEventListener('keydown', e => {
   if (B && GAME_KEYS.includes(e.code)) e.preventDefault();
   keys[e.code] = true;
   if (e.repeat) return;
-  // Espaço martela; tira o foco de botão para não "clicar" nele junto
-  if ($('forge').classList.contains('on') && e.code === 'Space') { e.preventDefault(); document.activeElement.blur(); hammer(); }
+  // Espaço ou K martelam (K = o mesmo botão do ataque na batalha); tira o foco de botão para não "clicar" nele junto
+  if ($('forge').classList.contains('on') && (e.code === 'Space' || e.code === 'KeyK')) { e.preventDefault(); document.activeElement.blur(); hammer(); }
   if (curSharp && /^Digit[1-4]$/.test(e.code)) { const b = $('sharpOpts').children[+e.code.slice(5) - 1]; b && pickSharp(b); }
   if (B) {
     if (e.code === 'KeyP' && !B.over && B.peek < 0) { setPause(!B.paused); return; }

@@ -18,7 +18,7 @@
     <!-- principal -->
     <nav class="menu-list" id="menuMain">
       <button class="primary" onclick="show('mapa')">Jogar</button>
-      <button onclick="show('forgeList')">Habilidades<small>Forja dos versículos</small></button>
+      <button onclick="habView('hub')">Habilidades<small>Versículos, fé e armadura</small></button>
       <button onclick="showMenuView('settings')">Configurações</button>
     </nav>
     <!-- Configurações -->
@@ -50,9 +50,17 @@
 </section>
 
 <!-- LISTA DA FORJA -->
-<section id="forgeList" class="screen">
-  <div class="forge-layout">
-    <div class="forge-main">
+<section id="forgeList" class="screen" data-view="hub">
+  <!-- Habilidades: o templário no centro e 3 entradas na frente dele (como uma tela de personagem).
+       Cada entrada isola uma vista: Forjar versículos · Exercitar a fé · Armadura (data-view, ver js/forge/list.js) -->
+  <header class="hab-top">
+    <button onclick="habBack()" id="habBack">← Menu</button>
+    <h1 class="hab-title" id="habTitle">Habilidades</h1>
+    <button class="primary" onclick="startBattle()">Ir para a jornada ⚔</button>
+  </header>
+  <div class="hab-body">
+    <!-- Forjar versículos -->
+    <div class="hab-panel hab-versos">
       <h2><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h13v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M4 19a2 2 0 0 1 2-2h13"/><path d="M11.5 6.5v7M9 9h5"/></svg>Forjar versículos</h2>
       <p class="muted">Os versículos você <b>encontra na jornada</b>. Aqui você os forja (mais dano) e afia (poder dura mais).</p>
       <div class="vtools" id="vtools">
@@ -61,7 +69,12 @@
       </div>
       <div class="vlist vscroll" id="vlist"></div>
       <p class="muted vhidden" id="vhidden"></p>
-      <h2 style="margin-top:22px"><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M12 7.5v9M8.5 11h7"/></svg>Exercitar a fé</h2>
+      <div class="row"><button onclick="forgeAll()">Forjar tudo (teste)</button></div>
+    </div>
+    <!-- Exercitar a fé -->
+    <div class="hab-panel hab-fe">
+      <h2><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M12 7.5v9M8.5 11h7"/></svg>Exercitar a fé</h2>
+      <p class="muted">Quizzes sobre a Palavra. Passe para fortalecer o escudo e o Impulso do Espírito.</p>
       <div class="vlist">
         <div class="vitem" tabindex="0" onclick="openFaith()">
           <div><b>Heróis da fé</b> <span class="tag">Hebreus 11 · quiz</span><div class="muted" style="margin-top:4px">Acerte ao menos 4 de 5 para fortalecer o escudo (+1s).</div></div>
@@ -72,17 +85,20 @@
           <div id="spiritInfo"></div>
         </div>
       </div>
-      <div class="row" style="margin-top:14px">
-        <button onclick="show('menu')">Menu</button>
-        <button onclick="forgeAll()">Forjar tudo (teste)</button>
-        <button class="primary" id="goBattle" onclick="startBattle()">Ir para a jornada ⚔</button>
-      </div>
     </div>
-    <!-- o templário parado no chão de areia, com as habilidades dele em cima -->
-    <aside class="hero-card" aria-label="Habilidades do herói">
-      <div class="hero-stats" id="heroStats"></div>
-      <div class="hero-stage" aria-hidden="true"><div class="hero-idle"></div><div class="hero-shadow"></div><div class="hero-ground"></div></div>
-    </aside>
+    <!-- Armadura de Deus (Efésios 6): uma peça por card, dos dois lados do templário -->
+    <div class="arm-col arm-l" id="armL"></div>
+    <div class="arm-col arm-r" id="armR"></div>
+    <blockquote class="hab-quote">“Revesti-vos de toda a armadura de Deus, para que possais estar firmes contra as astutas ciladas do diabo.”<cite>Efésios 6:11</cite></blockquote>
+    <!-- o templário parado no chão de areia -->
+    <div class="hero-stage" aria-hidden="true"><div class="hero-idle"></div><div class="hero-shadow"></div><div class="hero-ground"></div></div>
+    <aside class="hero-stats" id="heroStats" aria-label="Habilidades do herói"></aside>
+    <!-- as 3 entradas, na frente do templário -->
+    <nav class="hab-menu" aria-label="Habilidades">
+      <button class="hab-btn" onclick="habView('versos')"><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h13v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M4 19a2 2 0 0 1 2-2h13"/><path d="M11.5 6.5v7M9 9h5"/></svg><b>Forjar versículos</b><small id="hbVersos"></small></button>
+      <button class="hab-btn" onclick="habView('fe')"><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M12 7.5v9M8.5 11h7"/></svg><b>Exercitar a fé</b><small id="hbFe"></small></button>
+      <button class="hab-btn" onclick="habView('armadura')"><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-8a7 7 0 0 1 14 0v8z"/><path d="M5 14h14M12 5v15M9 17h6"/></svg><b>Armadura</b><small id="hbArm"></small></button>
+    </nav>
   </div>
 </section>
 
@@ -90,7 +106,7 @@
 <section id="faith" class="screen">
   <div class="row" style="margin-bottom:10px">
     <button onclick="show('menu')">☰ Menu</button>
-    <button onclick="show('forgeList')">← Forja</button>
+    <button onclick="habView('fe')">← Exercitar a fé</button>
     <span class="muted" id="faithShield"></span>
   </div>
   <div id="faithBody"></div>
@@ -100,7 +116,7 @@
 <section id="verse" class="screen">
   <div class="row" style="margin-bottom:10px">
     <button onclick="show('menu')">☰ Menu</button>
-    <button onclick="show('forgeList')">← Lista de versículos</button>
+    <button onclick="habView('versos')">← Lista de versículos</button>
   </div>
   <div id="verseBody"></div>
 </section>
@@ -140,12 +156,15 @@
     <div class="forge-left">
       <div class="scroll" id="scroll"></div>
       <div class="anvil">
-        <button class="hammer primary" id="hammerBtn">🔨 Martelar</button>
+        <button class="hammer primary" id="hammerBtn">🔨 Martelar <kbd class="hk">K</kbd></button>
         <span id="forgeInfo" class="muted"></span>
       </div>
     </div>
     <div class="forge-right">
-      <div class="smith-sprite" id="smithF" aria-hidden="true"></div>
+      <div class="smith-box" aria-hidden="true"></div>
+      <div class="smith-sprite idle" id="smithF" aria-hidden="true"></div>
+      <div class="smith-say" id="smithSay" aria-live="polite"></div>
+      <div class="smith-hp" id="smithHp"></div>
       <div class="strip" id="strip"><div class="zone" id="zone"></div></div>
     </div>
   </div>
@@ -217,6 +236,10 @@
             <rect x="29" y="14" width="6" height="14" rx="3" fill="#6b4a32"/>
           </svg></div>
           <div class="ctl-txt"><b>Escudo — J ou botão direito (segurar)</b><span>Bloqueia golpes e bolas de fogo. Dura pouco: veja a barra azul no topo.</span></div>
+        </div>
+        <div class="ctl">
+          <div class="ctl-keys"><span class="key k-attack">K</span><span class="muted">+</span><span class="key k-attack">K</span></div>
+          <div class="ctl-txt"><b>Combo: golpe duplo — K + K</b><span>K dá um corte lateral. Aperte K de novo durante ele (ou logo depois) e o templário emenda o 2º golpe: um corte de cima para baixo. Continuando a apertar, alterna os dois sem parar.</span></div>
         </div>
         <div class="ctl">
           <div class="ctl-keys"><span class="key k-spirit">L</span><span class="muted">ou</span><span class="key key-wide k-spirit">Espírito</span></div>

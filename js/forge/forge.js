@@ -47,6 +47,14 @@ export function buildGaps(v, level) {
     return { ...w, distratores: shuffle(others).slice(0, 3) };
   });
 }
+export const FORGE_LIVES = 3; // errou 3 vezes: perde a forja (vai para a tela de resultado)
+// corações no canto da caixa do forjador: cheios = vidas que restam; o que acabou de ser perdido quebra
+const HEART = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.6 4.5c2.1 0 3.6 1.2 5.4 3.2 1.8-2 3.3-3.2 5.4-3.2 3.6 0 5.7 3.7 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg>';
+function renderLives(lost = false) {
+  const f = curForge, left = FORGE_LIVES - f.errors;
+  $('smithHp').innerHTML = Array.from({ length: FORGE_LIVES }, (_, i) => `<i class="${i < left ? 'on' : ''}${lost && i === left ? ' lost' : ''}">${HEART}</i>`).join('');
+  $('smithHp').title = `${left} de ${FORGE_LIVES} vidas`;
+}
 export let curForge = null;
 export const clearForge = () => { curForge = null; };
 export function openForge(v, level = 1) {
@@ -55,7 +63,8 @@ export function openForge(v, level = 1) {
   gaps.forEach((g, i) => g.stop = stopAfter(t, g.pos + g.certa.length, i + 1 < gaps.length ? gaps[i + 1].pos : t.length));
   curForge = { v, level, gaps, gap: 0, errors: 0, words: [], queue: [], done: false, typed: 0, typing: true, shown: -1 };
   $('forgeTitle').innerHTML = `🔨 Forja · Nível ${level} <span class="muted">— ${D.niveis.forja.descr[level - 1]}</span>`;
-  $('forgeDone').innerHTML = '';
+  $('forgeDone').innerHTML = ''; $('forge').classList.remove('result');
+  renderLives();
   $('hammerBtn').style.display = opts.forge === 'sempressa' ? 'none' : '';
   clearStrip(); renderScroll();
 }
@@ -125,15 +134,20 @@ export function hammer() {
 }
 // martelada: reinicia a animação a cada toque (mesmo com toques rápidos seguidos)
 export function strike(id) { const h = $(id); h.classList.remove('hit'); void h.getBoundingClientRect(); h.classList.add('hit'); }
-// forjador: parado no quadro 0; a cada martelada ergue (1), bate (2, com faíscas) e solta (3), voltando ao 0.
+// forjador: parado, em idle (respira, 4 quadros em loop); a cada martelada ergue (1), bate (2, com faíscas) e solta (3), e volta ao idle.
 // No impacto pisca dourado (acertou a palavra) ou vermelho (errou)
 let smithT = [];
 function smithStrike(ok) {
   const el = $('smithF'); smithT.forEach(clearTimeout);
-  const fr = n => { el.classList.remove('f1', 'f2', 'f3'); if (n) el.classList.add('f' + n); };
+  const fr = n => { el.classList.remove('f1', 'f2', 'f3', 'idle'); el.classList.add(n ? 'f' + n : 'idle'); };
   fr(1);
-  smithT = [setTimeout(() => { fr(2); el.classList.remove('ok', 'bad'); void el.offsetWidth; el.classList.add(ok ? 'ok' : 'bad'); }, 90),
-    setTimeout(() => fr(3), 230), setTimeout(() => fr(0), 400)];
+  const say = $('smithSay'); // palavra em cima da cabeça dele: Certo! (dourado) ou Errado! (vermelho)
+  smithT = [setTimeout(() => {
+    fr(2); el.classList.remove('ok', 'bad'); void el.offsetWidth; el.classList.add(ok ? 'ok' : 'bad');
+    say.textContent = ok ? 'Certo!' : 'Errado!'; say.className = 'smith-say'; void say.offsetWidth; say.classList.add(ok ? 'ok' : 'bad');
+  }, 90),
+    setTimeout(() => fr(3), 230), setTimeout(() => fr(0), 400),
+    setTimeout(() => el.classList.remove('ok', 'bad'), 700)]; // tira o piscar ao fim dele: senão a animação dele trava o idle
 }
 export function judge(text, el) {
   const f = curForge, lac = f.gaps[f.gap];
@@ -143,7 +157,8 @@ export function judge(text, el) {
     f.gap++; f.typing = true;
     clearStrip(); renderScroll();
   } else {
-    sfx('miss'); f.errors++;
+    sfx('miss'); f.errors++; renderLives(true);
+    if (f.errors >= FORGE_LIVES) { f.done = true; clearStrip(); setTimeout(() => forgeFail(f, true), 700); return; } // sem vidas: perde
     const s = $('strip'); s.classList.remove('shake'); void s.offsetWidth; s.classList.add('shake');
     renderScroll(); const g = $('gap' + f.gap); g && g.classList.add('blot');
   }
@@ -152,7 +167,31 @@ export function finishForge() {
   const f = curForge; f.done = true; renderScroll();
   $('forgeInfo').textContent = '';
   const m = D.niveis.forja;
+  if (f.errors) return forgeFail(f);
   levelResult('forgeDone', 'forja', f.v, f.level, f.errors, () => `Dano agora ×${verseMult(f.v.id)} (${m.nomes[progOf(f.v.id).forja - 1]}).`);
 }
 $('hammerBtn').onclick = e => { e.stopPropagation(); hammer(); };
 $('strip').onclick = () => { if (opts.forge !== 'sempressa') hammer(); };
+
+// errou alguma palavra: não passa de nível. A tela troca para só o resultado (some versículo, forjador e Martelar):
+// quantas acertou, quantas errou, e Voltar ao menu / Tentar de novo
+function forgeFail(f, dead = false) {
+  if (curForge !== f) return; // saiu da forja antes
+  const ok = dead ? f.gap : f.gaps.length, bad = f.errors, pct = Math.round(ok / (ok + bad) * 100);
+  $('forge').classList.add('result');
+  $('forgeDone').innerHTML = `<div class="fres">
+    <h2>${dead ? 'Sem vidas' : 'Forja não concluída'}</h2>
+    <p class="fres-ref">${f.v.ref} · Nível ${f.level}</p>
+    <div class="fres-stats">
+      <div class="fres-st ok"><b>${ok}</b><span>acerto${ok === 1 ? '' : 's'}</span></div>
+      <div class="fres-st bad"><b>${bad}</b><span>erro${bad === 1 ? '' : 's'}</span></div>
+      <div class="fres-st"><b>${pct}%</b><span>precisão</span></div>
+    </div>
+    <p class="muted">${dead ? `Você errou ${FORGE_LIVES} vezes e perdeu esta forja (${ok} de ${f.gaps.length} palavras acertadas). ` : ''}Acerte todas as palavras, sem nenhum erro, para passar de nível.</p>
+    <div class="row fres-btns">
+      <button onclick="show('menu')">← Voltar ao menu</button>
+      <button class="primary" onclick="openForge(byId['${f.v.id}'], ${f.level})">↻ Tentar de novo</button>
+    </div>
+  </div>`;
+  $('forgeDone').querySelector('.primary').focus();
+}

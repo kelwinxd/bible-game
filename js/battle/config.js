@@ -18,6 +18,22 @@ for (const k of ['run', 'jump', 'death']) HERO[k].src = `assets/sprites/hero/${k
 // parado (idle): 4 quadros, em pé; tira com quadro próprio (mais estreito), mesma escala visual das outras
 export const HERO_IDLE = { img: new Image(), FW: 148, FH: 211, ax: 83, n: 4 };
 HERO_IDLE.img.src = 'assets/sprites/hero/idle.png';
+// Golpes do combo no chão: dois ataques de 6 quadros cada (attack1 / attack2), na mesma escala visual do idle
+// (a guarda do 1º quadro tem a mesma altura nos dois), cada quadro alinhado pelo pé de trás → ax = meio dos pés, pés na base.
+// T = duração (s), HIT = quando acerta, quadros = [t, quadro] (vale a partir de t segundos)
+// corte = o rasgo de luz do poder do versículo nesse golpe (a mesma meia-lua de sempre, ~91 px de altura, só esticada na
+// vertical): sy = quanto estica na altura, y = altura do centro acima do chão. Lateral: menor e no meio do corpo;
+// de cima para baixo: do pescoço aos pés
+export const HERO_ATK = [
+  // 1º: corte lateral — guarda → arma → corte → corte largo → estocada → volta à guarda
+  { img: new Image(), FW: 274, FH: 186, ax: 123, T: .6, HIT: .27, quadros: [[0, 0], [.08, 1], [.17, 2], [.27, 3], [.38, 4], [.5, 5]],
+    corte: { sy: 1.05, y: 92 } },
+  // 2º: corte de cima para baixo — guarda → ergue → ergue → no alto (arco) → desce cortando (termina aí: não bate no chão)
+  { img: new Image(), FW: 239, FH: 300, ax: 102, T: .44, HIT: .28, quadros: [[0, 0], [.06, 1], [.12, 2], [.2, 3], [.28, 4]],
+    corte: { sy: 1.5, y: 68 } }
+];
+HERO_ATK.forEach((a, i) => { a.img.src = `assets/sprites/hero/attack${i + 1}.webp`; });
+export const COMBO_WIN = .3; // apertar K até 0,3 s depois do golpe acabar ainda encadeia o próximo
 // Ídolo (bezerro de ouro) no lugar da pedra do versículo: 4 quadros 420×580, base do pedestal em y=566, centro x=210.
 // Quadro = estado por golpe (inteiro · rachado · quebrado · só o pedestal com entulho). No último, as peças de
 // bezerro-pecas.png caem: [sx, sy, w, h, x, y no quadro]

@@ -1,4 +1,4 @@
-import { GROUND, HERO, HERO_IDLE, HERO_SCALE, HERO_THRUST, SWING_HIT, ctx } from '../config.js';
+import { GROUND, HERO, HERO_ATK, HERO_IDLE, HERO_SCALE, HERO_THRUST, SWING_HIT, ctx } from '../config.js';
 import { drawBird, drawDuvida, drawSpriteDemon, drawTentacao } from './enemies.js';
 import { drawBalloon, drawFatal, drawHUD, drawHpBar, drawTip, layoutBalloons } from './hud.js';
 import { drawBook, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky } from './world.js';
@@ -26,7 +26,10 @@ export function drawBattle() {
   let img = HERO.run, fr = 0, dim = HERO;
   if (h.deadAt != null) { img = HERO.death; fr = Math.min(4, Math.floor((B.time - h.deadAt) / .16)); }
   else if (h.anim === 'dash') { img = HERO.jump; fr = HERO_THRUST; }
-  else if (h.anim === 'attack') { img = HERO.jump; fr = h.at < SWING_HIT ? 2 : HERO_THRUST; }
+  else if (h.anim === 'attack' && h.ground && HERO_ATK[h.combo || 0].img.naturalWidth) { // no chão: o golpe do combo (1º ou 2º), 6 quadros
+    dim = HERO_ATK[h.combo || 0]; img = dim.img; dim.quadros.forEach(([t, q]) => { if (h.at >= t) fr = q; });
+  }
+  else if (h.anim === 'attack') { img = HERO.jump; fr = h.at < SWING_HIT ? 2 : HERO_THRUST; } // no ar: espada erguida → estocada
   else if (!h.ground) { img = HERO.jump; fr = h.vy < -150 ? 1 : h.vy > 150 ? 4 : 0; }
   else if (h.anim === 'run') fr = Math.floor(h.at * 12) % 8;
   else if (HERO_IDLE.img.naturalWidth) { dim = HERO_IDLE; img = HERO_IDLE.img; fr = Math.floor(B.time * 5) % HERO_IDLE.n; } // parado: respira
@@ -91,8 +94,7 @@ export function drawBattle() {
     ctx.restore();
   });
   B.slashes.forEach(sl => {
-    sl.trail.forEach((p, i) => drawCrescent(p.x, p.y, sl.ang, .35 * (1 - i / sl.trail.length), .8 - i * .05, sl.c));
-    drawCrescent(sl.x, sl.y, sl.ang, 1, 1, sl.c);
+    drawCrescent(sl.x, sl.y, sl.ang, 1, 1, sl.c, sl.sy); // um corte só voando (sem cópias atrás)
   });
   B.shards.forEach(s => { ctx.fillStyle = `rgba(${s.c || '240,230,210'},${s.t})`; ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.r); const z = s.sz || 1; ctx.fillRect(-5 * z, -3 * z, 10 * z, 6 * z); ctx.restore(); });
   ctx.save(); ctx.lineCap = 'round'; ctx.lineWidth = 3; ctx.shadowBlur = 10; // faíscas: risco brilhante na direção do voo

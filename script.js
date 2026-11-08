@@ -9,7 +9,7 @@ import { show } from './js/ui/screens.js';
 import { sparksTick } from './js/ui/sparks.js';
 import { showMenuView } from './js/ui/menu.js';
 import './js/ui/menu-nav.js';
-import { forgeAll } from './js/forge/list.js';
+import { forgeAll, habView, habBack } from './js/forge/list.js';
 import { openFaith, startQuiz, answerQuiz, nextQuiz } from './js/forge/faith.js';
 import { openVerse, toggleStudy, backToVerse } from './js/forge/verse.js';
 import { openForge, forgeTick } from './js/forge/forge.js';
@@ -27,7 +27,7 @@ import './js/battle/draw/enemies.js';
 import './js/input/controls.js';
 
 // onclick="..." do HTML (e dos trechos gerados) roda no escopo global
-Object.assign(window, { startBattle, show, showMenuView, forgeAll, openFaith, startQuiz, answerQuiz, nextQuiz, openVerse, openForge, openSharpen, toggleStudy, backToVerse, pickSharp, setPause, showPauseView, startDash, toggleDeck, togglePeek, closePeek, useVerse, byId });
+Object.assign(window, { startBattle, show, showMenuView, forgeAll, habView, habBack, openFaith, startQuiz, answerQuiz, nextQuiz, openVerse, openForge, openSharpen, toggleStudy, backToVerse, pickSharp, setPause, showPauseView, startDash, toggleDeck, togglePeek, closePeek, useVerse, byId });
 
 // ---------- Loop ----------
 let last = performance.now();

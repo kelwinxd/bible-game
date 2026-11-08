@@ -1,9 +1,9 @@
-import { BASE_DMG, DASH_BACK_WIN, DASH_CD, DASH_T, FATAL_SPIRIT_T, FATAL_T, FIRE_MAX, GROUND, SWING } from './config.js';
+import { BASE_DMG, COMBO_WIN, DASH_BACK_WIN, DASH_CD, DASH_T, FATAL_SPIRIT_T, FATAL_T, FIRE_MAX, GROUND, HERO_ATK } from './config.js';
 import { BIRD_HOVER_Y } from './bird.js';
 import { halted, tema } from './hud.js';
 import { B } from './state.js';
 import { hitRock, rockBox } from './world.js';
-import { fatalSound, sfx } from '../core/audio.js';
+import { fatalSound, sfx, swordSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
 import { dashDmg, unlockFase } from '../core/progress.js';
 import { $, D, reduced, rgbOf } from '../core/utils.js';
@@ -22,11 +22,18 @@ export function demonBox(d) {
 }
 export const overlap = (a, b) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3] && a[3] > b[1];
 
-// o golpe sai para onde o herói está virado (não segue o mouse)
+// o golpe sai para onde o herói está virado (não segue o mouse).
+// Combo: K = 1º golpe (corte lateral); K de novo durante o golpe (ou logo depois) = 2º golpe em seguida
+// (corte de cima para baixo); continuando, alterna 1º, 2º, 1º…
 export function attack() {
   const h = B && B.hero;
-  if (!h || B.over || B.fatal || B.shield || h.swing > 0 || halted()) return;
-  h.swing = SWING; h.hitDone = false; h.anim = 'attack'; h.at = 0;
+  if (!h || B.over || B.fatal || B.shield || halted()) return;
+  if (h.swing > 0) { h.comboQ = true; return; } // guarda o próximo golpe: sai assim que este acabar
+  const chain = B.time - (h.swingEnd ?? -9) <= COMBO_WIN;
+  h.combo = chain ? 1 - (h.combo || 0) : 0; h.comboQ = false;
+  const g = HERO_ATK[h.combo]; h.swingT = g.T; h.swingHit = g.HIT;
+  h.swing = h.swingT; h.hitDone = false; h.anim = 'attack'; h.at = 0;
+  swordSfx(B.power ? 'laser' : 'swing'); // a lâmina corta o ar; com poder, vento + zumbido de energia
   if (B.tut && B.tut.refuted) B.tut.attacked = true; // tutorial: a dica do [K] some
 }
 export function renderFires(changed = -1, cls = '') {
@@ -56,7 +63,7 @@ export function startDash() {
   if (B.dashCd > 0 && !back) return;
   if (back) { h.faceAfter = h.face; h.face = -h.face; B.dashBack = 0; } // volta pelo mesmo caminho e depois encara a frente de novo
   else B.dashBack = B.fire >= FIRE_MAX ? DASH_T + DASH_BACK_WIN : 0;
-  h.dash = DASH_T; h.dashHit = new Set(); h.swing = 0; h.vy = 0; B.dashCd = DASH_CD; // recarga conta a partir do último
+  h.dash = DASH_T; h.dashHit = new Set(); h.swing = 0; h.comboQ = false; h.vy = 0; B.dashCd = DASH_CD; // recarga conta a partir do último
   sfx('whoosh'); sfx('beam');
 }
 // durante o impulso: fere quem o herói atravessa (uma vez por impulso) e acerta a pedra
@@ -81,22 +88,19 @@ export function damageDemon(d, impulso = false) {
 // Com o poder ativo, o golpe vira um rasgo de luz que voa reto (horizontal) para onde o herói está virado,
 // na altura em que ele está — no chão ou no ar durante o pulo. Sem diagonais por enquanto.
 export function launchSlash() {
-  const h = B.hero, x = h.x + h.face * 50, y = GROUND + h.y - 140;
-  B.slashes.push({ x, y, vx: h.face * 900, vy: 0, ang: h.face > 0 ? 0 : Math.PI, hit: new Set(), trail: [], c: tema(B.power.v) });
-  sfx('beam');
+  const h = B.hero, k = HERO_ATK[h.combo || 0].corte, x = h.x + h.face * 50, y = GROUND + h.y - k.y; // altura e tamanho seguem o golpe
+  B.slashes.push({ x, y, sy: k.sy, vx: h.face * 900, vy: 0, ang: h.face > 0 ? 0 : Math.PI, hit: new Set(), c: tema(B.power.v) });
 }
 export function swingHit() {
   const h = B.hero;
   if (B.power) return launchSlash();
   const reach = h.face > 0 ? [h.x + 10, h.x + 145] : [h.x - 145, h.x - 10];
   const box = [reach[0], GROUND + h.y - 215, reach[1], GROUND + h.y - 30];
-  let any = false;
   B.demons.forEach(d => {
     if (d.state === 'dead' || d.state === 'enter' || !overlap(box, demonBox(d))) return;
-    any = true; sfx('slash'); damageDemon(d);
+    swordSfx('cut'); damageDemon(d); // golpe na carne
   });
-  B.rocks.forEach(r => { if (r.hp > 0 && overlap(box, rockBox(r))) { any = true; hitRock(r); } });
-  if (!any) sfx('whoosh');
+  B.rocks.forEach(r => { if (r.hp > 0 && overlap(box, rockBox(r))) hitRock(r); });
 }
 
 export function heroDies() { B.over = true; B.hero.deadAt = B.time; setTimeout(() => endScreen(false), 1400); } // dá tempo de ver a queda
@@ -144,7 +148,7 @@ export function endScreen(win) {
   $('endTitle').textContent = win ? 'Vitória' : 'Você caiu';
   $('endText').textContent = !win ? 'Levante-se. Volte à forja, afie a lâmina e tente de novo.'
     : next ? `Jornada ${fi + 1} concluída. A jornada ${fi + 2} foi liberada.` : 'Todas as jornadas concluídas. Você encontrou a Palavra e refutou as mentiras.';
-  $('endBtns').innerHTML = `<button onclick="show('forgeList')">Voltar à forja</button>` + (!win
+  $('endBtns').innerHTML = `<button onclick="habView('hub')">Habilidades</button>` + (!win
     ? `<button class="primary" onclick="startBattle(${fi})">Jogar de novo</button>`
     : next ? `<button class="primary" onclick="startBattle(${fi + 1})">Jornada ${fi + 2} →</button>` : `<button class="primary" onclick="show('menu')">Menu</button>`);
   $('endOverlay').classList.add('on');
