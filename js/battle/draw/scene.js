@@ -3,6 +3,7 @@ import { drawBird, drawDuvida, drawSpriteDemon, drawTentacao } from './enemies.j
 import { drawBalloon, drawFatal, drawHUD, drawHpBar, drawTip, layoutBalloons } from './hud.js';
 import { drawBook, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky } from './world.js';
 import { halted, tema } from '../hud.js';
+import { drawAcid, drawGiant, drawGiantLie } from '../boss.js';
 import { B } from '../state.js';
 import { D } from '../../core/utils.js';
 
@@ -70,10 +71,12 @@ export function drawBattle() {
 
   // demônios
   B.demons.forEach(d => { if (d.state === 'dead' && !(d.pop > 0)) return; d.s.mergulho ? drawBird(d) : d.s.sprite ? drawSpriteDemon(d) : d.s.chao ? drawTentacao(d) : drawDuvida(d); }); // morto: só o clarão antes de estourar
+  drawGiant(); // Golias (chefão da Jornada 2)
   B.demons.forEach(d => { if (d.state !== 'dead') drawHpBar(d); });
   // dica/aviso no alto da tela: desenhada antes dos balões, para a mentira do inimigo ficar na frente dela
   if (!B.fatal && !(B.trans > 0)) { ctx.save(); ctx.setTransform(screen); drawTip(); ctx.restore(); }
   layoutBalloons().forEach(drawBalloon);
+  drawGiantLie(); // balão do Golias (mais forte)
 
   B.fireballs.forEach(f => {
     ctx.save(); ctx.shadowColor = '#ff6a00'; ctx.shadowBlur = 20;
@@ -96,6 +99,7 @@ export function drawBattle() {
   B.slashes.forEach(sl => {
     drawCrescent(sl.x, sl.y, sl.ang, 1, 1, sl.c, sl.sy); // um corte só voando (sem cópias atrás)
   });
+  drawAcid(); // ácido do Leviatã voando
   B.shards.forEach(s => { ctx.fillStyle = `rgba(${s.c || '240,230,210'},${s.t})`; ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.r); const z = s.sz || 1; ctx.fillRect(-5 * z, -3 * z, 10 * z, 6 * z); ctx.restore(); });
   ctx.save(); ctx.lineCap = 'round'; ctx.lineWidth = 3; ctx.shadowBlur = 10; // faíscas: risco brilhante na direção do voo
   B.embers.forEach(e => { const a = Math.min(1, e.t * 2); ctx.strokeStyle = `rgba(${e.c},${a})`; ctx.shadowColor = `rgb(${e.c})`; ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x - e.vx * .025, e.y - e.vy * .025); ctx.stroke(); });

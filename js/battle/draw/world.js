@@ -1,4 +1,5 @@
 import { GROUND, IDOL, ctx } from '../config.js';
+import { drawBoss } from '../boss.js';
 import { B } from '../state.js';
 import { D, hash, mix } from '../../core/utils.js';
 
@@ -52,7 +53,15 @@ export function drawSky(cam) {
 // Chão com imagem (data.js → fases[].chao): uma laje de terra e pedras. O miolo vira uma faixa repetível
 // (fim dissolvido no começo, como o fundo) e as pontas arredondadas viram "tampas" nas bordas de buracos e desníveis.
 // Medidas no arquivo recortado (2000×388): superfície onde se pisa em y=100, pontas de 120 px, faixa de rochas em y 160–340.
+// Outra arte de chão pode trazer as próprias medidas em data.js → fases[].chaoMedidas (mesmos campos) e chaoCor (null = sem tingir).
 const GSRC = { cap: 120, surf: 100, band: [160, 340], fade: 160, s: .5 };
+// borda do buraco: a laje vai até o.x + 14 e a ponta passa mais capOut (a arte é opaca até a ponta, na altura em que se pisa).
+// O colisor do buraco começa exatamente aí — o herói cai onde o chão desenhado acaba (data.js → B.terrain em js/battle/world.js)
+export function bordaBuraco(fase) {
+  if (!fase.chao) return 18; // chão desenhado por código: a borda é a do próprio retângulo
+  const M = { ...GSRC, ...(fase.chaoMedidas || {}) };
+  return Math.round(14 + (M.capOut ?? M.cap * .25) * M.s);
+}
 // cor do chão: multiplica a arte (areia clara) para a terra avermelhada e escura do fundo do Exodus.
 // Mais escuro/vermelho = baixar os canais; '#ffffff' = arte original.
 export const CHAO_COR = '#804a2e';
@@ -63,11 +72,14 @@ function tingir(img, cor) { // cópia da imagem multiplicada pela cor, mantendo 
   x.globalCompositeOperation = 'destination-in'; x.drawImage(img, 0, 0);
   return c;
 }
-function groundKit(img) {
-  const { cap, fade, s, band } = GSRC, H = Math.round(img.height * s), cw = cap * s;
+// capR (opcional) = largura da ponta direita, se for diferente da esquerda; capFade (opcional) = px em que a ponta se
+// dissolve no miolo (sem ele, metade da ponta) — pontas largas com objetos (elmos, flechas) precisam de dissolução curta;
+// capOut (opcional) = px da ponta que passam da borda para dentro do buraco/desnível (sem ele, 25% da ponta)
+function groundKit(img, M = GSRC) {
+  const { cap, fade, s, band } = M, capR = M.capR || cap, H = Math.round(img.height * s), cw = cap * s;
   const mk = (w, h) => { const c = Object.assign(document.createElement('canvas'), { width: w, height: h }); return [c, c.getContext('2d')]; };
   // miolo repetível, com a base arredondada (usado nas lajes flutuantes)
-  const midSrc = img.width - 2 * cap, W = midSrc * s, P = W - fade * s;
+  const midSrc = img.width - cap - capR, W = midSrc * s, P = W - fade * s;
   const [mid, mc] = mk(P, H); mc.drawImage(img, cap, 0, midSrc, img.height, 0, 0, W, H);
   const [f, fc] = mk(fade * s, H); fc.drawImage(img, cap + midSrc - fade, 0, fade, img.height, 0, 0, fade * s, H);
   const g = fc.createLinearGradient(0, 0, fade * s, 0); g.addColorStop(0, '#000'); g.addColorStop(1, '#0000');
@@ -84,35 +96,42 @@ function groundKit(img) {
   const dg = tc.createLinearGradient(0, 140, 0, 420); dg.addColorStop(0, 'rgba(20,10,5,0)'); dg.addColorStop(1, 'rgba(20,10,5,.75)');
   tc.globalCompositeOperation = 'source-atop'; tc.fillStyle = dg; tc.fillRect(0, 140, P, 280);
   // pontas: o lado de dentro se dissolve no miolo (que continua por baixo delas)
-  const capCv = (sx, inner) => {
-    const [c, x] = mk(cw, H); x.drawImage(img, sx, 0, cap, img.height, 0, 0, cw, H);
-    const gg = x.createLinearGradient(0, 0, cw, 0);
-    gg.addColorStop(inner ? 0 : .45, inner ? '#0000' : '#000'); gg.addColorStop(inner ? .55 : 1, inner ? '#000' : '#0000');
-    x.globalCompositeOperation = 'destination-in'; x.fillStyle = gg; x.fillRect(0, 0, cw, H);
+  const capCv = (sx, inner, w) => {
+    const cwi = w * s, [c, x] = mk(cwi, H); x.drawImage(img, sx, 0, w, img.height, 0, 0, cwi, H);
+    const gg = x.createLinearGradient(0, 0, cwi, 0), f = M.capFade ? M.capFade / w : null;
+    gg.addColorStop(inner ? 0 : f ? 1 - f : .45, inner ? '#0000' : '#000'); gg.addColorStop(inner ? f || .55 : 1, inner ? '#000' : '#0000');
+    x.globalCompositeOperation = 'destination-in'; x.fillStyle = gg; x.fillRect(0, 0, cwi, H); // a largura desta ponta (a direita pode ser maior)
     return c;
   };
-  const capL = capCv(0, false), capR = capCv(img.width - cap, true);
-  return { mid, tall, capL, capR, cw, surf: GSRC.surf * s, pat: ctx.createPattern(tall, 'repeat-x'), patMid: ctx.createPattern(mid, 'repeat-x') };
+  const capL = capCv(0, false, cap), capRc = capCv(img.width - capR, true, capR);
+  return { mid, tall, capL, capR: capRc, cw, cwR: capR * s, outL: (M.capOut ?? cap * .25) * s, outR: (M.capOut ?? capR * .25) * s, fadeL: (M.capFade || cap * .55) * s, fadeR: (M.capFade || capR * .55) * s, surf: M.surf * s, pat: ctx.createPattern(tall, 'repeat-x'), patMid: ctx.createPattern(mid, 'repeat-x') };
 }
 const GK = {};
 function groundImg() {
   const F = B.fase.chao; if (!F) return null;
   if (!BG[F]) { // monta o kit só depois de decodificar: antes disso o tingimento saía chapado, sem a textura
     BG[F] = Object.assign(new Image(), { src: F });
-    BG[F].decode().then(() => { GK[F] = groundKit(tingir(BG[F], CHAO_COR)); });
+    const cor = B.fase.chaoCor === undefined ? CHAO_COR : B.fase.chaoCor, M = { ...GSRC, ...(B.fase.chaoMedidas || {}) };
+    BG[F].decode().then(() => { GK[F] = groundKit(cor ? tingir(BG[F], cor) : BG[F], M); });
   }
   return GK[F] || null;
 }
 // um pedaço de laje entre a e b com a superfície em y; tampas arredondadas onde capL/capR
 function slab(k, a, b, y, capL, capR, sc = 1, fundo = false) {
-  const cw = k.cw * sc, top = y - k.surf * sc, h = (fundo ? k.mid.height : k.tall.height) * sc;
-  const ma = capL ? a + cw * .2 : a, mb = capR ? b - cw * .2 : b; // o miolo começa onde a ponta ainda é opaca; a ponta se dissolve sobre ele
-  if (mb > ma) {
-    const p = fundo ? k.patMid : k.pat; p.setTransform(new DOMMatrix().translate(0, top).scale(sc));
-    ctx.fillStyle = p; ctx.fillRect(ma, top, mb - ma, h);
+  const cw = k.cw * sc, cwR = (k.cwR || k.cw) * sc, top = y - k.surf * sc, h = (fundo ? k.mid.height : k.tall.height) * sc;
+  // a ponta passa um pouco da borda (só o arredondado); o miolo começa embaixo da parte dela que se dissolve
+  const oL = (k.outL ?? k.cw * .25) * sc, oR = (k.outR ?? k.cw * .25) * sc;
+  const ma = capL ? a - oL + cw - k.fadeL * sc : a, mb = capR ? b + oR - cwR + k.fadeR * sc : b;
+  const p = fundo ? k.patMid : k.pat; p.setTransform(new DOMMatrix().translate(0, top).scale(sc));
+  if (mb > ma) { ctx.fillStyle = p; ctx.fillRect(ma, top, mb - ma, h); }
+  // chão firme (não laje flutuante): a parede de pedras continua por baixo das pontas, de borda a borda
+  // (pontas largas não deixam buraco embaixo); começa onde a ponta já ficou para trás
+  if (!fundo && (capL || capR) && y < GROUND - 1) { // só em terreno elevado (no chão normal ela ficaria solta embaixo)
+    const y0 = top + k.capL.height * sc * .8, xa = capL ? a : ma, xb = capR ? b : mb;
+    ctx.fillStyle = p; ctx.fillRect(xa, y0, xb - xa, h - (y0 - top));
   }
-  if (capL) ctx.drawImage(k.capL, a - cw * .25, top, cw, k.capL.height * sc);
-  if (capR) ctx.drawImage(k.capR, b - cw * .75, top, cw, k.capR.height * sc);
+  if (capL) ctx.drawImage(k.capL, a - oL, top, cw, k.capL.height * sc);
+  if (capR) ctx.drawImage(k.capR, b + oR - cwR, top, cwR, k.capR.height * sc);
 }
 function drawGroundImg(k, cam) {
   const x0 = cam - 80, x1 = cam + 1040;
@@ -125,14 +144,19 @@ function drawGroundImg(k, cam) {
   B.terrain.filter(t => t.top !== Infinity).forEach(t => cut(t.x, t.w, t.top));
   B.holes.forEach(o => cut(o.x + 14, o.w - 28, Infinity)); // a laje avança um pouco sobre a borda do buraco, onde ainda dá pé
   // fundo dos buracos: escuridão por trás das lajes (no mar: o mar agitado)
-  B.holes.forEach(o => { if (o.mar) return drawSea(o); const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
+  B.holes.forEach(o => { if (o.mar) return drawSea(o); if (drawSeaHands(o)) return; const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
+  // terra submersa subindo (ou já em cima): na frente do mar
+  B.risers.forEach(r => { if (r.k > 0) slab(k, r.x, r.x + r.w, GROUND + riseOff(r), true, false); });
   // do mais baixo para o mais alto: a parede de quem é mais alto fica na frente
   segs.map((s, i) => ({ s, l: segs[i - 1], r: segs[i + 1] })).filter(q => q.s.top !== Infinity).sort((p, q) => q.s.top - p.s.top)
     .forEach(({ s, l, r }) => slab(k, s.a, s.b, GROUND + s.top, l && l.top > s.top, r && r.top > s.top));
 }
 // chão em faixas: terreno normal, mais alto ou mais baixo (buracos são desenhados por cima)
+// quanto a terra submersa ainda está abaixo da superfície (0 = em cima); sobe desacelerando
+export const riseOff = r => (1 - (1 - Math.pow(1 - r.k, 3))) * 230;
 export function drawGround(cam) {
   const k = groundImg(); if (k) return drawGroundImg(k, cam);
+  B.risers.forEach(r => { if (r.k > 0) { ctx.fillStyle = '#1a0f0b'; ctx.fillRect(r.x, GROUND + riseOff(r), r.w, 540); } });
   const H = 540, x0 = cam - 20, x1 = cam + 980;
   const strip = (a, b, top) => {
     if (b <= a) return;
@@ -161,6 +185,7 @@ export function drawPlatform(pl) {
 export function drawHole(o) {
   if (groundImg()) return; // com chão de imagem, o fundo do buraco já foi desenhado atrás das lajes
   if (o.mar) return drawSea(o);
+  if (drawSeaHands(o)) return;
   const gr = ctx.createLinearGradient(0, GROUND, 0, 540); gr.addColorStop(0, '#000'); gr.addColorStop(1, '#0a0503');
   ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND, o.w, 540 - GROUND);
   ctx.fillStyle = '#3a2418'; ctx.fillRect(o.x - 4, GROUND, 6, 540 - GROUND); ctx.fillRect(o.x + o.w - 2, GROUND, 6, 540 - GROUND);
@@ -176,6 +201,7 @@ SEA.img.src = 'assets/sprites/hazard/mar.webp';
 export function drawSea(o) {
   const gr = ctx.createLinearGradient(0, GROUND, 0, 540); gr.addColorStop(0, '#0e1a26'); gr.addColorStop(1, '#060c12'); // água funda atrás das ondas
   ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND + 10, o.w, 540 - GROUND);
+  drawBoss(o); // o Leviatã fica entre a água funda e as ondas (as ondas cobrem a base do corpo)
   if (!SEA.img.naturalWidth) return;
   // recorta 6 px de cada lado do quadro (a borda da arte é mais clara/transparente). Espelhando um sim, um não, os dois lados
   // de cada emenda mostram a mesma coluna da arte; largura e posições em pixel inteiro (sem fresta de meio pixel): sem linha entre eles
@@ -187,6 +213,20 @@ export function drawSea(o) {
     ctx.restore();
   }
   ctx.restore();
+}
+// Buraco comum: água agitada com mãos de esqueleto saindo dela (do GIF: 4 quadros 524×260, 0,18 s cada).
+// A cena inteira (as 3 mãos) na largura do buraco, um pouco maior para as pontas ficarem atrás das lajes; base abaixo da borda da tela
+export const SEA_HANDS = { img: new Image(), FW: 524, FH: 260, n: 4, dur: .18 };
+SEA_HANDS.img.src = 'assets/sprites/hazard/mar-maos.webp';
+export function drawSeaHands(o) {
+  if (!SEA_HANDS.img.naturalWidth) return false;
+  const gr = ctx.createLinearGradient(0, GROUND, 0, 540); gr.addColorStop(0, '#0e1a26'); gr.addColorStop(1, '#060c12');
+  ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND + 10, o.w, 540 - GROUND);
+  const S = SEA_HANDS, sc = Math.max(.3, (o.w + 24) / S.FW), w = S.FW * sc, h = S.FH * sc, fr = Math.floor(B.time / S.dur) % S.n;
+  ctx.save(); ctx.beginPath(); ctx.rect(o.x, 0, o.w, 560); ctx.clip();
+  ctx.drawImage(S.img, fr * S.FW, 0, S.FW, S.FH, Math.round(o.x + o.w / 2 - w / 2), 546 - h, w, h);
+  ctx.restore();
+  return true;
 }
 export function handSpots(o) {
   if (!o.hands) {
@@ -208,7 +248,7 @@ export function handSpots(o) {
   return o.hands;
 }
 export function drawHoleFire(o) {
-  if (!HAND.img.naturalWidth || o.mar) return; // no mar não há mãos de fogo
+  if (!HAND.img.naturalWidth || o.mar || SEA_HANDS.img.naturalWidth) return; // mãos de fogo: só se a arte do mar com mãos não carregar
   const t = B.time, p = o.hand || 0;
   handSpots(o).forEach(hd => {
     const q = Math.max(0, Math.min(1, p * 1.5 - hd.delay)); // uma depois da outra
@@ -254,11 +294,21 @@ export function drawBook(b) {
   ctx.restore();
 }
 // fim da fase: coluna de luz
+// Fim da jornada: a cruz com o manto ao vento (4 quadros 350×412, base das pedras alinhada) sob um facho de luz vindo de cima.
+// Se o chão dela estiver submerso, ela sobe junto com ele (dy)
+export const CROSS = { img: new Image(), FW: 350, FH: 412, ax: 120, foot: 406, sc: .42, ordem: [0, 1, 2, 3, 2, 1] };
+CROSS.img.src = 'assets/sprites/object/cruz.webp';
 export function drawGoal(x) {
-  const gr = ctx.createLinearGradient(x - 40, 0, x + 40, 0);
+  const r = B.risers.find(r => x >= r.x && x <= r.x + r.w), dy = r ? riseOff(r) : 0;
+  const gr = ctx.createLinearGradient(x - 50, 0, x + 50, 0); // a luz desce do céu até o chão (marca o fim mesmo com a terra submersa)
   gr.addColorStop(0, 'rgba(255,220,120,0)'); gr.addColorStop(.5, `rgba(255,236,170,${.35 + .15 * Math.sin(B.time * 2)})`); gr.addColorStop(1, 'rgba(255,220,120,0)');
-  ctx.fillStyle = gr; ctx.fillRect(x - 40, 60, 80, GROUND - 60);
-  ctx.fillStyle = '#5c5046'; ctx.fillRect(x - 46, GROUND - 26, 92, 26); ctx.fillRect(x - 36, GROUND - 40, 72, 16);
+  ctx.fillStyle = gr; ctx.fillRect(x - 50, 60, 100, GROUND - 60);
+  if (!CROSS.img.naturalWidth) return;
+  const fr = CROSS.ordem[Math.floor(B.time * 5) % CROSS.ordem.length]; // o manto vai e volta com o vento
+  ctx.save(); ctx.translate(x, GROUND + dy); ctx.scale(CROSS.sc, CROSS.sc);
+  ctx.shadowColor = '#ffe9a8'; ctx.shadowBlur = 30 + 12 * Math.sin(B.time * 2); // brilho da luz sobre ela
+  ctx.drawImage(CROSS.img, fr * CROSS.FW, 0, CROSS.FW, CROSS.FH, -CROSS.ax, -CROSS.foot, CROSS.FW, CROSS.FH);
+  ctx.restore();
 }
 // rasgo em forma de meia-lua, com o lado convexo apontando na direção do voo
 export function drawCrescent(x, y, ang, alpha, sc, c, sy = 1) {

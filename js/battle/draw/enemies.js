@@ -1,4 +1,4 @@
-import { ESPR, ctx } from '../config.js';
+import { ESPR, SPIT_ANIM, ctx } from '../config.js';
 
 export function drawTentacao(d) {
   const arm = d.state === 'arm', dead = d.state === 'dead';
@@ -28,14 +28,19 @@ export function drawSpriteDemon(d) {
   const S = ESPR[d.s.sprite];
   if (!S.attack.naturalWidth || !S.run.naturalWidth) return drawTentacao(d);
   let img = S.run, fr;
-  if (d.state === 'arm') { img = S.attack; fr = Math.min(2, Math.floor((1 - d.arm / d.s.tell) * 3)); }
+  if (S.nAtk === 8) { // cobra verde: arma (0–3) enquanto se prepara, cospe (4–7) depois
+    if (d.state === 'arm') { img = S.attack; fr = Math.min(3, Math.floor((1 - d.arm / d.s.tell) * 4)); }
+    else if (d.strikeAnim > 0) { img = S.attack; fr = 4 + Math.min(3, Math.floor((1 - d.strikeAnim / SPIT_ANIM) * 4)); }
+    else fr = Math.floor(d.bob * (d.moving ? 8 : 5)) % S.nRun;
+  }
+  else if (d.state === 'arm') { img = S.attack; fr = Math.min(2, Math.floor((1 - d.arm / d.s.tell) * 3)); }
   else if (d.strikeAnim > 0) { img = S.attack; fr = d.strikeAnim > .08 ? 3 : 4; }
   else fr = Math.floor(d.bob * (d.moving ? 11 : 6)) % S.nRun; // parado: o mesmo ciclo, mais lento (respira)
   ctx.save();
   ctx.translate(d.x, d.y + (d.state === 'enter' ? Math.abs(Math.sin(d.bob * 10)) * -6 : 0)); ctx.scale(d.face, 1);
   if (d.state === 'dead') ctx.scale(1.12, 1.12); // incha no clarão antes de estourar
   if (d.flash > 0) ctx.filter = 'brightness(3) saturate(0)';
-  else if (d.state === 'arm') ctx.filter = 'drop-shadow(0 0 14px #ff2020)';
+  else if (d.state === 'arm') ctx.filter = `drop-shadow(0 0 14px ${d.s.acido ? '#9cff3a' : '#ff2020'})`; // armando: vermelho (bote) ou verde (ácido)
   ctx.drawImage(img, fr * S.FW, 0, S.FW, S.FH, -S.ax, 2 - S.FH, S.FW, S.FH);
   ctx.restore();
 }

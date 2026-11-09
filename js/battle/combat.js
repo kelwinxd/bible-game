@@ -2,6 +2,7 @@ import { BASE_DMG, COMBO_WIN, DASH_BACK_WIN, DASH_CD, DASH_T, FATAL_SPIRIT_T, FA
 import { BIRD_HOVER_Y } from './bird.js';
 import { halted, tema } from './hud.js';
 import { B } from './state.js';
+import { bossAlive, bossBox, damageBoss } from './boss.js';
 import { hitRock, rockBox } from './world.js';
 import { fatalSound, sfx, swordSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
@@ -10,12 +11,12 @@ import { $, D, reduced, rgbOf } from '../core/utils.js';
 
 // ave: balão EMBAIXO dela (em cima ficava atrás do HUD), preso à altura de pairar para não descer junto no mergulho
 export const balloonBelow = d => !!d.s.mergulho;
-export function balloonY(d) { return d.s.mergulho ? Math.min(d.y, BIRD_HOVER_Y) + 55 : d.s.sprite ? d.y - 262 : d.s.chao ? d.y - 230 : d.y - 90; }
+export function balloonY(d) { return d.s.mergulho ? Math.min(d.y, BIRD_HOVER_Y) + 55 : d.s.sprite ? d.y - (d.s.sprite === 'verde' ? 306 : 262) : d.s.chao ? d.y - 230 : d.y - 90; }
 
 // caixas de colisão
 export const heroBox = h => [h.x - 30, GROUND + h.y - 160, h.x + 30, GROUND + h.y]; // acompanha o templário menor
 export function demonBox(d) {
-  if (d.s.mergulho) return [d.x - 70, d.y - 55, d.x + 70, d.y + 50]; // ave: corpo, sem as pontas das asas
+  if (d.s.mergulho) return [d.x - 70, d.y - 55, d.x + 70, d.y + 65]; // ave: corpo e garras, sem as pontas das asas
   if (d.s.chao) return [d.x - 45, d.y - 200, d.x + 45, d.y];
   const fy = Math.sin(d.bob * 2) * 10;
   return [d.x - 50, d.y + fy - 70, d.x + 50, d.y + fy + 60];
@@ -75,6 +76,7 @@ export function dashHits(h) {
     B.fx.push({ burst: true, x: d.x, y: GROUND + h.y - 120, t: .25, c: { cor: '#4fc3ff', claro: '#d8f4ff', brilho: '#3ab4ff' } });
   });
   B.rocks.forEach(r => { if (r.hp > 0 && !h.dashHit.has(r) && overlap(box, rockBox(r))) { h.dashHit.add(r); hitRock(r); } });
+  if (bossAlive(B.boss) && !h.dashHit.has(B.boss) && overlap(box, bossBox(B.boss))) { h.dashHit.add(B.boss); sfx('slash'); damageBoss(dashDmg(), '#9fe4ff'); }
 }
 export function damageDemon(d, impulso = false) {
   const P = B.power, powered = !impulso && P && P.target === d;
@@ -101,6 +103,7 @@ export function swingHit() {
     swordSfx('cut'); damageDemon(d); // golpe na carne
   });
   B.rocks.forEach(r => { if (r.hp > 0 && overlap(box, rockBox(r))) hitRock(r); });
+  if (bossAlive(B.boss) && overlap(box, bossBox(B.boss))) { swordSfx('cut'); damageBoss(BASE_DMG); } // Leviatã: da laje ou da margem
 }
 
 export function heroDies() { B.over = true; B.hero.deadAt = B.time; setTimeout(() => endScreen(false), 1400); } // dá tempo de ver a queda

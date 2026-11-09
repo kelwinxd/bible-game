@@ -8,9 +8,11 @@ export const GROUND = 480;
 // ave: tira de voo (runName 'fly') e de ataque, 8 quadros cada; âncora (ax, ay) = olho vermelho
 export const ESPR = {
   serpente: { attack: new Image(), run: new Image(), FW: 275, FH: 257, ax: 142, nRun: 7 },
-  ave: { attack: new Image(), run: new Image(), FW: 226, FH: 285, ax: 180, ay: 162, nRun: 8, runName: 'fly' }
+  ave: { attack: new Image(), run: new Image(), FW: 226, FH: 285, ax: 180, ay: 162, nRun: 8, runName: 'fly' },
+  // cobra verde (cospe ácido): 4 quadros andando + 8 do cuspe (arma 0–3 · cospe 4–7), 270×292, alinhados pela base; boca no cuspe = (boca)
+  verde: { attack: new Image(), run: new Image(), FW: 270, FH: 292, ax: 100, nRun: 4, nAtk: 8, ext: 'webp', topo: 300, boca: [120, -133] }
 };
-for (const k in ESPR) { ESPR[k].attack.src = `assets/sprites/enemy/${k}-attack.png`; ESPR[k].run.src = `assets/sprites/enemy/${k}-${ESPR[k].runName || 'run'}.png`; }
+for (const k in ESPR) { const e = ESPR[k].ext || 'png'; ESPR[k].attack.src = `assets/sprites/enemy/${k}-attack.${e}`; ESPR[k].run.src = `assets/sprites/enemy/${k}-${ESPR[k].runName || 'run'}.${e}`; }
 // Herói atual (templário): tiras de mesmo quadro; ax = x do tronco no quadro, pés na base. Olha para a direita.
 // run: 8 quadros · jump: 0 parecido c/ corrida, 1 subindo, 2 espada erguida, 3 estocada, 4 descendo · death: 5 (cai até deitar)
 export const HERO = { run: new Image(), jump: new Image(), death: new Image(), FW: 267, FH: 221, ax: 116 };
@@ -33,6 +35,7 @@ export const HERO_ATK = [
     corte: { sy: 1.5, y: 68 } }
 ];
 HERO_ATK.forEach((a, i) => { a.img.src = `assets/sprites/hero/attack${i + 1}.webp`; });
+export const SPIT_ANIM = .5; // duração dos quadros do cuspe da cobra verde
 export const COMBO_WIN = .3; // apertar K até 0,3 s depois do golpe acabar ainda encadeia o próximo
 // Ídolo (bezerro de ouro) no lugar da pedra do versículo: 4 quadros 420×580, base do pedestal em y=566, centro x=210.
 // Quadro = estado por golpe (inteiro · rachado · quebrado · só o pedestal com entulho). No último, as peças de

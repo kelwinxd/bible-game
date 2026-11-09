@@ -1,6 +1,7 @@
 import { updateBird } from './bird.js';
+import { bossAlive, bossBlocksWin, bossBox, damageBoss, spitAcid, updateAcid, updateBoss } from './boss.js';
 import { attack, damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
-import { DASH_CD, DASH_SPEED, GRAV, GROUND, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
+import { DASH_CD, DASH_SPEED, ESPR, GRAV, GROUND, SPIT_ANIM, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
 import { B, keys } from './state.js';
 import { ENEMY_GAP, stepIdol, collectBook, fallInHole, floorAt, hitRock, makeDemon, moveX, pickLie, restoreLie, rockBox, terrainTop } from './world.js';
 import { sfx } from '../core/audio.js';
@@ -17,6 +18,23 @@ export function updateBattle(rdt) {
 
   if (B.fatal) { B.fatal.t -= rdt; if (B.fatal.t <= 0) endFatal(); }
   if (B.trans > 0) B.trans -= dt;
+
+  updateBoss(dt); // Leviatã no mar
+  updateAcid(dt); // bolas de ácido (Leviatã e cobra verde)
+  // terra submersa: sobe da água depois que o chefão cai; quando chega em cima vira chão firme
+  B.risers.forEach(r => {
+    if (!r.up || r.solid) return;
+    r.k = Math.min(1, r.k + dt / 2.2);
+    if (r.k >= 1) { r.solid = true; B.terrain.unshift({ x: r.x, w: r.w, top: 0 }); } // na frente da lista: vale mais que o buraco do mar
+  });
+
+  // plataformas móveis: vão e voltam suavemente; quem está em pé em cima vai junto
+  B.platforms.forEach(pl => {
+    if (!pl.move) return;
+    const nx = pl.x0 + pl.move * (.5 - .5 * Math.cos(B.time * Math.PI * 2 / pl.periodo)), dx = nx - pl.x;
+    if (h.ground && Math.abs(h.y - pl.top) < 1 && h.x > pl.x - 10 && h.x < pl.x + pl.w + 10) h.x += dx;
+    pl.x = nx;
+  });
 
   // herói
   if (!B.over) {
@@ -86,7 +104,12 @@ export function updateBattle(rdt) {
     if (d.s.mergulho) return updateBird(d, h, dt);
     const dist = h.x - d.x;
     if (d.s.chao) {
-      if (d.state === 'idle' && Math.abs(dist) > 110) {
+      if (d.s.acido) { // cospe de longe: mantém ~300 px do herói (chega perto se ele foge, recua se ele encosta)
+        const want = Math.abs(dist) > 380 ? 1 : Math.abs(dist) < 240 ? -1 : 0;
+        const lim = B.arena ? [B.arena.left + 140, B.arena.right - 130] : [-Infinity, Infinity]; // o corpo inteiro dentro da tela
+        if (d.state === 'idle' && d.x > lim[1]) { d.x -= d.s.passo * dt; d.moving = true; } // entrou pela borda: anda até aparecer inteira
+        else if (d.state === 'idle' && want) { const nx = d.x + Math.sign(dist) * want * d.s.passo * dt; if (nx > lim[0] && nx < lim[1]) { d.x = nx; d.moving = true; } }
+      } else if (d.state === 'idle' && Math.abs(dist) > 110) {
         // persegue o herói, mas não chega a menos de ENEMY_GAP de outro inimigo
         const nx = d.x + Math.sign(dist) * d.s.passo * dt;
         if (!B.demons.some(o => o !== d && o.state !== 'dead' && Math.abs(o.x - nx) < ENEMY_GAP && Math.abs(o.x - nx) < Math.abs(o.x - d.x))) { d.x = nx; d.moving = true; }
@@ -95,13 +118,17 @@ export function updateBattle(rdt) {
     }
     if (d.state === 'idle') {
       d.timer -= dt;
-      const inRange = !d.s.chao || Math.abs(dist) < 170;
+      const inRange = !d.s.chao || Math.abs(dist) < (d.s.acido ? 560 : 170);
       if (d.timer <= 0 && inRange) { d.state = 'arm'; d.arm = d.s.tell; }
     } else if (d.state === 'arm') {
       d.arm -= dt;
       if (d.arm <= 0) {
         d.state = 'idle'; d.timer = d.s.cadencia; d.strikeAnim = .2;
-        if (d.s.chao) { if (Math.abs(h.x - d.x) < 150 && h.y > -60) hitHero(d.s.dano); }
+        if (d.s.acido) { // bola de ácido em arco até onde o herói está
+          const S = ESPR[d.s.sprite]; d.strikeAnim = SPIT_ANIM;
+          spitAcid(d.x + d.face * S.boca[0], d.y + S.boca[1], h.x, GROUND + h.y - 80, d.s.dano, .7);
+        }
+        else if (d.s.chao) { if (Math.abs(h.x - d.x) < 150 && h.y > -60) hitHero(d.s.dano); }
         else {
           sfx('fire');
           const sx = d.x - 20, sy = d.y + 10, hb = heroBox(h), dx = h.x - sx, dy = (hb[1] + hb[3]) / 2 - sy, L = Math.hypot(dx, dy);
@@ -127,6 +154,7 @@ export function updateBattle(rdt) {
       if (damageDemon(d)) B.fx.push({ burst: true, x: sl.x, y: sl.y, t: .25, c: sl.c });
     });
     B.rocks.forEach(r => { if (r.hp > 0 && !sl.hit.has(r) && overlap(box, rockBox(r))) { sl.hit.add(r); hitRock(r); } });
+    if (bossAlive(B.boss) && !sl.hit.has(B.boss) && overlap(box, bossBox(B.boss))) { sl.hit.add(B.boss); damageBoss(8 * (B.power ? B.power.mult : 1), sl.c.claro); B.fx.push({ burst: true, x: sl.x, y: sl.y, t: .25, c: sl.c }); }
     if (sl.x < B.cam - 80 || sl.x > B.cam + 1040 || sl.y < -80 || sl.y > GROUND + 40) sl.dead = true;
   });
   B.slashes = B.slashes.filter(sl => !sl.dead);
@@ -157,10 +185,10 @@ export function updateBattle(rdt) {
     const gr = B.groups.find(g => !g.done && h.x >= g.x - 600); // trava cedo: o herói fica à esquerda e sobra espaço para os inimigos espaçados
     if (gr) { gr.done = true; B.arena = { left: gr.x - 740, right: gr.x + 220 }; // a câmera desliza até a arena; os que voam ficam nas vagas da direita; os de chão (que perseguem) mais perto do herói
       const order = gr.inimigos.map((t, i) => i).sort((a, b) => !!D.inimigos[gr.inimigos[a]].chao - !!D.inimigos[gr.inimigos[b]].chao);
-      B.demons = gr.inimigos.map((t, i) => { const d = Object.assign(makeDemon(t, order.indexOf(i), gr.vida || 1, gr.inimigos.length), { frase: gr.frases && gr.frases[i] }); pickLie(d); d.lieFlash = 0; return d; });
+      B.demons = gr.inimigos.map((t, i) => { const d = Object.assign(makeDemon(t, order.indexOf(i), gr.vida || 1, gr.inimigos.length, Array.isArray(gr.aparencia) ? gr.aparencia[i] : gr.aparencia), { frase: gr.frases && gr.frases[i] }); pickLie(d); d.lieFlash = 0; return d; });
     } // já entram com a mentira sobre a cabeça
   }
-  if (!B.over && !B.arena && !B.demons.length && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done)) { B.over = true; endScreen(true); }
+  if (!B.over && !B.arena && !B.demons.length && !bossBlocksWin() && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done)) { B.over = true; endScreen(true); }
 
   // HUD DOM
   if (B.callout && (B.callout.t -= rdt) <= 0) B.callout = null;

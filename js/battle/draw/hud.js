@@ -1,4 +1,5 @@
 import { balloonBelow, balloonY } from '../combat.js';
+import { drawBossBar } from '../boss.js';
 import { ctx } from '../config.js';
 import { Rachaduras } from './cracks.js';
 import { tema } from '../hud.js';
@@ -52,6 +53,7 @@ export function drawHUD() {
   bar(490, 14, 200, 22, B.shieldE / shieldMax, B.shieldLock ? '#4a5a72' : '#5d8fd8', B.shieldLock ? 'Escudo recarregando…' : `Escudo ${B.shieldE.toFixed(1)}s / ${shieldMax}s`);
   const P = B.power;
   bar(240, 14, 236, 22, P ? P.t / P.dur : 0, !P ? '#f2c84b' : B.shield ? '#6a6a6a' : tema(P.v).cor, P ? (B.shield ? 'Poder (pausado — escudo)' : `Poder · ${P.v.ref}`) : 'Espada inerte — refute');
+  drawBossBar(bar);
   ctx.fillStyle = '#f3e7d3'; ctx.font = '700 20px Cinzel, serif'; ctx.textAlign = 'right'; ctx.fillText(`Jornada ${Math.min(100, Math.round(B.hero.x / B.fase.comprimento * 100))}%`, W - 16, 33); ctx.textAlign = 'center';
 }
 export function bar(x, y, w, hh, p, c, label) {
@@ -61,7 +63,7 @@ export function bar(x, y, w, hh, p, c, label) {
   ctx.fillStyle = '#fff'; ctx.font = '600 13px system-ui'; ctx.textAlign = 'left'; ctx.fillText(label, x + 6, y + 16); ctx.textAlign = 'center';
 }
 export function drawHpBar(d) {
-  const y = d.s.mergulho ? d.y - 140 : d.s.sprite ? d.y - 252 : d.s.chao ? d.y - 200 : d.y - 85; // sprite: acima da cabeça
+  const y = d.s.mergulho ? d.y - 140 : d.s.sprite ? d.y - (d.s.sprite === 'verde' ? 296 : 252) : d.s.chao ? d.y - 200 : d.y - 85; // sprite: acima da cabeça
   ctx.fillStyle = '#000'; ctx.fillRect(d.x - 40, y, 80, 8);
   ctx.fillStyle = d.vuln && d.lastVerse ? tema(d.lastVerse).cor : '#e04a3a'; ctx.fillRect(d.x - 40, y, 80 * Math.max(0, d.hp) / d.maxHp, 8);
 }

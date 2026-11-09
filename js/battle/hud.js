@@ -1,6 +1,7 @@
 import { addFire, balloonY } from './combat.js';
 import { CALLOUT_T, WRONG_COLOR, WRONG_T } from './config.js';
 import { B, keys } from './state.js';
+import { bossAlive, giantLieY } from './boss.js';
 import { flyToCard, restoreLie } from './world.js';
 import { sfx } from '../core/audio.js';
 import { gradeIdx, powerDur, runeHTML, verseMult } from '../core/progress.js';
@@ -68,14 +69,15 @@ export function useVerse(i) {
   if (!B || B.over || B.fatal || B.trans > 0 || B.paused) return;
   if (B.peek >= 0) togglePeek(B.peek); // escolher um versículo fecha a leitura e despausa
   const v = B.deck[i]; if (!v || (B.cd[i] || 0) > 0) return;
-  const target = B.demons.find(d => d.lie && d.lie.ideal.includes(v.id)); // pode refutar já na entrada
+  const G = B.boss && B.boss.kind === 'gigante' && bossAlive(B.boss) && B.boss.lie && B.boss.lie.ideal.includes(v.id) ? B.boss : null; // Golias também mente
+  const target = B.demons.find(d => d.lie && d.lie.ideal.includes(v.id)) || G; // pode refutar já na entrada
   // versículo errado: não revela o nome, só "Versículo errado" em vermelho, e trava TODOS os cards por 2,5s
   if (!target) { sfx('wrong'); B.deck.forEach((_, k) => B.cd[k] = 2.5); B.callout = { s: 'Versículo errado', t: WRONG_T, dur: WRONG_T, c: WRONG_COLOR }; addFire(-1); return; }
   if (B.tut) B.tut.refuted = true;
   B.callout = { s: v.ref, t: CALLOUT_T, dur: CALLOUT_T, c: tema(v) }; // referência certa aparece na cor do tema acima do herói
   sfx('refute');
   // a mentira continua visível até o demônio morrer; o balão só ganha um brilho na cor do versículo
-  B.fx.push({ burst: true, x: Math.min(B.cam + 900, Math.max(B.cam + 60, target.x)), y: balloonY(target) - 30, t: .25, c: tema(v) });
+  B.fx.push({ burst: true, x: Math.min(B.cam + 900, Math.max(B.cam + 60, target.x)), y: target.kind ? giantLieY(target) - 30 : balloonY(target) - 30, t: .25, c: tema(v) });
   target.vuln = true; target.lastVerse = v;
   if (B.power && B.power.target !== target && B.power.target.hp > 0) restoreLie(B.power.target);
   B.power = { t: powerDur(v.id), dur: powerDur(v.id), target, v, mult: verseMult(v.id) };

@@ -6,7 +6,8 @@ import { sfx } from '../core/audio.js';
 // Ave da Dúvida (data.js → inimigos[].mergulho): paira no alto encarando o herói; no aviso ergue as asas e
 // mergulha reto até onde o herói ESTAVA (sair do lugar ou erguer o escudo evita), passa raspando com as garras,
 // sobe em curva do outro lado e vira (direto, sem animar a virada) para encarar o herói de novo. Só uma ave mergulha por vez.
-export const BIRD_HOVER_Y = 200, DIVE_SPEED = 640, RISE_VX = 380, RISE_VY = 560;
+// BIRD_HOVER_Y: altura em que paira — baixa o bastante para o rasgo do poder (mesmo do chão) pegar a parte de baixo dela
+export const BIRD_HOVER_Y = 285, DIVE_SPEED = 640, RISE_VX = 380, RISE_VY = 560;
 export function updateBird(d, h, dt) {
   const hb = heroBox(h);
   if (d.state === 'idle' || d.state === 'arm') {

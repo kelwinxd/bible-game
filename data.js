@@ -186,7 +186,7 @@ window.DATA = {
     { texto: "Você não aguenta mais.", tipo: "tentacao", ideal: ["1co10-13"] },
     { texto: "Deus te abandonou.", tipo: "duvida", ideal: ["sl23-4"] },
     { texto: "Você é fraco e medroso. Desista.", tipo: "duvida", ideal: ["is41-10"] },
-    { texto: "Seus inimigos são fortes demais.", tipo: "duvida", ideal: ["sl3-7"] },
+    { texto: "Seus inimigos são fortes demais.", tipo: "duvida", ideal: ["sl3-7", "is41-10"] },
     // variações: frases diferentes que pedem o mesmo versículo (anti-decoreba, GDD 6.3)
     { texto: "Ninguém vai saber.", tipo: "tentacao", ideal: ["tg4-7"] },
     { texto: "Você merece isso, aproveita.", tipo: "tentacao", ideal: ["tg4-7"] },
@@ -194,7 +194,12 @@ window.DATA = {
     { texto: "Isso é forte demais pra você.", tipo: "tentacao", ideal: ["1co10-13"] },
     { texto: "Você está sozinho no escuro.", tipo: "duvida", ideal: ["sl23-4"] },
     { texto: "Ninguém vai te socorrer.", tipo: "duvida", ideal: ["is41-10"] },
-    { texto: "Você vai perder essa batalha.", tipo: "duvida", ideal: ["sl3-7"] },
+    { texto: "Você vai perder essa batalha.", tipo: "duvida", ideal: ["sl3-7", "is41-10"] },
+    // Golias (chefão da Jornada 2): fala estas na ordem, alternando o versículo que refuta (Isaías 41:10 ↔ Salmos 23:4)
+    { texto: "Olhe meu tamanho. Ninguém vai te socorrer de mim!", tipo: "gigante", ideal: ["is41-10"] },
+    { texto: "Neste vale só existe morte. Tenha medo de mim!", tipo: "gigante", ideal: ["sl23-4"] },
+    { texto: "Sou forte demais. Você vai cair aqui, sozinho!", tipo: "gigante", ideal: ["is41-10"] },
+    { texto: "O seu Deus não desce a este vale escuro.", tipo: "gigante", ideal: ["sl23-4"] },
     // demônio da Mentira: desacredita a Bíblia
     { texto: "A Bíblia é só um livro antigo. Não serve pra nada hoje.", tipo: "mentira", ideal: ["hb4-12"] },
     { texto: "Palavras velhas e mortas. Isso não muda ninguém.", tipo: "mentira", ideal: ["hb4-12"] },
@@ -227,35 +232,43 @@ window.DATA = {
   // Eventos em ordem de x (pixels do mundo):
   //  buraco     = obstáculo para pular (cair = volta ao último ponto firme, -10 de vida)
   //  mar        = buraco cheio de mar agitado (sprite animado, sem as mãos de fogo); cair = igual ao buraco. Ponha uma plataforma em cima
+  //  terra      = chão que fica SUBMERSO dentro de um mar até o chefão cair; aí sobe da água (use no fim da fase, sobre o mar)
+  //  gigante    = Golias (js/battle/giant.js): chefão em terra; ao chegar perto a câmera trava numa arena e ele entra pela direita;
+  //               vida = pontos de vida. A jornada só termina depois que ele cai
+  //  chefe      = Leviatã, o monstro do mar (js/battle/boss.js): mora no mar que estiver em x e só sai dele morto; vida = pontos de vida.
+  //               A jornada só termina depois que ele cai
   //  terreno    = trecho com outra altura: altura > 0 = mais alto (parede: precisa pular), < 0 = vale mais baixo
-  //  plataforma = laje flutuante; sobe pulando por baixo e fica em cima
+  //  plataforma = laje flutuante; sobe pulando por baixo e fica em cima. Móvel (opcional): move = quantos px ela anda para a
+  //               direita e volta, periodo = segundos de uma ida e volta (quem está em cima vai junto)
   //  pedra      = ídolo (bezerro de ouro) com o livro dourado do versículo; fica apoiada no que estiver embaixo
   //               (chão, terreno alto, vale ou plataforma). 3 golpes; tocar no livro = versículo no HUD
   //  inimigos   = grupo que surge quando o herói chega perto; a câmera trava até todos caírem. vida = multiplicador;
   //               frases (opcional) = mentira fixa de cada inimigo do grupo (texto igual ao de `mentiras`)
+  //               aparencia (opcional) = troca campos do inimigo só nesse grupo, ex.: { sprite: "verde", acido: true } = cobra verde que cospe ácido;
+  //               pode ser uma lista, uma por inimigo do grupo (null = sem troca)
   //  Arenas ficam no plano: deixe ~740 px antes e ~220 px depois do x de `inimigos` sem desnível.
-  //  Pulo: sobe até ~130 px e alcança ~185 px na horizontal.
+  //  Pulo: sobe até ~130 px e alcança ~185 px na horizontal. Buraco: o vão real é w − 36 (até w 200 dá para pular com folga).
   // mapa (tela Jogar): x/y = posição do ponto em % do mapa deitado (no celular em pé, x e y se invertem);
   //   icone = desenho do ponto (js/ui/map.js → ICONES: piramide, vale; sem ele, ruínas); cor = brilho da região em volta
   // protótipo: true = todas as jornadas abertas no menu, sem precisar vencer a anterior (false = trava até vencer)
   jornadasLiberadas: true,
   fases: [{
     // Jornada 1: só 2 versículos (Êxodo 20:3, depois Hebreus 4:12), bem separados. Cada um vem antes de 2 serpentes (uma por vez) que ele refuta.
-    nome: "Exodus", comprimento: 9300,
+    nome: "Exodus", comprimento: 10100,
     mapa: { x: 24, y: 60, icone: "piramide", cor: "#e0782c" },
     // fundo (opcional): imagem que rola devagar (parallax) e se repete espelhada, emendando sem corte; escuro = véu por cima
     fundo: { img: "assets/img/fundo-exodus.webp", parallax: 0.35, escuro: 0.35 },
     chao: "assets/img/chao-exodus.webp", // laje de terra e pedras (miolo repetido + pontas nas bordas)
     eventos: [
       // 1) buraco e o bezerro de ouro no chão → Êxodo 20:3 ("Não terás outros deuses diante de mim")
-      { tipo: "buraco", x: 650, w: 140 },
+      { tipo: "buraco", x: 650, w: 190 },
       { tipo: "pedra", x: 1050, verso: "ex20-3" },
       //    → 2 serpentes da Idolatria, uma de cada vez, com um terreno alto entre elas (a 1ª provoca com o bezerro)
       { tipo: "inimigos", x: 1900, inimigos: ["idolatria"], vida: 0.6, frases: ["Curve-se ao bezerro de ouro. Esse deus você pode ver."] },
       { tipo: "terreno", x: 2350, w: 380, altura: 90 },
       { tipo: "inimigos", x: 3500, inimigos: ["idolatria"], vida: 0.7, frases: ["Tenha quantos deuses quiser. Todos levam ao mesmo lugar."] },
       // 2) caminho longo até o 2º versículo: buraco, mar com uma laje no meio, mar largo com 2 lajes, penhasco com a pedra no topo → Hebreus 4:12
-      { tipo: "buraco", x: 4000, w: 170 },
+      { tipo: "buraco", x: 4000, w: 200 },
       { tipo: "mar", x: 4500, w: 500 },
       { tipo: "plataforma", x: 4640, w: 200, altura: 40 },
       { tipo: "mar", x: 5300, w: 330 },
@@ -264,36 +277,46 @@ window.DATA = {
       { tipo: "terreno", x: 5880, w: 460, altura: 140 },
       { tipo: "pedra", x: 6150, verso: "hb4-12" },
       //    → 2 Mentiras (serpentes), uma de cada vez, que desacreditam a Bíblia (Hebreus 4:12 refuta)
-      { tipo: "inimigos", x: 7200, inimigos: ["mentira"], vida: 0.6, frases: ["A Bíblia é só um livro antigo. Não serve pra nada hoje."] },
-      { tipo: "inimigos", x: 8500, inimigos: ["mentira"], vida: 0.75, frases: ["Palavras velhas e mortas. Isso não muda ninguém."] }
+      // a 1ª Mentira é a cobra verde: cospe ácido de longe (aparencia troca sprite e ataque; o tema e as mentiras continuam os da Mentira)
+      { tipo: "inimigos", x: 7200, inimigos: ["mentira"], vida: 0.6, frases: ["A Bíblia é só um livro antigo. Não serve pra nada hoje."], aparencia: { sprite: "verde", acido: true, tell: 0.7, cadencia: 2, passo: 80 } },
+      { tipo: "inimigos", x: 8500, inimigos: ["mentira"], vida: 0.75, frases: ["Palavras velhas e mortas. Isso não muda ninguém."] },
+      // 3) chegada: um mar largo, atravessado numa laje que vai e volta — e nele mora o chefão, o Leviatã
+      { tipo: "mar", x: 8800, w: 1300 }, // ~80% da tela de água aberta; o resto até o fim é a terra submersa
+      { tipo: "terra", x: 9570, w: 530 }, // o chão do fim: fica embaixo d'água até o Leviatã cair, depois sobe
+      { tipo: "plataforma", x: 8820, w: 230, altura: 30, move: 505, periodo: 10 }, // larga: dá para lutar em cima
+      { tipo: "chefe", x: 9185, vida: 50 }
     ]
   }, {
-    // Jornada 2: a Dúvida ataca do alto (aves que mergulham). 3 versículos contra o medo, cada um antes das aves que ele refuta.
-    nome: "O vale da sombra", comprimento: 10800,
+    // Jornada 2: a Dúvida ataca do alto. 2 versículos contra o medo (Isaías 41:10, Salmos 23:4), 4 inimigos e o chefão Golias.
+    nome: "O vale da sombra", comprimento: 11500,
     mapa: { x: 58, y: 38, icone: "vale", cor: "#5d7fb8" },
+    // chão: grama de um campo de batalha (elmos, flechas, estandarte, corvo) — as 2 artes enviadas emendadas numa laje só.
+    // Sem tingir (é verde); medidas próprias: superfície em y=145, faixa de pedras em y 250–390. Pontas largas que terminam em
+    // grama limpa (esq. 440 px: estandarte + elmo; dir. 581 px: elmo + flecha), dissolvendo só nos últimos 50 px — sem objeto cortado
+    chao: "assets/img/chao-guerra.webp", chaoCor: null, chaoMedidas: { cap: 440, capR: 581, capFade: 50, capOut: 60, surf: 145, band: [250, 390], fade: 160, s: .45 },
     dica: ["A Dúvida ataca do alto: a ave mergulha onde você está", "Saia do lugar ou erga o escudo [J]; pule para golpeá-la"],
     eventos: [
       // 1) buraco e pedra no chão → Isaías 41:10
-      { tipo: "buraco", x: 700, w: 150 },
+      { tipo: "buraco", x: 700, w: 200 },
       { tipo: "pedra", x: 1250, verso: "is41-10" },
-      //    → 2 aves, uma de cada vez, com um terreno alto entre elas
+      //    → 1 ave, depois um terreno alto
       { tipo: "inimigos", x: 2200, inimigos: ["duvida"], vida: 0.7, frases: ["Você é fraco e medroso. Desista."] },
       { tipo: "terreno", x: 2650, w: 400, altura: 100 },
-      { tipo: "inimigos", x: 3900, inimigos: ["duvida"], vida: 0.75, frases: ["Ninguém vai te socorrer."] },
       // 2) buraco e descida ao vale: a pedra fica lá embaixo ("vale da sombra da morte") → Salmos 23:4
-      { tipo: "buraco", x: 4400, w: 170 },
+      { tipo: "buraco", x: 4400, w: 200 },
       { tipo: "terreno", x: 4900, w: 560, altura: -90 },
       { tipo: "pedra", x: 5180, verso: "sl23-4" },
       { tipo: "inimigos", x: 6400, inimigos: ["duvida"], vida: 0.8, frases: ["Deus te abandonou."] },
-      { tipo: "inimigos", x: 7500, inimigos: ["duvida"], vida: 0.85, frases: ["Você está sozinho no escuro."] },
-      // 3) buraco largo com lajes e penhasco com a pedra no topo → Salmos 3:7
+      // 3) buraco largo com lajes e penhasco (sem versículo: no máximo 2 por fase)
       { tipo: "buraco", x: 8000, w: 330 },
       { tipo: "plataforma", x: 8100, w: 130, altura: 50 },
       { tipo: "plataforma", x: 8420, w: 140, altura: 70 },
       { tipo: "terreno", x: 8580, w: 460, altura: 140 },
-      { tipo: "pedra", x: 8850, verso: "sl3-7" },
-      //    → final: 2 aves juntas (mergulham uma de cada vez)
-      { tipo: "inimigos", x: 10050, inimigos: ["duvida", "duvida"], vida: 0.7, frases: ["Seus inimigos são fortes demais.", "Você vai perder essa batalha."] }
+      //    → final: uma ave e uma cobra vermelha juntas (a cobra é uma Dúvida com a aparência da serpente, no chão)
+      { tipo: "inimigos", x: 10050, inimigos: ["duvida", "duvida"], vida: 0.7, frases: ["Seus inimigos são fortes demais.", "Você está sozinho no escuro."],
+        aparencia: [null, { sprite: "serpente", chao: true, mergulho: false, passo: 70, tell: 0.6, cadencia: 1.8 }] },
+      //    → chefão: Golias, o gigante de Gate (estocada de lança; fala mentiras alternando o versículo que as refuta)
+      { tipo: "gigante", x: 10950, vida: 60 }
     ]
   }],
   // Exercitar a fé: leitura + quiz sobre os heróis de Hebreus 11. Passar no quiz aumenta a duração do escudo.
