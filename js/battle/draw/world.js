@@ -23,10 +23,20 @@ function drawImageBg(F, img, off) {
   for (let x = -Math.round(off % P); x < 960; x += P) ctx.drawImage(t, x, 0);
   if (F.escuro) { ctx.fillStyle = `rgba(10, 5, 3, ${F.escuro})`; ctx.fillRect(0, 0, 960, 540); }
 }
+// fundo "estica": uma imagem só, ampliada (F.estica) e presa no topo (lua abaixo do HUD), que atravessa a fase inteira bem devagar:
+// no início mostra a borda esquerda e no fim a direita (sem repetir, sem emenda, sem perder qualidade)
+function drawStretchedBg(F, img, cam) {
+  const H = 540 * F.estica, W = img.naturalWidth * H / img.naturalHeight;
+  const t = Math.max(0, Math.min(1, cam / Math.max(1, B.fase.comprimento - 960)));
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, -Math.round(t * (W - 960)), 0, W, H); // presa no topo: a sobra embaixo fica atrás do chão
+  if (F.escuro) { ctx.fillStyle = `rgba(6, 3, 8, ${F.escuro})`; ctx.fillRect(0, 0, 960, 540); }
+}
 export function drawSky(cam) {
   const F = B.fase.fundo;
   if (F) {
     const img = BG[F.img] || (BG[F.img] = Object.assign(new Image(), { src: F.img }));
+    if (img.naturalWidth && F.estica) return drawStretchedBg(F, img, cam);
     if (img.naturalWidth) return drawImageBg(F, img, cam * F.parallax);
   }
   const W = 960, H = 540, t = Math.min(1, cam / (B.fase.comprimento - W));

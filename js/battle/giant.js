@@ -30,7 +30,8 @@ const ENTER_T = 1.6, DIE_T = 1.4;
 export function makeGiant(e) {
   const lies = D.mentiras.filter(m => m.tipo === 'gigante');
   return { kind: 'gigante', nome: 'Golias · o gigante de Gate', x: e.x, home: e.x, face: -1, hp: e.vida || 60, maxHp: e.vida || 60, state: 'hidden', t: 0, cd: 1, flash: 0, hit: false, sink: 0,
-    lies, li: 0, lie: lies[0] || null, vuln: false, lastVerse: null, lieFlash: 0 };
+    lies, li: 0, lie: null, lieIn: 5, // a 1ª mentira só aparece 5 s depois de ele surgir
+    vuln: false, lastVerse: null, lieFlash: 0 };
 }
 // próxima mentira (chamada quando o poder do versículo contra ele acaba): alterna o versículo que a refuta
 export function nextGiantLie(L) { if (!L.lies.length) return; L.li = (L.li + 1) % L.lies.length; L.lie = L.lies[L.li]; L.vuln = false; L.lieFlash = .3; }
@@ -48,11 +49,12 @@ export function updateGiant(L, dt) {
     if (h.x > L.home - 620 && !B.arena && B.groups.every(g => g.done) && !B.demons.length) { // arena: a câmera trava e ele entra
       B.arena = { left: L.home - 740, right: L.home + 220, boss: true };
       L.state = 'enter'; L.t = 0; L.x = B.arena.right + 160; L.face = -1; sfx('hurt');
-      B.notice = { lines: ['Golias, o gigante de Gate!', '"Tu vens contra mim com espada; eu vou contra ti em nome do Senhor" — 1 Sm 17:45'], t: 4.5, c: '#ffb46a' };
+      B.notice = { lines: ['Golias, o gigante de Gate!'], t: 3, c: '#ffb46a' };
     }
     return;
   }
   if (L.state === 'dead') { L.sink = Math.min(1, L.sink + dt / DIE_T); return; }
+  if (!L.lie && L.lieIn > 0 && (L.lieIn -= dt) <= 0 && L.lies.length) { L.lie = L.lies[0]; L.lieFlash = .3; } // chega calado; depois de 5 s começa a mentir
   if (L.state === 'enter') { L.x = Math.max(L.home, L.x - 220 * dt); if (L.x <= L.home) { L.state = 'walk'; L.t = 0; } return; }
   const dx = h.x - L.x;
   if (L.state === 'walk') {

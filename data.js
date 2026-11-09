@@ -294,6 +294,8 @@ window.DATA = {
     // Sem tingir (é verde); medidas próprias: superfície em y=145, faixa de pedras em y 250–390. Pontas largas que terminam em
     // grama limpa (esq. 440 px: estandarte + elmo; dir. 581 px: elmo + flecha), dissolvendo só nos últimos 50 px — sem objeto cortado
     chao: "assets/img/chao-guerra.webp", chaoCor: null, chaoMedidas: { cap: 440, capR: 581, capFade: 50, capOut: 60, surf: 145, band: [250, 390], fade: 160, s: .45 },
+    // fundo: céu vermelho-escuro com lua e montanhas, ampliado 1,2× e esticado pela fase toda (anda só ~190 px do início ao fim)
+    fundo: { img: "assets/img/fundo-vale.webp", estica: 1.2, escuro: 0.4 },
     dica: ["A Dúvida ataca do alto: a ave mergulha onde você está", "Saia do lugar ou erga o escudo [J]; pule para golpeá-la"],
     eventos: [
       // 1) buraco e pedra no chão → Isaías 41:10
