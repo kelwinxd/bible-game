@@ -179,6 +179,57 @@ window.DATA = {
           { p: "Em Salmos 3:5, mesmo cercado de inimigos, o que Davi fez?", certa: "Deitou, dormiu e acordou, sustentado pelo Senhor", erradas: ["Venceu sozinho o exército", "Escondeu-se numa caverna", "Fugiu para o deserto"] }
         ]
       ]
+    },
+    // Babilônia: humildade e dependência do Senhor (contra o orgulho)
+    {
+      id: "1pe5-6", ref: "1 Pedro 5:6", tema: "orgulho", autor: "pedro",
+      texto: "Humilhai-vos, pois, debaixo da potente mão de Deus, para que, a seu tempo, vos exalte.",
+      lacunas: [
+        { certa: "Humilhai-vos", distratores: ["Alegrai-vos", "Levantai-vos", "Guardai-vos"] },
+        { certa: "mão", distratores: ["voz", "casa", "lei"] }
+      ],
+      lacunas2: [
+        { certa: "potente", distratores: ["santa", "antiga", "leve"] },
+        { certa: "exalte", distratores: ["esqueça", "julgue", "chame"] }
+      ],
+      afiacao: [
+        [
+          { p: "Quem escreveu a primeira carta de Pedro?", certa: "Pedro", erradas: ["Paulo", "João", "Tiago"] }
+        ],
+        [
+          { p: "Pelo que passavam os cristãos que receberam a carta (1 Pedro 4:12)?", certa: "Provações e sofrimentos", erradas: ["Uma grande riqueza", "Uma guerra civil", "O exílio no Egito"] },
+          { p: "Pedro manda saudações da igreja de qual cidade (1 Pedro 5:13), nome simbólico para Roma?", certa: "Babilônia", erradas: ["Jerusalém", "Antioquia", "Corinto"] }
+        ],
+        [
+          { p: "Logo antes (1 Pedro 5:5), Deus resiste a quem?", certa: "Aos soberbos", erradas: ["Aos pobres", "Aos estrangeiros", "Aos fracos"] },
+          { p: "Logo depois (1 Pedro 5:7), o que devemos lançar sobre Deus?", certa: "Toda a nossa ansiedade", erradas: ["Nossas ofertas", "Nossos inimigos", "Nossas coroas"] }
+        ]
+      ]
+    },
+    {
+      id: "pv3-5", ref: "Provérbios 3:5", tema: "orgulho", autor: "salomao",
+      texto: "Confia no Senhor de todo o teu coração e não te estribes no teu próprio entendimento.",
+      lacunas: [
+        { certa: "Confia", distratores: ["Pensa", "Espera", "Olha"] },
+        { certa: "coração", distratores: ["dinheiro", "braço", "nome"] }
+      ],
+      lacunas2: [
+        { certa: "próprio", distratores: ["grande", "velho", "único"] },
+        { certa: "entendimento", distratores: ["caminho", "trabalho", "tesouro"] }
+      ],
+      afiacao: [
+        [
+          { p: "Quem escreveu a maior parte de Provérbios?", certa: "Salomão", erradas: ["Davi", "Moisés", "Daniel"] }
+        ],
+        [
+          { p: "Salomão era filho de qual rei?", certa: "Davi", erradas: ["Saul", "Ezequias", "Josias"] },
+          { p: "O que Salomão pediu a Deus em Gibeom (1 Reis 3:9)?", certa: "Sabedoria para governar o povo", erradas: ["Riquezas", "Vida longa", "Vitória sobre os inimigos"] }
+        ],
+        [
+          { p: "Logo depois (Provérbios 3:6), quem reconhece a Deus em todos os caminhos recebe o quê?", certa: "Veredas endireitadas por Ele", erradas: ["Muitas riquezas", "Inimigos derrotados", "Um reino"] },
+          { p: "Logo depois (Provérbios 3:7), o conselho é não ser o quê aos próprios olhos?", certa: "Sábio", erradas: ["Pobre", "Forte", "Triste"] }
+        ]
+      ]
     }
   ],
   mentiras: [
@@ -200,6 +251,9 @@ window.DATA = {
     { texto: "Neste vale só existe morte. Tenha medo de mim!", tipo: "gigante", ideal: ["sl23-4"] },
     { texto: "Sou forte demais. Você vai cair aqui, sozinho!", tipo: "gigante", ideal: ["is41-10"] },
     { texto: "O seu Deus não desce a este vale escuro.", tipo: "gigante", ideal: ["sl23-4"] },
+    // Naja, chefona do mar da jornada 1: duas mentiras que se alternam (uma para cada versículo da jornada)
+    { texto: "Curve-se a mim. Eu sou o seu deus agora!", tipo: "naja", ideal: ["ex20-3"] },
+    { texto: "Sua Bíblia é papel morto. Afunde comigo!", tipo: "naja", ideal: ["hb4-12"] },
     // demônio da Mentira: desacredita a Bíblia
     { texto: "A Bíblia é só um livro antigo. Não serve pra nada hoje.", tipo: "mentira", ideal: ["hb4-12"] },
     { texto: "Palavras velhas e mortas. Isso não muda ninguém.", tipo: "mentira", ideal: ["hb4-12"] },
@@ -207,17 +261,25 @@ window.DATA = {
     // demônio da Idolatria: puxa para outros deuses (o bezerro de ouro está logo ali)
     { texto: "Curve-se ao bezerro de ouro. Esse deus você pode ver.", tipo: "idolatria", ideal: ["ex20-3"] },
     { texto: "Tenha quantos deuses quiser. Todos levam ao mesmo lugar.", tipo: "idolatria", ideal: ["ex20-3"] },
-    { texto: "Ponha outra coisa em primeiro lugar. Deus entende.", tipo: "idolatria", ideal: ["ex20-3"] }
+    { texto: "Ponha outra coisa em primeiro lugar. Deus entende.", tipo: "idolatria", ideal: ["ex20-3"] },
+    // Babilônia (Daniel 3): a estátua de ouro do rei
+    { texto: "Curve-se à estátua de ouro do rei. Todos se curvam!", tipo: "idolatria", ideal: ["ex20-3"] },
+    // Orgulho (Babilônia): força própria contra humildade e dependência do Senhor
+    { texto: "Você é forte sozinho. Não se curve a ninguém!", tipo: "orgulho", ideal: ["1pe5-6"] },
+    { texto: "Sua força vem de você. Deus é para os fracos.", tipo: "orgulho", ideal: ["pv3-5"] },
+    { texto: "Confie no seu braço. Só os fracos pedem ajuda.", tipo: "orgulho", ideal: ["pv3-5"] },
+    { texto: "Você chegou aqui sozinho. Ninguém te deu nada.", tipo: "orgulho", ideal: ["1pe5-6"] }
   ],
   // Abreviação dos livros para os cards compactos do HUD (deck fechado): "Tiago 4:7" → "Tg 4:7".
-  abrev: { "Êxodo": "Êx", "Hebreus": "Hb", "Tiago": "Tg", "1 Coríntios": "1Co", "Isaías": "Is", "Salmos": "Sl" },
+  abrev: { "Êxodo": "Êx", "Hebreus": "Hb", "Tiago": "Tg", "1 Coríntios": "1Co", "Isaías": "Is", "Salmos": "Sl", "1 Pedro": "1Pe", "Provérbios": "Pv" },
 
   // Cor do poder por tema do versículo: brilho no herói, rasgo, impacto, referência, barra de poder e cards.
   temas: {
     tentacao: { nome: "Tentação", cor: "#f2c84b", claro: "#fff2b0", brilho: "#ffd34d" }, // amarelo/dourado
     duvida:   { nome: "Dúvida",   cor: "#7cc8ff", claro: "#e3f5ff", brilho: "#5fb8ff" }, // azul claro
     mentira:  { nome: "Mentira",  cor: "#ff9a4d", claro: "#ffe0c4", brilho: "#ff8a2a" }, // laranja
-    idolatria: { nome: "Idolatria", cor: "#c88cff", claro: "#f0e0ff", brilho: "#b06aff" } // violeta
+    idolatria: { nome: "Idolatria", cor: "#c88cff", claro: "#f0e0ff", brilho: "#b06aff" }, // violeta
+    orgulho:  { nome: "Orgulho",  cor: "#4fd1b8", claro: "#d8fff6", brilho: "#2fe0c0" }  // verde-água (humildade contra o orgulho)
   },
   inimigos: {
     // chao: anda no chão e ataca corpo a corpo (passo = px/s); sem chao: flutua e cospe fogo;
@@ -225,7 +287,9 @@ window.DATA = {
     tentacao: { nome: "Demônio da Tentação", vida: 70, dano: 10, tell: 0.55, cadencia: 1.5, chao: true, passo: 90, cor: "#6e0f12", sprite: "serpente" },
     duvida:   { nome: "Ave da Dúvida",       vida: 60, dano: 10, tell: 0.7,  cadencia: 2.2, cor: "#4a3426", sprite: "ave", mergulho: true },
     mentira:  { nome: "Demônio da Mentira",  vida: 60, dano: 8,  tell: 0.6,  cadencia: 1.8, chao: true, passo: 70, cor: "#9a1c1c", sprite: "serpente" }, // serpente: assets/sprites/enemy/serpente-*.png
-    idolatria: { nome: "Demônio da Idolatria", vida: 60, dano: 8, tell: 0.6,  cadencia: 1.8, chao: true, passo: 70, cor: "#7a1c4a", sprite: "serpente" }
+    idolatria: { nome: "Demônio da Idolatria", vida: 60, dano: 8, tell: 0.6,  cadencia: 1.8, chao: true, passo: 70, cor: "#7a1c4a", sprite: "serpente" },
+    // leão (Babilônia, Daniel 6): fala de força e orgulho; salto = px que ele avança no bote
+    orgulho: { nome: "Leão do Orgulho", vida: 70, dano: 12, tell: 0.5, cadencia: 1.6, chao: true, passo: 120, cor: "#8a5a12", sprite: "leao", salto: 80 }
   },
   // Jornadas (fases), em ordem: vencer uma libera a próxima. O herói começa só com os versículos achados nas
   // jornadas anteriores. dica (opcional) = aviso no topo ao começar; fundo (opcional) = imagem de fundo (sem ele, céu desenhado).
@@ -235,7 +299,8 @@ window.DATA = {
   //  terra      = chão que fica SUBMERSO dentro de um mar até o chefão cair; aí sobe da água (use no fim da fase, sobre o mar)
   //  gigante    = Golias (js/battle/giant.js): chefão em terra; ao chegar perto a câmera trava numa arena e ele entra pela direita;
   //               vida = pontos de vida. A jornada só termina depois que ele cai
-  //  chefe      = Leviatã, o monstro do mar (js/battle/boss.js): mora no mar que estiver em x e só sai dele morto; vida = pontos de vida.
+  //  chefe      = chefão do mar (js/battle/boss.js): mora no mar que estiver em x e só sai dele morto; vida = pontos de vida;
+  //               pele (opcional) = arte e falas ("naja"; sem ela = Leviatã). A pele pode trazer mentiras (como o Golias).
   //               A jornada só termina depois que ele cai
   //  terreno    = trecho com outra altura: altura > 0 = mais alto (parede: precisa pular), < 0 = vale mais baixo
   //  plataforma = laje flutuante; sobe pulando por baixo e fica em cima. Móvel (opcional): move = quantos px ela anda para a
@@ -280,11 +345,11 @@ window.DATA = {
       // a 1ª Mentira é a cobra verde: cospe ácido de longe (aparencia troca sprite e ataque; o tema e as mentiras continuam os da Mentira)
       { tipo: "inimigos", x: 7200, inimigos: ["mentira"], vida: 0.6, frases: ["A Bíblia é só um livro antigo. Não serve pra nada hoje."], aparencia: { sprite: "verde", acido: true, tell: 0.7, cadencia: 2, passo: 80 } },
       { tipo: "inimigos", x: 8500, inimigos: ["mentira"], vida: 0.75, frases: ["Palavras velhas e mortas. Isso não muda ninguém."] },
-      // 3) chegada: um mar largo, atravessado numa laje que vai e volta — e nele mora o chefão, o Leviatã
+      // 3) chegada: um mar largo, atravessado numa laje que vai e volta — e nele mora a chefona, a Naja (o Leviatã com a arte da naja verde; mente como o Golias)
       { tipo: "mar", x: 8800, w: 1300 }, // ~80% da tela de água aberta; o resto até o fim é a terra submersa
       { tipo: "terra", x: 9570, w: 530 }, // o chão do fim: fica embaixo d'água até o Leviatã cair, depois sobe
       { tipo: "plataforma", x: 8820, w: 230, altura: 30, move: 505, periodo: 10 }, // larga: dá para lutar em cima
-      { tipo: "chefe", x: 9185, vida: 50 }
+      { tipo: "chefe", x: 9185, vida: 50, pele: "naja" }
     ]
   }, {
     // Jornada 2: a Dúvida ataca do alto. 2 versículos contra o medo (Isaías 41:10, Salmos 23:4), 4 inimigos e o chefão Golias.
@@ -319,6 +384,38 @@ window.DATA = {
         aparencia: [null, { sprite: "serpente", chao: true, mergulho: false, passo: 70, tell: 0.6, cadencia: 1.8 }] },
       //    → chefão: Golias, o gigante de Gate (estocada de lança; fala mentiras alternando o versículo que as refuta)
       { tipo: "gigante", x: 10950, vida: 60 }
+    ]
+  }, {
+    // Jornada 3: Babilônia, a cidade dos ídolos e do orgulho (Daniel 3–4). 2 versículos de humildade e dependência do Senhor
+    // (1 Pedro 5:6, Provérbios 3:5) e 4 inimigos — só leões e harpias.
+    nome: "Babilônia", comprimento: 9500,
+    mapa: { x: 84, y: 60, icone: "zigurate", cor: "#d9a441" },
+    // fundo: a cidade com o zigurate, a estátua e fumaça, esticada pela fase (parallax lento)
+    fundo: { img: "assets/img/fundo-babilonia.webp", estica: 1.05, escuro: 0.5 }, // imagem larga (1920×819, parada): já passa da tela, anda ~380 px pela fase; véu de 50%: a arte é bem clara
+    // chão: o altar de pedra dourada com panos, cálices e vinho derramado. Pontas: esq. 560 px (pano vermelho e cálice
+    // até a pilastra), dir. 260 px (pérolas e cálice); superfície em y=140, faixa de blocos em y 320–400; sem tingir
+    chao: "assets/img/chao-babilonia.webp", chaoCor: null, chaoMedidas: { cap: 560, capR: 260, capFade: 50, capOut: 40, surf: 140, band: [320, 400], fade: 160, s: .45 },
+    // buracos: mar vermelho com mãos de armadura (GIF "Mãos Blindadas nas Ondas Vermelhas": 12 quadros 358×338, 0,11 s;
+    // o céu preto do GIF virou transparente, o mar fica sólido)
+    maos: { img: "assets/sprites/hazard/mar-vermelho.webp", FW: 358, FH: 338, n: 12, dur: 0.11, agua: 120, fundo: ["#2a0606", "#120202"] },
+    dica: ["Babilônia: a cidade dos ídolos e do orgulho", "Suba a escadaria do zigurate: a Palavra está lá no alto"],
+    eventos: [
+      // 1) buraco e pedra no chão → 1 Pedro 5:6 (humildade)
+      { tipo: "buraco", x: 800, w: 200 },
+      { tipo: "pedra", x: 1500, verso: "1pe5-6" },
+      // o Leão do Orgulho (Daniel 6): a 1ª mentira é sobre força própria → 1 Pedro 5:6
+      { tipo: "inimigos", x: 2600, inimigos: ["orgulho"], vida: 0.8, frases: ["Você é forte sozinho. Não se curve a ninguém!"] },
+      { tipo: "terreno", x: 3300, w: 420, altura: 100 },
+      { tipo: "buraco", x: 4300, w: 220 },
+      // 2) a escadaria do zigurate (arte inteira, 1994×630 desenhada a 45%): 4 degraus que se sobem pulando
+      //    (20, 47, 110 e 146 px acima do chão); no degrau mais alto, o ídolo → Provérbios 3:5 (dependência do Senhor)
+      { tipo: "estrutura", x: 5200, img: "assets/img/escadaria-babilonia.webp", w: 1994, h: 630, sc: .45, base: 45,
+        degraus: [[0, 500, 485], [500, 800, 425], [800, 1340, 285], [1340, 1994, 205]] },
+      { tipo: "pedra", x: 5950, verso: "pv3-5" },
+      { tipo: "inimigos", x: 7000, inimigos: ["duvida"], vida: 0.8, frases: ["Confie no seu braço. Só os fracos pedem ajuda."] },
+      { tipo: "buraco", x: 7800, w: 200 },
+      //    → final: um leão e uma harpia juntos (na Babilônia só aparecem esses dois)
+      { tipo: "inimigos", x: 8600, inimigos: ["orgulho", "duvida"], vida: 0.8, frases: ["Você chegou aqui sozinho. Ninguém te deu nada.", "Sua força vem de você. Deus é para os fracos."] }
     ]
   }],
   // Exercitar a fé: leitura + quiz sobre os heróis de Hebreus 11. Passar no quiz aumenta a duração do escudo.
@@ -361,6 +458,17 @@ window.DATA = {
       { p: "O que tocou os lábios de Isaías no seu chamado (Isaías 6:6-7)?", certa: "Uma brasa viva do altar", erradas: ["Um ramo de hissopo", "Óleo da unção", "Água do Jordão"] },
       { p: "O que Isaías respondeu quando Deus perguntou: a quem enviarei?", certa: "Eis-me aqui, envia-me a mim", erradas: ["Quem sou eu para ir?", "Não sei falar", "Envia outro"] },
       { p: "Isaías profetizou principalmente a qual reino?", certa: "Judá", erradas: ["Edom", "Egito", "Moabe"] }
+    ] },
+    pedro: { nome: "Pedro", perguntas: [
+      { p: "Qual era a profissão de Pedro antes de seguir Jesus?", certa: "Pescador", erradas: ["Cobrador de impostos", "Carpinteiro", "Pastor"] },
+      { p: "Qual era o nome de Pedro antes de Jesus chamá-lo assim?", certa: "Simão", erradas: ["Saulo", "Levi", "Natanael"] },
+      { p: "Quantas vezes Pedro negou Jesus?", certa: "Três", erradas: ["Uma", "Duas", "Sete"] },
+      { p: "Quem era o irmão de Pedro, também apóstolo?", certa: "André", erradas: ["João", "Tiago", "Filipe"] }
+    ] },
+    salomao: { nome: "Salomão", perguntas: [
+      { p: "Qual grande obra Salomão construiu em Jerusalém?", certa: "O templo", erradas: ["A muralha de Neemias", "O palácio de Herodes", "A torre de Babel"] },
+      { p: "Quem era a mãe de Salomão?", certa: "Bate-Seba", erradas: ["Rute", "Ester", "Mical"] },
+      { p: "Qual rainha visitou Salomão para provar a sabedoria dele?", certa: "A rainha de Sabá", erradas: ["A rainha Ester", "A rainha Jezabel", "A rainha Vasti"] }
     ] },
     davi: { nome: "Davi", perguntas: [
       { p: "Antes de ser rei, Davi trabalhava como quê?", certa: "Pastor de ovelhas", erradas: ["Pescador", "Carpinteiro", "Sacerdote"] },

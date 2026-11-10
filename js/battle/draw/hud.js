@@ -54,7 +54,7 @@ export function drawHUD() {
   const P = B.power;
   bar(240, 14, 236, 22, P ? P.t / P.dur : 0, !P ? '#f2c84b' : B.shield ? '#6a6a6a' : tema(P.v).cor, P ? (B.shield ? 'Poder (pausado — escudo)' : `Poder · ${P.v.ref}`) : 'Espada inerte — refute');
   drawBossBar(bar);
-  ctx.fillStyle = '#f3e7d3'; ctx.font = '700 20px Cinzel, serif'; ctx.textAlign = 'right'; ctx.fillText(`Jornada ${Math.min(100, Math.round(B.hero.x / B.fase.comprimento * 100))}%`, W - 16, 33); ctx.textAlign = 'center';
+  ctx.fillStyle = '#f3e7d3'; ctx.font = '700 20px Cinzel, serif'; ctx.textAlign = 'right'; ctx.fillText(B.fase.dev ? 'Bestiário' : `Jornada ${Math.min(100, Math.round(B.hero.x / B.fase.comprimento * 100))}%`, W - 16, 33); ctx.textAlign = 'center';
 }
 export function bar(x, y, w, hh, p, c, label) {
   ctx.fillStyle = '#2a1d16'; ctx.fillRect(x, y, w, hh);

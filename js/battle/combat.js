@@ -11,12 +11,13 @@ import { $, D, reduced, rgbOf } from '../core/utils.js';
 
 // ave: balão EMBAIXO dela (em cima ficava atrás do HUD), preso à altura de pairar para não descer junto no mergulho
 export const balloonBelow = d => !!d.s.mergulho;
-export function balloonY(d) { return d.s.mergulho ? Math.min(d.y, BIRD_HOVER_Y) + 55 : d.s.sprite ? d.y - (d.s.sprite === 'verde' ? 306 : 262) : d.s.chao ? d.y - 230 : d.y - 90; }
+export function balloonY(d) { return d.s.mergulho ? Math.min(d.y, BIRD_HOVER_Y) + 55 : d.s.sprite ? d.y - (d.s.sprite === 'verde' ? 250 : d.s.sprite === 'leao' ? 205 : 262) : d.s.chao ? d.y - 230 : d.y - 90; }
 
 // caixas de colisão
 export const heroBox = h => [h.x - 30, GROUND + h.y - 160, h.x + 30, GROUND + h.y]; // acompanha o templário menor
 export function demonBox(d) {
   if (d.s.mergulho) return [d.x - 70, d.y - 55, d.x + 70, d.y + 65]; // ave: corpo e garras, sem as pontas das asas
+  if (d.s.sprite === 'leao') return [d.x - 80, d.y - 150, d.x + 80, d.y]; // leão: baixo e comprido
   if (d.s.chao) return [d.x - 45, d.y - 200, d.x + 45, d.y];
   const fy = Math.sin(d.bob * 2) * 10;
   return [d.x - 50, d.y + fy - 70, d.x + 50, d.y + fy + 60];
@@ -83,6 +84,7 @@ export function damageDemon(d, impulso = false) {
   const dmg = impulso ? dashDmg() : powered ? 8 * P.mult : BASE_DMG;
   d.hp -= dmg; d.flash = .15;
   const b = demonBox(d);
+  if (B.fase.dev && d.hp <= 0) { d.hp = d.maxHp; B.floats.push({ x: d.x, y: b[1] - 50, t: 1, s: 'imortal · vida cheia', c: '#9fe4ff' }); } // Bestiário
   B.floats.push({ x: d.x, y: b[1] - 20, t: .8, s: dmg.toFixed(dmg % 1 ? 1 : 0), c: impulso ? '#9fe4ff' : powered ? tema(P.v).claro : '#bbb' });
   if (d.hp <= 0) startFatal(d, impulso ? null : d.lastVerse, impulso);
   return powered;
@@ -146,6 +148,11 @@ export function endFatal() {
 }
 export function endScreen(win) {
   if (!B) return; // saiu da batalha antes da tela final
+  if (B.fase.dev) { // Bestiário: só dá para cair (os monstros são imortais)
+    $('endTitle').textContent = 'Você caiu'; $('endText').textContent = `Bestiário · ${B.fase.nome}`;
+    $('endBtns').innerHTML = `<button onclick="openBestiary()">← Bestiário</button><button class="primary" onclick="startBestiary('${B.fase.dev}')">Lutar de novo</button>`;
+    return $('endOverlay').classList.add('on');
+  }
   const fi = B.faseIdx, next = win && fi + 1 < D.fases.length;
   if (next) unlockFase(fi + 1);
   $('endTitle').textContent = win ? 'Vitória' : 'Você caiu';

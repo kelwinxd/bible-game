@@ -1,5 +1,5 @@
 import { sfx, swordSfx } from '../core/audio.js';
-import { reduced } from '../core/utils.js';
+import { D, reduced } from '../core/utils.js';
 import { GROUND, ctx } from './config.js';
 import { hitHero, overlap } from './combat.js';
 import { B } from './state.js';
@@ -21,6 +21,21 @@ export const LEVI = { img: new Image(), FW: 250, FH: 236, ax: 150, foot: 234, sc
 LEVI.img.src = 'assets/sprites/enemy/leviata.webp';
 export const ACID = { img: new Image(), FW: 306, FH: 236, ax: 194, foot: 234, n: 8 };
 ACID.img.src = 'assets/sprites/enemy/leviata-acido.webp';
+// Pele do chefão do mar (data.js → chefe.pele; sem ela = Leviatã). Mesmo comportamento, só muda a arte e os textos.
+//  swim/bite/acid = { img, FW, FH, ax, foot, n, row }; dir = -1 se a arte olha para a esquerda; boca = de onde sai o ácido
+//  (px na arte, a partir de ax/foot); sc = escala
+const NAJA = { swim: { img: new Image(), FW: 288, FH: 294, ax: 136, foot: 292, n: 8 }, bite: { img: new Image(), FW: 428, FH: 260, ax: 136, foot: 258, n: 6 },
+  acid: { img: new Image(), FW: 408, FH: 288, ax: 136, foot: 286, n: 6 } };
+NAJA.swim.img.src = 'assets/sprites/enemy/naja-run.webp'; NAJA.bite.img.src = 'assets/sprites/enemy/naja-attack.webp'; NAJA.acid.img.src = 'assets/sprites/enemy/naja-acido.webp';
+export const PELES = {
+  leviata: { nome: 'Leviatã', titulo: 'o monstro do mar', furia: 'O Leviatã está furioso!', morte: 'Leviatã derrotado!', sc: LEVI.sc, dir: -1, boca: [181, 124],
+    swim: { ...LEVI, row: 0 }, bite: { ...LEVI, row: 1 }, acid: { ...ACID, row: 0 } },
+  // naja do mar (só no Bestiário): 3 tiras enviadas, igualadas pela do bote e alinhadas pela cauda e pela base; olha para a direita
+  // jato: o ácido é o próprio sprite (sem bola): tocar no jato (quadros 3–4) tira dano; caixa em px da arte a partir de ax/foot
+  // mentiras = tipo das mentiras do data.js que ela alterna (refutáveis com versículo, como o Golias); lieY = base do balão
+  naja: { nome: 'Naja', titulo: 'a serpente do mar', furia: 'A Naja está furiosa!', morte: 'A Naja foi derrotada!', mentiras: 'naja', lieY: GROUND - 305, sc: 1.25, dir: 1, boca: [249, 138], jato: { x: [235, 400], y: [108, 188], fr: [3, 5] },
+    swim: { ...NAJA.swim, row: 0 }, bite: { ...NAJA.bite, row: 0 }, acid: { ...NAJA.acid, row: 0 } }
+};
 const SURGE_T = 1.4, SPEED = 75, REACH = 300, CD = 2, BITE_T = 1.2, BITE = [.55, .8], DMG = 15;
 const ACID_T = 1.3, ACID_SPIT = .8, ACID_DMG = 12, ACID_FLY = .75, ACID_G = 900, ACID_REACH = 650;
 const DIVE_T = .9, UNDER_T = 1.8, ATKS_PER_DIVE = 3;
@@ -29,14 +44,15 @@ const WATER = 60; // a base do corpo fica dentro da água, abaixo da borda da te
 export function makeBoss(e) {
   const sea = B.holes.find(o => o.mar && e.x >= o.x && e.x <= o.x + o.w);
   if (!sea) return null;
-  return { kind: 'leviata', sea, x: e.x, face: -1, hp: e.vida || 50, maxHp: e.vida || 50, state: 'hidden', t: 0, cd: 1.5, flash: 0, bitHit: false, spat: false, sink: 0, atks: 0, nextAcid: false, fase2: false };
+  const pele = PELES[e.pele] || PELES.leviata, lies = pele.mentiras ? D.mentiras.filter(m => m.tipo === pele.mentiras) : [];
+  return { kind: 'leviata', pele, lies, li: 0, lie: null, lieIn: lies.length ? 5 : 0, vuln: false, lastVerse: null, lieFlash: 0, sea, x: e.x, face: -1, hp: e.vida || 50, maxHp: e.vida || 50, state: 'hidden', t: 0, cd: 1.5, flash: 0, bitHit: false, spat: false, sink: 0, atks: 0, nextAcid: false, fase2: false };
 }
 const lo = L => L.sea.x + 110, hi = L => L.sea.x + L.sea.w - 110;
 // corpo que leva golpe (o pescoço e a cabeça erguidos, sem a cauda)
 export function bossBox(L) {
   if (L.kind === 'gigante') return giantBox(L);
-  const top = GROUND + WATER - 200 * LEVI.sc;
-  return [L.x - 95 * LEVI.sc * .7, top, L.x + 95 * LEVI.sc * .7, GROUND + 20]; // da água até a cabeça
+  const sc = L.pele.sc, top = GROUND + WATER - 200 * sc;
+  return [L.x - 95 * sc * .7, top, L.x + 95 * sc * .7, GROUND + 20]; // da água até a cabeça
 }
 // leva golpe: fora d'água (mergulhando ou embaixo d'água, não)
 export const bossAlive = L => L && ['surge', 'swim', 'bite', 'acid', 'enter', 'walk', 'atk', 'slam'].includes(L.state);
@@ -56,12 +72,13 @@ export function updateBoss(dt) {
   if (L.state === 'hidden') { // espera o herói chegar perto e sobe do fundo
     if (h.x > L.sea.x - 420) {
       L.state = 'surge'; L.t = 0; sfx('hurt');
-      B.notice = { lines: ['Leviatã, o monstro do mar!', 'Golpeie-o da laje ou da margem — e cuidado com o bote'], t: 4, c: '#ff7a6a' };
+      B.notice = { lines: [`${L.pele.nome}, ${L.pele.titulo}!`, 'Golpeie-o da laje ou da margem — e cuidado com o bote'], t: 4, c: '#ff7a6a' };
       splash(L, 22);
     }
     return;
   }
   if (L.state === 'dead') { L.sink = Math.min(1, L.sink + dt / 1.6); return; }
+  if (!L.lie && L.lieIn > 0 && (L.lieIn -= dt) <= 0 && L.lies.length) { L.lie = L.lies[0]; L.lieFlash = .3; } // 5 s depois de surgir começa a mentir
   if (L.state === 'surge') { if (L.t >= SURGE_T) { L.state = 'swim'; L.t = 0; } return; }
   if (L.state === 'dive') { if (L.t >= DIVE_T) { L.state = 'under'; L.t = 0; } return; }
   if (L.state === 'under') { // embaixo d'água: reaparece perto do herói, de surpresa
@@ -72,7 +89,7 @@ export function updateBoss(dt) {
     return;
   }
   // metade da vida: passa a cuspir ácido também
-  if (!L.fase2 && L.hp <= L.maxHp / 2) { L.fase2 = true; L.nextAcid = true; B.notice = { lines: ['O Leviatã está furioso!', 'Agora ele cospe ácido — erga o escudo [J] ou saia do caminho'], t: 4, c: '#a8ff4a' }; }
+  if (!L.fase2 && L.hp <= L.maxHp / 2) { L.fase2 = true; L.nextAcid = true; B.notice = { lines: [L.pele.furia, 'Agora ele cospe ácido — erga o escudo [J] ou saia do caminho'], t: 4, c: '#a8ff4a' }; }
   if (L.state === 'swim') { // segue o herói dentro do mar e olha para ele
     const want = Math.max(lo(L), Math.min(hi(L), h.x + (h.x < L.x ? 150 : -150)));
     L.x += Math.sign(want - L.x) * Math.min(Math.abs(want - L.x), SPEED * dt);
@@ -80,14 +97,19 @@ export function updateBoss(dt) {
     L.cd -= dt;
     const d = Math.abs(h.x - L.x);
     if (L.cd > 0 || h.deadAt != null) return;
-    const acid = L.fase2 && (L.nextAcid || d >= REACH) && d < ACID_REACH;
+    const J = L.pele.jato, alcance = J ? J.x[1] * L.pele.sc - 30 : ACID_REACH; // com jato: só cospe se o herói estiver ao alcance dele
+    const acid = L.fase2 && (L.nextAcid || d >= REACH) && d < alcance;
     if (acid) { L.state = 'acid'; L.t = 0; L.spat = false; L.nextAcid = false; }
     else if (d < REACH) { L.state = 'bite'; L.t = 0; L.bitHit = false; L.nextAcid = L.fase2; swordSfx('swing'); }
   } else if (L.state === 'bite') {
     if (!L.bitHit && L.t >= BITE[0] && L.t <= BITE[1] && overlap(biteBox(L), heroBox(h))) { L.bitHit = true; hitHero(DMG); }
     if (L.t >= BITE_T) endAttack(L);
   } else if (L.state === 'acid') {
-    if (!L.spat && L.t >= ACID_SPIT) { L.spat = true; spit(L, h); }
+    const J = L.pele.jato;
+    if (J) { // o jato do sprite é o golpe: pega se o herói estiver nele enquanto o ácido sai da boca
+      const fr = Math.floor(L.t / ACID_T * L.pele.acid.n);
+      if (!L.spat && fr >= J.fr[0] && fr < J.fr[1] && overlap(jetBox(L, J), heroBox(h))) { L.spat = true; hitHero(ACID_DMG); goo(h.x, GROUND + h.y - 100, 12); }
+    } else if (!L.spat && L.t >= ACID_SPIT) { L.spat = true; spit(L, h); }
     if (L.t >= ACID_T) endAttack(L);
   }
 }
@@ -96,9 +118,13 @@ function biteBox(L) {
   const near = L.x + L.face * 40, far = L.x + L.face * 300;
   return [Math.min(near, far), GROUND - 300, Math.max(near, far), GROUND - 110];
 }
+function jetBox(L, J) {
+  const s = L.pele.sc, a = L.x + L.face * J.x[0] * s, b = L.x + L.face * J.x[1] * s;
+  return [Math.min(a, b), GROUND + WATER - J.y[1] * s, Math.max(a, b), GROUND + WATER - J.y[0] * s];
+}
 // ácido: uma bola que sai da ponta do jato e cai em arco onde o herói está (mira na hora do cuspe)
 function spit(L, h) {
-  const s = LEVI.sc, x = L.x + L.face * 181 * s, y = GROUND + WATER - 124 * s;
+  const P = L.pele, s = P.sc, x = L.x + L.face * P.boca[0] * s, y = GROUND + WATER - P.boca[1] * s;
   spitAcid(x, y, h.x, GROUND + h.y - 90, ACID_DMG, ACID_FLY);
 }
 // bola de ácido de (x, y) que cai em arco em (tx, ty) depois de T segundos (usada pelo Leviatã e pela cobra verde)
@@ -122,11 +148,12 @@ export function damageBoss(dmg, cor = '#bbb') {
   const L = B.boss; if (!bossAlive(L)) return;
   L.hp -= dmg; L.flash = .15;
   B.floats.push({ x: L.x, y: bossBox(L)[1] - 10, t: .8, s: dmg.toFixed(dmg % 1 ? 1 : 0), c: cor });
+  if (B.fase.dev && L.hp <= 0) { L.hp = L.maxHp; B.floats.push({ x: L.x, y: bossBox(L)[1] - 45, t: 1, s: 'imortal · vida cheia', c: '#9fe4ff' }); return; } // Bestiário
   if (L.hp <= 0 && L.kind === 'gigante') { L.hp = 0; return giantDies(L); }
   if (L.hp <= 0) { // afunda de vez
     L.hp = 0; L.state = 'dead'; L.t = 0; B.shake = .5; B.acid = [];
     B.risers.forEach(r => { r.up = true; }); // a terra do fim sobe da água
-    B.notice = { lines: ['Leviatã derrotado!', 'O mar se acalma e a terra aparece… siga até a cruz'], t: 4, c: '#f2c84b' };
+    B.notice = { lines: [L.pele.morte, 'O mar se acalma e a terra aparece… siga até a cruz'], t: 4, c: '#f2c84b' };
     splash(L, 30); sfx('refute');
   }
 }
@@ -137,21 +164,21 @@ function splash(L, n) {
 
 // desenhado dentro do mar: atrás das ondas (que cobrem a base do corpo) e das lajes
 export function drawBoss(sea) {
-  const L = B.boss; if (!L || L.sea !== sea || L.state === 'hidden' || L.state === 'under' || !LEVI.img.naturalWidth) return;
-  let S = LEVI, row = 0, fr = Math.floor(B.time * 8) % LEVI.n, rise = 0;
+  const L = B.boss, P = L && L.pele; if (!L || L.sea !== sea || L.state === 'hidden' || L.state === 'under' || !P.swim.img.naturalWidth) return;
+  let S = P.swim, fr = Math.floor(B.time * 8) % S.n, rise = 0;
   if (L.state === 'surge') rise = 1 - Math.min(1, L.t / SURGE_T);
   else if (L.state === 'dive') rise = Math.min(1, L.t / DIVE_T);
-  else if (L.state === 'bite') { row = 1; fr = Math.min(LEVI.n - 1, Math.floor(L.t / BITE_T * LEVI.n)); }
-  else if (L.state === 'acid' && ACID.img.naturalWidth) { S = ACID; fr = Math.min(ACID.n - 1, Math.floor(L.t / ACID_T * ACID.n)); }
+  else if (L.state === 'bite' && P.bite.img.naturalWidth) { S = P.bite; fr = Math.min(S.n - 1, Math.floor(L.t / BITE_T * S.n)); }
+  else if (L.state === 'acid' && P.acid.img.naturalWidth) { S = P.acid; fr = Math.min(S.n - 1, Math.floor(L.t / ACID_T * S.n)); }
   else if (L.state === 'dead') { rise = L.sink; fr = 0; }
-  const s = LEVI.sc, y = GROUND + WATER + rise * LEVI.FH * s * .95;
+  const s = P.sc, y = GROUND + WATER + rise * P.swim.FH * s * .95;
   ctx.save();
-  ctx.translate(L.x, y); ctx.scale(-L.face * s, s); // a arte olha para a esquerda
+  ctx.translate(L.x, y); ctx.scale(L.face * P.dir * s, s); // dir: para onde a arte olha
   if (L.flash > 0) ctx.filter = 'brightness(3) saturate(0)';
   else if (L.state === 'bite' && L.t < BITE[0]) ctx.filter = 'drop-shadow(0 0 14px #ff2020)'; // armando o bote: brilho vermelho
   else if (L.state === 'acid' && L.t < ACID_SPIT) ctx.filter = 'drop-shadow(0 0 14px #9cff3a)'; // armando o ácido: brilho verde
   if (L.state === 'dead') ctx.globalAlpha = 1 - L.sink * .6;
-  ctx.drawImage(S.img, fr * S.FW, row * S.FH, S.FW, S.FH, -S.ax, -S.foot, S.FW, S.FH);
+  ctx.drawImage(S.img, fr * S.FW, S.row * S.FH, S.FW, S.FH, -S.ax, -S.foot, S.FW, S.FH);
   ctx.restore();
 }
 // bolas de ácido voando (na frente de tudo)
@@ -174,7 +201,7 @@ export function drawBossBar(bar) {
   ctx.save(); ctx.globalAlpha = k;
   ctx.fillStyle = '#000a'; ctx.fillRect(230, 58, 500, 40);
   ctx.fillStyle = L.fase2 ? '#c8ff8a' : '#ffb4a8'; ctx.font = '800 15px Cinzel, serif'; ctx.textAlign = 'center';
-  ctx.fillText(L.kind === 'gigante' ? L.nome : L.state === 'dive' || L.state === 'under' ? 'Leviatã · mergulhou…' : 'Leviatã · o monstro do mar', 480, 73);
+  ctx.fillText(L.kind === 'gigante' ? L.nome : L.state === 'dive' || L.state === 'under' ? `${L.pele.nome} · mergulhou…` : `${L.pele.nome} · ${L.pele.titulo}`, 480, 73);
   bar(250, 79, 460, 12, L.hp / L.maxHp, L.fase2 ? '#5f9e1c' : '#b3261e', '');
   ctx.restore();
 }

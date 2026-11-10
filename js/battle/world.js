@@ -13,11 +13,13 @@ import { burst, sp } from '../ui/sparks.js';
 
 // Jornada fi (data.js → fases): o herói começa só com os versículos achados nas jornadas anteriores e encontra
 // os novos em pedras brilhantes pelo caminho. all = true (teste): começa já com todos os versículos.
+// faseObj (Bestiário, só dev): uma fase montada na hora em vez de D.fases[fi] (fi = -1).
 export const ROCK_HP = 3; // golpes para quebrar a pedra
-export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = opts.all) {
+export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = opts.all, faseObj = null) {
   show('battle');
-  const fase = D.fases[fi];
-  const prev = D.fases.slice(0, fi).flatMap(f => f.eventos.filter(e => e.tipo === 'pedra' && found.includes(e.verso)).map(e => byId[e.verso]));
+  const fase = faseObj || D.fases[fi];
+  $('pauseBest').hidden = !fase.dev; // Bestiário: botão de trocar de monstro na pausa
+  const prev = D.fases.slice(0, Math.max(0, fi)).flatMap(f => f.eventos.filter(e => e.tipo === 'pedra' && found.includes(e.verso)).map(e => byId[e.verso]));
   setB({
     fase, faseIdx: fi,
     hp: 100, demons: [], fireballs: [], slashes: [], fx: [], floats: [], shards: [], embers: [], shake: 0,
@@ -25,7 +27,7 @@ export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = op
     tut: all || fi > 0 ? null : { refuted: false, attacked: false, shielded: false, killed: false, done: false }, // tutorial só na 1ª jornada normal
     hero: { x: 200, y: 0, vy: 0, face: 1, anim: 'idle', at: 0, hurt: 0, swing: 0, hitDone: true, ground: true, safe: null, dash: 0, dashHit: null },
     time: 0, trans: 0, fatal: null, over: false,
-    cam: 0, arena: null, holes: [], terrain: [], platforms: [], rocks: [], books: [], groups: [], risers: [], acid: []
+    cam: 0, arena: null, estruturas: [], holes: [], terrain: [], platforms: [], rocks: [], books: [], groups: [], risers: [], acid: []
   });
   // y do mundo: 0 = chão normal, negativo = mais alto, positivo = mais baixo, Infinity = buraco
   const bb = bordaBuraco(fase); // distância da borda do buraco até onde a laje desenhada termina
@@ -34,6 +36,10 @@ export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = op
     else if (e.tipo === 'terreno') B.terrain.push({ x: e.x, w: e.w, top: -e.altura });
     else if (e.tipo === 'plataforma') B.platforms.push({ x: e.x, w: e.w, top: -e.altura, x0: e.x, move: e.move || 0, periodo: e.periodo || 6 });
     else if (e.tipo === 'inimigos') B.groups.push({ ...e, done: false });
+    else if (e.tipo === 'estrutura') { // arte inteira com degraus: cada degrau [x0, x1, y da superfície] em px da arte vira terreno invisível
+      B.estruturas.push(e);
+      e.degraus.forEach(([a, b, y]) => B.terrain.push({ x: e.x + a * e.sc, w: (b - a) * e.sc, top: -Math.round((e.h - y) * e.sc - e.base), oculto: true }));
+    }
     else if (e.tipo === 'terra') B.risers.push({ x: e.x, w: e.w, k: 0, up: false, solid: false });
   });
   const chefe = fase.eventos.find(e => e.tipo === 'chefe' || e.tipo === 'gigante'); // um chefão por fase (o Leviatã depois dos mares)
@@ -148,4 +154,4 @@ export function pickLie(d) {
   restoreLie(d);
 }
 // depois do poder acabar, o balão volta com a mesma mentira
-export function restoreLie(d) { if (d.kind === 'gigante') return nextGiantLie(d); d.lie = d.myLie; d.vuln = false; } // Golias: troca para a próxima mentira
+export function restoreLie(d) { if (d.lies) return nextGiantLie(d); d.lie = d.myLie; d.vuln = false; } // Golias: troca para a próxima mentira

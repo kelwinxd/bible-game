@@ -57,3 +57,24 @@
 .seal { position:absolute; right:6%; bottom:6%; width:28%; aspect-ratio:1; display:grid; place-items:center; border-radius:50%;
   background:#f2c84b; color:#1a120c; font-weight:800; font-size:1.8cqw; border:.3cqw solid #1a120e; }
 @media (prefers-reduced-motion:reduce) { .map-node.cur .medal, .here { animation:none; } }
+
+/* Bestiário (só dev): grade de cards, um por monstro; clicar luta só com ele */
+.menu-list .menu-dev { opacity:.75; border-style:dashed; }
+.menu-list .menu-dev:hover { opacity:1; }
+#bestiario { max-width:1100px; }
+.best-head { display:flex; align-items:center; gap:16px; }
+.best-head .menu-back { margin:0; }
+.best-head h2 { margin:0; color:var(--gold); }
+.best-head h2 small { font-size:.5em; color:#9fe4ff; letter-spacing:1px; text-transform:uppercase; margin-left:8px; }
+.best-tip { color:#c9b89a; margin:10px 0 18px; }
+.best-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:14px; }
+.best-card { display:flex; flex-direction:column; align-items:center; gap:6px; padding:14px 12px 16px; position:relative;
+  background:linear-gradient(#24170fee, #120c08ee); border:1px solid #5a4126; border-radius:12px; text-align:center; min-height:0; }
+.best-card:hover, .best-card:focus-visible { border-color:var(--gold); box-shadow:0 0 18px #f2c84b44; transform:translateY(-2px); }
+.best-card.boss { border-color:#8a2a1e; background:linear-gradient(#2e1410ee, #140806ee); }
+.best-card b { font-family:Cinzel, serif; color:var(--gold); font-size:18px; }
+.best-card small { color:#c9b89a; font-size:13px; line-height:1.3; }
+.best-card em { position:absolute; top:10px; right:10px; font-style:normal; font-size:11px; letter-spacing:1px; text-transform:uppercase;
+  color:#ffb46a; background:#5a1a10; padding:2px 8px; border-radius:999px; }
+.best-fig { width:100%; aspect-ratio:4/3; background-repeat:no-repeat; image-rendering:auto;
+  filter:drop-shadow(0 6px 10px #000a); }

@@ -25,11 +25,13 @@ function drawImageBg(F, img, off) {
 }
 // fundo "estica": uma imagem só, ampliada (F.estica) e presa no topo (lua abaixo do HUD), que atravessa a fase inteira bem devagar:
 // no início mostra a borda esquerda e no fim a direita (sem repetir, sem emenda, sem perder qualidade)
+// quadros (opcional) = a imagem é uma tira de N quadros lado a lado (GIF animado), tocada a `qps` quadros por segundo
 function drawStretchedBg(F, img, cam) {
-  const H = 540 * F.estica, W = img.naturalWidth * H / img.naturalHeight;
+  const n = F.quadros || 1, fw = img.naturalWidth / n, H = 540 * F.estica, W = fw * H / img.naturalHeight;
+  const q = n > 1 ? Math.floor(B.time * (F.qps || 5)) % n : 0;
   const t = Math.max(0, Math.min(1, cam / Math.max(1, B.fase.comprimento - 960)));
   ctx.imageSmoothingQuality = 'high';
-  ctx.drawImage(img, -Math.round(t * (W - 960)), 0, W, H); // presa no topo: a sobra embaixo fica atrás do chão
+  ctx.drawImage(img, q * fw, 0, fw, img.naturalHeight, -Math.round(t * (W - 960)), 0, W, H); // presa no topo: a sobra embaixo fica atrás do chão
   if (F.escuro) { ctx.fillStyle = `rgba(6, 3, 8, ${F.escuro})`; ctx.fillRect(0, 0, 960, 540); }
 }
 export function drawSky(cam) {
@@ -151,7 +153,7 @@ function drawGroundImg(k, cam) {
     segs = segs.flatMap(s => s.b <= x || s.a >= x + w ? [s]
       : [{ ...s, b: x }, { a: Math.max(s.a, x), b: Math.min(s.b, x + w), top }, { ...s, a: x + w }].filter(q => q.b > q.a));
   };
-  B.terrain.filter(t => t.top !== Infinity).forEach(t => cut(t.x, t.w, t.top));
+  B.terrain.filter(t => t.top !== Infinity && !t.oculto).forEach(t => cut(t.x, t.w, t.top)); // degraus de estrutura: a arte dela já mostra
   B.holes.forEach(o => cut(o.x + 14, o.w - 28, Infinity)); // a laje avança um pouco sobre a borda do buraco, onde ainda dá pé
   // fundo dos buracos: escuridão por trás das lajes (no mar: o mar agitado)
   B.holes.forEach(o => { if (o.mar) return drawSea(o); if (drawSeaHands(o)) return; const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
@@ -176,7 +178,7 @@ export function drawGround(cam) {
     for (let x = Math.ceil(a / 60) * 60; x < b - 30; x += 60) ctx.fillRect(x, GROUND + top + 10 + ((x / 60) % 3 + 3) % 3 * 14, 30, 4);
   };
   let cur = x0;
-  B.terrain.filter(t => t.top !== Infinity && t.x + t.w > x0 && t.x < x1).sort((a, b) => a.x - b.x).forEach(t => {
+  B.terrain.filter(t => t.top !== Infinity && !t.oculto && t.x + t.w > x0 && t.x < x1).sort((a, b) => a.x - b.x).forEach(t => {
     strip(cur, t.x, 0); strip(t.x, t.x + t.w, t.top);
     ctx.fillStyle = '#2a1a12'; // bordas verticais do desnível
     ctx.fillRect(t.x - 2, GROUND + Math.min(0, t.top), 4, Math.abs(t.top)); ctx.fillRect(t.x + t.w - 2, GROUND + Math.min(0, t.top), 4, Math.abs(t.top));
@@ -228,13 +230,18 @@ export function drawSea(o) {
 // A cena inteira (as 3 mãos) na largura do buraco, um pouco maior para as pontas ficarem atrás das lajes; base abaixo da borda da tela
 export const SEA_HANDS = { img: new Image(), FW: 524, FH: 260, n: 4, dur: .18 };
 SEA_HANDS.img.src = 'assets/sprites/hazard/mar-maos.webp';
+// outra arte por jornada: data.js → fases[].maos = { img, FW, FH, n, dur, agua (y da superfície no quadro), fundo: [cor1, cor2] }
+const MAOS = {};
 export function drawSeaHands(o) {
-  if (!SEA_HANDS.img.naturalWidth) return false;
-  const gr = ctx.createLinearGradient(0, GROUND, 0, 540); gr.addColorStop(0, '#0e1a26'); gr.addColorStop(1, '#060c12');
+  const M = B.fase.maos, S = M ? (MAOS[M.img] || (MAOS[M.img] = { ...M, img: Object.assign(new Image(), { src: M.img }) })) : SEA_HANDS;
+  if (!S.img.naturalWidth) return false;
+  const cor = S.fundo || ['#0e1a26', '#060c12'];
+  const gr = ctx.createLinearGradient(0, GROUND, 0, 540); gr.addColorStop(0, cor[0]); gr.addColorStop(1, cor[1]);
   ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND + 10, o.w, 540 - GROUND);
-  const S = SEA_HANDS, sc = Math.max(.3, (o.w + 24) / S.FW), w = S.FW * sc, h = S.FH * sc, fr = Math.floor(B.time / S.dur) % S.n;
+  const sc = Math.max(.3, (o.w + 24) / S.FW), w = S.FW * sc, h = S.FH * sc, fr = Math.floor(B.time / S.dur) % S.n;
+  const y = S.agua != null ? GROUND + 10 - S.agua * sc : 546 - h; // agua: a superfície do mar na borda do chão
   ctx.save(); ctx.beginPath(); ctx.rect(o.x, 0, o.w, 560); ctx.clip();
-  ctx.drawImage(S.img, fr * S.FW, 0, S.FW, S.FH, Math.round(o.x + o.w / 2 - w / 2), 546 - h, w, h);
+  ctx.drawImage(S.img, fr * S.FW, 0, S.FW, S.FH, Math.round(o.x + o.w / 2 - w / 2), Math.round(y), w, h);
   ctx.restore();
   return true;
 }
@@ -308,6 +315,14 @@ export function drawBook(b) {
 // Se o chão dela estiver submerso, ela sobe junto com ele (dy)
 export const CROSS = { img: new Image(), FW: 350, FH: 412, ax: 120, foot: 406, sc: .42, ordem: [0, 1, 2, 3, 2, 1] };
 CROSS.img.src = 'assets/sprites/object/cruz.webp';
+// estrutura (data.js → { tipo: "estrutura" }): uma arte inteira (ex.: a escadaria do zigurate) em pé no chão, com a base
+// `base` px abaixo da superfície; os degraus dela são terreno invisível (B.terrain com oculto) — ver js/battle/world.js
+const EST = {};
+export function drawEstrutura(e) {
+  const img = EST[e.img] || (EST[e.img] = Object.assign(new Image(), { src: e.img }));
+  if (!img.naturalWidth || e.x > B.cam + 1000 || e.x + e.w * e.sc < B.cam - 40) return;
+  ctx.drawImage(img, e.x, GROUND + e.base - e.h * e.sc, e.w * e.sc, e.h * e.sc);
+}
 export function drawGoal(x) {
   const r = B.risers.find(r => x >= r.x && x <= r.x + r.w), dy = r ? riseOff(r) : 0;
   const gr = ctx.createLinearGradient(x - 50, 0, x + 50, 0); // a luz desce do céu até o chão (marca o fim mesmo com a terra submersa)

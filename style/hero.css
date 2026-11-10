@@ -56,16 +56,18 @@
 .hval { display:flex; flex-direction:column; align-items:flex-end; gap:3px; font-family:Cinzel, serif; font-weight:800; font-size:18px; color:var(--ink); }
 .hval .bars i { width:12px; height:7px; }
 
-/* palco: o herói (1º quadro do sprite idle, 4 quadros de 148×211) em pé na laje de areia (a mesma arte do chão do Exodus).
-   --hh = altura do herói em cada vista; --laje = altura da laje (acompanha a largura do palco);
-   os pés pisam na superfície dela (y≈100 de 388 na arte → 72% de baixo) */
+/* palco: o herói (hero/hab-idle.webp: 6 quadros de 308×352, a capa ondulando, alinhados pelo elmo) em pé na laje de areia (a mesma arte do chão do Exodus).
+   --hh = altura do herói em cada vista; --laje = altura da base (acompanha a largura do palco);
+   os pés pisam no meio do degrau de cima da base de pedra (y≈25 de 266 na arte → 90% de baixo) */
 .hero-stage { grid-area:hero; position:relative; width:100%; height:calc(var(--hh, 260px) + 96px); container-type:inline-size;
   background:radial-gradient(ellipse 55% 45% at 50% 70%, #f2c84b1c, transparent 70%); }
-.hero-stage > * { --laje:calc(100cqw * 388 / 2000); --pe:calc(var(--laje) * .72); }
-.hero-idle { position:absolute; z-index:2; left:50%; bottom:var(--pe); height:var(--hh, 260px); width:calc(var(--hh, 260px) * 148 / 211);
-  margin-left:calc(var(--hh, 260px) * -83 / 211); /* âncora dos pés (ax = 83 de 148) */
-  background:url('../assets/sprites/hero/idle.png') 0 0 / calc(var(--hh, 260px) * 592 / 211) 100% no-repeat; /* parado no 1º quadro (sem animação de idle) */
-  filter:drop-shadow(0 0 18px #f2c84b33); animation:heroGlow 3.2s ease-in-out infinite alternate; }
+.hero-stage > * { --laje:calc(100cqw * 266 / 1856); --pe:calc(var(--laje) * .9); }
+.hero-idle { position:absolute; z-index:2; left:50%; bottom:var(--pe); height:var(--hh, 260px); width:calc(var(--hh, 260px) * 308 / 352);
+  margin-left:calc(var(--hh, 260px) * -180 / 352); /* âncora dos pés (ax = 180 de 308; a capa sobra para a esquerda) */
+  background:url('../assets/sprites/hero/hab-idle.webp') 0 0 / calc(var(--hh, 260px) * 1848 / 352) 100% no-repeat;
+  filter:drop-shadow(0 0 18px #f2c84b33); animation:heroGlow 3.2s ease-in-out infinite alternate, heroCape 1.2s steps(6) infinite; }
+/* capa ao vento: percorre os 6 quadros em loop */
+@keyframes heroCape { to { background-position-x:calc(var(--hh, 260px) * -1848 / 352); } }
 /* luz em volta do templário: pulsa devagar (o contorno dourado e o círculo de luz no chão, juntos) */
 @keyframes heroGlow { from { filter:drop-shadow(0 0 10px #f2c84b22); } to { filter:drop-shadow(0 0 26px #f2c84b77) drop-shadow(0 0 6px #ffe08a44); } }
 @keyframes heroPool { from { opacity:.55; transform:translate(-50%, -50%) scale(.9); } to { opacity:1; transform:translate(-50%, -50%) scale(1.08); } }
@@ -75,10 +77,9 @@
   transform:translateX(-50%); border-radius:50%; background:radial-gradient(closest-side, #000e, #000a 50%, #0000); }
 .hero-shadow::before { content:''; position:absolute; z-index:-1; left:50%; top:50%; width:200%; height:230%; transform:translate(-50%, -50%);
   border-radius:50%; background:radial-gradient(closest-side, #f2b45a66, #f2c84b22 55%, #0000); animation:heroPool 3.2s ease-in-out infinite alternate; }
-/* laje: imagem do chão tingida com a mesma cor do jogo (CHAO_COR em js/battle/draw/world.js) */
-.hero-ground { --chao:#804a2e; position:absolute; left:0; right:0; bottom:0; aspect-ratio:2000 / 388;
-  background:url('../assets/img/chao-exodus.webp') center / 100% 100% no-repeat, var(--chao); background-blend-mode:multiply;
-  -webkit-mask:url('../assets/img/chao-exodus.webp') center / 100% 100% no-repeat; mask:url('../assets/img/chao-exodus.webp') center / 100% 100% no-repeat; }
+/* base: pedestal de pedra em dois degraus (assets/img/base-pedra.webp, 1856×266, recortado da arte enviada) */
+.hero-ground { position:absolute; left:0; right:0; bottom:0; aspect-ratio:1856 / 266;
+  background:url('../assets/img/base-pedra.webp') center / 100% 100% no-repeat; filter:drop-shadow(0 10px 14px #000a); }
 
 /* Armadura de Deus: cards dos dois lados, o ícone virado para o templário */
 .arm-col { flex-direction:column; justify-content:center; gap:clamp(12px, 2.4vh, 26px); }

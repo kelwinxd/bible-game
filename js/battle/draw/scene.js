@@ -1,7 +1,7 @@
-import { GROUND, HERO, HERO_ATK, HERO_IDLE, HERO_SCALE, HERO_THRUST, SWING_HIT, ctx } from '../config.js';
+import { GROUND, HERO, HERO_ATK, HERO_DEF, HERO_DEFWALK, HERO_IDLE, HERO_SCALE, HERO_THRUST, SWING_HIT, ctx } from '../config.js';
 import { drawBird, drawDuvida, drawSpriteDemon, drawTentacao } from './enemies.js';
 import { drawBalloon, drawFatal, drawHUD, drawHpBar, drawTip, layoutBalloons } from './hud.js';
-import { drawBook, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky } from './world.js';
+import { bordaBuraco, drawBook, drawEstrutura, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky } from './world.js';
 import { halted, tema } from '../hud.js';
 import { drawAcid, drawGiant, drawGiantLie } from '../boss.js';
 import { B } from '../state.js';
@@ -16,6 +16,7 @@ export function drawBattle() {
   const sh = B.shake * 30, screen = ctx.getTransform(); // tremor da explosão; screen = coordenadas da tela (para a dica)
   ctx.save(); ctx.translate(-cam + (Math.random() - .5) * sh, (Math.random() - .5) * sh); // daqui até o restore: coordenadas do mundo
   drawGround(cam);
+  B.estruturas.forEach(drawEstrutura);
   B.holes.forEach(drawHole);
   B.platforms.forEach(drawPlatform);
   drawGoal(B.fase.comprimento - 160);
@@ -23,12 +24,18 @@ export function drawBattle() {
   B.books.forEach(drawBook);
 
   // herói
-  // quadro do herói: morte > impulso > golpe (espada erguida → estocada) > no ar > correndo > parado
-  let img = HERO.run, fr = 0, dim = HERO;
+  // quadro do herói: morte > impulso > golpe (espada erguida → estocada) > escudo no chão > no ar > correndo > parado
+  let img = HERO.run, fr = 0, dim = HERO, def = false;
   if (h.deadAt != null) { img = HERO.death; fr = Math.min(4, Math.floor((B.time - h.deadAt) / .16)); }
   else if (h.anim === 'dash') { img = HERO.jump; fr = HERO_THRUST; }
   else if (h.anim === 'attack' && h.ground && HERO_ATK[h.combo || 0].img.naturalWidth) { // no chão: o golpe do combo (1º ou 2º), 6 quadros
     dim = HERO_ATK[h.combo || 0]; img = dim.img; dim.quadros.forEach(([t, q]) => { if (h.at >= t) fr = q; });
+  }
+  else if (B.shield && h.anim === 'run' && HERO_DEFWALK.img.naturalWidth) { // andando defendendo: passos curtos atrás do escudo
+    def = true; dim = HERO_DEFWALK; img = HERO_DEFWALK.img; fr = Math.floor(h.at * HERO_DEFWALK.fps) % HERO_DEFWALK.n;
+  }
+  else if (B.shield && h.ground && h.anim !== 'attack' && HERO_DEF.img.naturalWidth) { // defendendo parado: ergue o escudo e para no último quadro
+    def = true; dim = HERO_DEF; img = HERO_DEF.img; fr = Math.min(HERO_DEF.n - 1, Math.floor((B.time - (B.shieldAt ?? B.time)) / HERO_DEF.step));
   }
   else if (h.anim === 'attack') { img = HERO.jump; fr = h.at < SWING_HIT ? 2 : HERO_THRUST; } // no ar: espada erguida → estocada
   else if (!h.ground) { img = HERO.jump; fr = h.vy < -150 ? 1 : h.vy > 150 ? 4 : 0; }
@@ -50,18 +57,17 @@ export function drawBattle() {
     });
   }
 
+  // caindo num buraco: o herói só aparece entre as bordas do chão e acima da linha d'água (afunda no mar)
+  const pit = h.y > 0 && B.holes.find(o => h.x > o.x && h.x < o.x + o.w);
   ctx.save();
+  if (pit) { const bb = bordaBuraco(B.fase); ctx.beginPath(); ctx.rect(pit.x + bb, 0, pit.w - 2 * bb, GROUND + 28); ctx.clip(); }
   if (h.dash > 0) ctx.filter = DASH_FILTER + ' drop-shadow(0 0 16px #3ab4ff)'; // todo azul no impulso
   else if (B.power && !B.shield) ctx.filter = `drop-shadow(0 0 14px ${tema(B.power.v).brilho})`;
   if (h.hurt > 0 && Math.floor(h.hurt * 30) % 2) ctx.globalAlpha = .4;
-  ctx.translate(h.x - (B.shield ? 12 * h.face : 0), GROUND + h.y); ctx.scale(h.face, 1);
-  ctx.scale(HERO_SCALE, HERO_SCALE);
+  ctx.translate(h.x - (B.shield && !def ? 12 * h.face : 0), GROUND + h.y); ctx.scale(h.face, 1);
+  ctx.scale(HERO_SCALE * (dim.sc || 1), HERO_SCALE * (dim.sc || 1));
   if (img.naturalWidth) ctx.drawImage(img, fr * dim.FW, 0, dim.FW, dim.FH, -dim.ax, 2 - dim.FH, dim.FW, dim.FH);
   ctx.restore();
-  const pit = h.y > 0 && B.holes.find(o => h.x > o.x && h.x < o.x + o.w);
-  if (pit) { // caindo: as bordas do buraco ficam na frente do herói
-    ctx.fillStyle = '#1a0f0b'; ctx.fillRect(pit.x - 140, GROUND, 140, H - GROUND); ctx.fillRect(pit.x + pit.w, GROUND, 140, H - GROUND);
-  }
   B.holes.forEach(drawHoleFire); // mãos na frente do herói: quem cai é engolido por elas
   if (B.shield) { // escudo erguido
     const sc = D.temas.duvida; // escudo usa o azul do tema Dúvida
@@ -120,7 +126,7 @@ export function drawBattle() {
   drawHUD();
   if (B.trans > 0 && !B.fatal && B.peek < 0) {
     ctx.fillStyle = '#000a'; ctx.fillRect(0, 230, W, 70);
-    ctx.fillStyle = '#f2c84b'; ctx.font = '800 36px Cinzel, serif'; ctx.fillText(`Jornada ${B.faseIdx + 1} · ${B.fase.nome}`, W / 2, 278);
+    ctx.fillStyle = '#f2c84b'; ctx.font = '800 36px Cinzel, serif'; ctx.fillText(B.fase.dev ? `Bestiário · ${B.fase.nome}` : `Jornada ${B.faseIdx + 1} · ${B.fase.nome}`, W / 2, 278);
   }
   if (B.fatal) drawFatal();
   if (halted()) { ctx.fillStyle = '#000a'; ctx.fillRect(0, 0, W, H); }

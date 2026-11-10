@@ -37,7 +37,7 @@ export function drawSpriteDemon(d) {
   else if (d.strikeAnim > 0) { img = S.attack; fr = d.strikeAnim > .08 ? 3 : 4; }
   else fr = Math.floor(d.bob * (d.moving ? 11 : 6)) % S.nRun; // parado: o mesmo ciclo, mais lento (respira)
   ctx.save();
-  ctx.translate(d.x, d.y + (d.state === 'enter' ? Math.abs(Math.sin(d.bob * 10)) * -6 : 0)); ctx.scale(d.face, 1);
+  ctx.translate(d.x, d.y + (d.state === 'enter' ? Math.abs(Math.sin(d.bob * 10)) * -6 : 0)); ctx.scale(d.face * (S.sc || 1), S.sc || 1);
   if (d.state === 'dead') ctx.scale(1.12, 1.12); // incha no clarão antes de estourar
   if (d.flash > 0) ctx.filter = 'brightness(3) saturate(0)';
   else if (d.state === 'arm') ctx.filter = `drop-shadow(0 0 14px ${d.s.acido ? '#9cff3a' : '#ff2020'})`; // armando: vermelho (bote) ou verde (ácido)

@@ -69,7 +69,7 @@ export function useVerse(i) {
   if (!B || B.over || B.fatal || B.trans > 0 || B.paused) return;
   if (B.peek >= 0) togglePeek(B.peek); // escolher um versículo fecha a leitura e despausa
   const v = B.deck[i]; if (!v || (B.cd[i] || 0) > 0) return;
-  const G = B.boss && B.boss.kind === 'gigante' && bossAlive(B.boss) && B.boss.lie && B.boss.lie.ideal.includes(v.id) ? B.boss : null; // Golias também mente
+  const G = B.boss && bossAlive(B.boss) && B.boss.lie && B.boss.lie.ideal.includes(v.id) ? B.boss : null; // chefões também mentem (Golias, Naja)
   const target = B.demons.find(d => d.lie && d.lie.ideal.includes(v.id)) || G; // pode refutar já na entrada
   // versículo errado: não revela o nome, só "Versículo errado" em vermelho, e trava TODOS os cards por 2,5s
   if (!target) { sfx('wrong'); B.deck.forEach((_, k) => B.cd[k] = 2.5); B.callout = { s: 'Versículo errado', t: WRONG_T, dur: WRONG_T, c: WRONG_COLOR }; addFire(-1); return; }

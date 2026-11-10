@@ -10,6 +10,7 @@ import { curSharp, pickSharp } from '../forge/sharpen.js';
 export function setShield(on) {
   if (!B) return;
   if (on && (B.shieldLock || B.shieldE <= 0)) on = false;
+  if (on && !B.shield) B.shieldAt = B.time; // começo da animação de erguer o escudo
   B.shield = on; $('shieldBtn').classList.toggle('on', on);
   if (on && B.tut && B.tut.refuted) B.tut.shielded = true; // tutorial: a dica do [J] some
 }

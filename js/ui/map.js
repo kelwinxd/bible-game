@@ -36,6 +36,16 @@ export const ICONES = {
     <path d="M14 28 L30 46 L44 82 M84 22 L70 42 L56 82" stroke="#8aa0d8" stroke-width="1.2" fill="none" opacity=".7"/>
     <rect y="58" width="100" height="42" fill="url(#nevoa${u})"/>
     <path d="M50 100 Q42 90 50 82 Q58 74 50 66" stroke="#c9b27a" stroke-width="2" stroke-dasharray="3 3" fill="none" opacity=".8"/>`,
+  zigurate: u => `
+    <defs>
+      <linearGradient id="ceu${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a1840"/><stop offset=".6" stop-color="#c0602a"/><stop offset="1" stop-color="#f0b050"/></linearGradient>
+    </defs>
+    <rect width="100" height="100" fill="url(#ceu${u})"/>
+    <path d="M20 26 Q16 16 22 10 Q20 18 26 22Z M80 30 Q76 18 82 12 Q80 22 86 26Z" fill="#2a1a1a" opacity=".55"/>
+    <path d="M18 76 H82 V66 H74 V56 H66 V46 H58 V36 H42 V46 H34 V56 H26 V66 H18Z" fill="#c8862e"/>
+    <path d="M50 36 V76 M42 46 H58 M34 56 H66 M26 66 H74" stroke="#7a4a16" stroke-width="1.4" fill="none"/>
+    <path d="M47 76 V64 H53 V76Z" fill="#3a2a5a"/>
+    <path d="M0 76 H100 V100 H0Z" fill="#8a5a24"/><path d="M0 86 Q30 80 60 86 T100 84 V100 H0Z" fill="#2a6a8a"/>`,
   ruinas: u => `
     <defs><linearGradient id="ceu${u}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1a14"/><stop offset="1" stop-color="#6a4028"/></linearGradient></defs>
     <rect width="100" height="100" fill="url(#ceu${u})"/>

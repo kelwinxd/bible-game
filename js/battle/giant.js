@@ -113,9 +113,10 @@ export function drawGiant() {
 
 // balão da mentira do Golias: escuro, borda dourada grossa, letra em caixa alta (mais forte que o papel dos outros inimigos).
 // Refutado: a borda e o brilho ficam na cor do versículo
-export const giantLieY = L => GROUND - 285; // abaixo da barra de vida do chefão
+export const giantLieY = L => (L.pele && L.pele.lieY) || GROUND - 285; // abaixo da barra de vida do chefão (a Naja traz o dela)
 export function drawGiantLie() {
-  const L = B.boss; if (!L || L.kind !== 'gigante' || !L.lie || !['walk', 'atk', 'slam'].includes(L.state)) return;
+  // também o chefão do mar que mente (Naja): some enquanto ele mergulha ou sobe da água
+  const L = B.boss; if (!L || !L.lies || !L.lie || !['walk', 'atk', 'slam', 'swim', 'bite', 'acid'].includes(L.state)) return;
   L.lieFlash = Math.max(0, L.lieFlash - 1 / 60);
   ctx.save(); ctx.globalAlpha = 1 - L.lieFlash / .3;
   ctx.font = '800 19px Cinzel, Georgia, serif';

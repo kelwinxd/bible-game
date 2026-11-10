@@ -101,6 +101,11 @@ export function updateBattle(rdt) {
       return;
     }
     if (B.trans > 0) return;
+    if (d.s.salto && d.strikeAnim > 0) { // salto (leão): avança durante o bote, sem passar por dentro do herói nem sair da arena
+      const nx = d.x + d.face * d.s.salto / .2 * dt, stop = h.x - d.face * 70;
+      d.x = d.face > 0 ? Math.min(nx, Math.max(d.x, stop)) : Math.max(nx, Math.min(d.x, stop));
+      if (B.arena) d.x = Math.max(B.arena.left + 60, Math.min(B.arena.right + 100, d.x));
+    }
     if (d.s.mergulho) return updateBird(d, h, dt);
     const dist = h.x - d.x;
     if (d.s.chao) {
@@ -118,7 +123,7 @@ export function updateBattle(rdt) {
     }
     if (d.state === 'idle') {
       d.timer -= dt;
-      const inRange = !d.s.chao || Math.abs(dist) < (d.s.acido ? 560 : 170);
+      const inRange = !d.s.chao || Math.abs(dist) < (d.s.acido ? 560 : 170 + (d.s.salto || 0));
       if (d.timer <= 0 && inRange) { d.state = 'arm'; d.arm = d.s.tell; }
     } else if (d.state === 'arm') {
       d.arm -= dt;
@@ -128,7 +133,7 @@ export function updateBattle(rdt) {
           const S = ESPR[d.s.sprite]; d.strikeAnim = SPIT_ANIM;
           spitAcid(d.x + d.face * S.boca[0], d.y + S.boca[1], h.x, GROUND + h.y - 80, d.s.dano, .7);
         }
-        else if (d.s.chao) { if (Math.abs(h.x - d.x) < 150 && h.y > -60) hitHero(d.s.dano); }
+        else if (d.s.chao) { if (Math.abs(h.x - d.x) < 150 + (d.s.salto || 0) && h.y > -60) hitHero(d.s.dano); } // com salto, alcança mais longe
         else {
           sfx('fire');
           const sx = d.x - 20, sy = d.y + 10, hb = heroBox(h), dx = h.x - sx, dy = (hb[1] + hb[3]) / 2 - sy, L = Math.hypot(dx, dy);
@@ -188,7 +193,7 @@ export function updateBattle(rdt) {
       B.demons = gr.inimigos.map((t, i) => { const d = Object.assign(makeDemon(t, order.indexOf(i), gr.vida || 1, gr.inimigos.length, Array.isArray(gr.aparencia) ? gr.aparencia[i] : gr.aparencia), { frase: gr.frases && gr.frases[i] }); pickLie(d); d.lieFlash = 0; return d; });
     } // já entram com a mentira sobre a cabeça
   }
-  if (!B.over && !B.arena && !B.demons.length && !bossBlocksWin() && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done)) { B.over = true; endScreen(true); }
+  if (!B.over && !B.fase.dev && !B.arena && !B.demons.length && !bossBlocksWin() && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done)) { B.over = true; endScreen(true); }
 
   // HUD DOM
   if (B.callout && (B.callout.t -= rdt) <= 0) B.callout = null;

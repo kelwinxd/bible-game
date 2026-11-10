@@ -20,6 +20,7 @@
       <button class="primary" onclick="show('mapa')">Jogar</button>
       <button onclick="habView('hub')">Habilidades<small>Versículos, fé e armadura</small></button>
       <button onclick="showMenuView('settings')">Configurações</button>
+      <button class="menu-dev" onclick="openBestiary()">🛠 Bestiário<small>Teste de desenvolvedor: lute com um monstro só</small></button>
     </nav>
     <!-- Configurações -->
     <div class="menu-sub" id="menuSettings" hidden>
@@ -38,6 +39,16 @@
       <button class="menu-back" onclick="showMenuView('main')">← Voltar</button>
     </div>
   </div>
+</section>
+
+<!-- BESTIÁRIO (só dev): escolhe um monstro ou chefão e luta só com ele; eles são imortais (js/battle/bestiary.js) -->
+<section id="bestiario" class="screen">
+  <div class="best-head">
+    <button class="menu-back" onclick="show('menu')">← Voltar</button>
+    <h2>Bestiário <small>teste de desenvolvedor</small></h2>
+  </div>
+  <p class="best-tip">Um monstro por vez, imortal (a vida volta cheia ao zerar). Todos os versículos liberados. Na pausa [P]: trocar de monstro.</p>
+  <div class="best-grid" id="bestGrid"></div>
 </section>
 
 <!-- MAPA DAS JORNADAS (Jogar): um ponto por jornada, ligados pela trilha -->
@@ -195,6 +206,7 @@
       <button onclick="showPauseView('list')">📜 Ataques (versículos)</button>
       <button onclick="showPauseView('controls')">⌨&#xFE0E; Controles</button>
       <button onclick="showPauseView('settings')">⚙ Configurações</button>
+      <button id="pauseBest" onclick="openBestiary()" hidden>🐍 Trocar de monstro</button>
       <button onclick="show('menu')">☰ Sair ao menu</button>
     </div>
     <div id="pauseList" style="display:none">
