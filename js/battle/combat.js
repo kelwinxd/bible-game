@@ -3,6 +3,7 @@ import { BIRD_HOVER_Y } from './bird.js';
 import { halted, tema } from './hud.js';
 import { B } from './state.js';
 import { bossAlive, bossBox, damageBoss } from './boss.js';
+import { frogsIn, hitFrog } from './frog.js';
 import { hitRock, rockBox } from './world.js';
 import { fatalSound, sfx, swordSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
@@ -77,6 +78,7 @@ export function dashHits(h) {
     B.fx.push({ burst: true, x: d.x, y: GROUND + h.y - 120, t: .25, c: { cor: '#4fc3ff', claro: '#d8f4ff', brilho: '#3ab4ff' } });
   });
   B.rocks.forEach(r => { if (r.hp > 0 && !h.dashHit.has(r) && overlap(box, rockBox(r))) { h.dashHit.add(r); hitRock(r); } });
+  frogsIn(box, f => { if (!h.dashHit.has(f)) { h.dashHit.add(f); hitFrog(f, dashDmg(), '#9fe4ff'); } });
   if (bossAlive(B.boss) && !h.dashHit.has(B.boss) && overlap(box, bossBox(B.boss))) { h.dashHit.add(B.boss); sfx('slash'); damageBoss(dashDmg(), '#9fe4ff'); }
 }
 export function damageDemon(d, impulso = false) {
@@ -105,6 +107,7 @@ export function swingHit() {
     swordSfx('cut'); damageDemon(d); // golpe na carne
   });
   B.rocks.forEach(r => { if (r.hp > 0 && overlap(box, rockBox(r))) hitRock(r); });
+  frogsIn(box, f => { swordSfx('cut'); hitFrog(f, 10); }); // rã: 2 golpes de espada
   if (bossAlive(B.boss) && overlap(box, bossBox(B.boss))) { swordSfx('cut'); damageBoss(BASE_DMG); } // Leviatã: da laje ou da margem
 }
 

@@ -317,6 +317,14 @@ export const CROSS = { img: new Image(), FW: 350, FH: 412, ax: 120, foot: 406, s
 CROSS.img.src = 'assets/sprites/object/cruz.webp';
 // estrutura (data.js → { tipo: "estrutura" }): uma arte inteira (ex.: a escadaria do zigurate) em pé no chão, com a base
 // `base` px abaixo da superfície; os degraus dela são terreno invisível (B.terrain com oculto) — ver js/battle/world.js
+// sombra leve no chão embaixo de um bicho: elipse escura e suave. alt = quanto o corpo está acima do chão
+// (no pulo/voo a sombra encolhe e clareia)
+export function drawShadow(x, gy, w, alt = 0, a = .38) {
+  const k = Math.max(.35, 1 - alt / 260), rx = w / 2 * k, ry = Math.max(3, w * .11 * k);
+  ctx.save(); ctx.translate(x, gy - 2); ctx.scale(1, ry / rx);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx); g.addColorStop(0, `rgba(0,0,0,${a * k})`); g.addColorStop(.6, `rgba(0,0,0,${a * k * .55})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 7); ctx.fill(); ctx.restore();
+}
 const EST = {};
 export function drawEstrutura(e) {
   const img = EST[e.img] || (EST[e.img] = Object.assign(new Image(), { src: e.img }));

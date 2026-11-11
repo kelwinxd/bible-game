@@ -7,6 +7,7 @@ import { opts } from '../core/options.js';
 import { faseMax, found, markFound, shieldMax } from '../core/progress.js';
 import { $, D, byId, rand, reduced } from '../core/utils.js';
 import { makeBoss, makeGiant, nextGiantLie } from './boss.js';
+import { makeFrog } from './frog.js';
 import { bordaBuraco } from './draw/world.js';
 import { show } from '../ui/screens.js';
 import { burst, sp } from '../ui/sparks.js';
@@ -27,7 +28,7 @@ export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = op
     tut: all || fi > 0 ? null : { refuted: false, attacked: false, shielded: false, killed: false, done: false }, // tutorial só na 1ª jornada normal
     hero: { x: 200, y: 0, vy: 0, face: 1, anim: 'idle', at: 0, hurt: 0, swing: 0, hitDone: true, ground: true, safe: null, dash: 0, dashHit: null },
     time: 0, trans: 0, fatal: null, over: false,
-    cam: 0, arena: null, estruturas: [], holes: [], terrain: [], platforms: [], rocks: [], books: [], groups: [], risers: [], acid: []
+    cam: 0, arena: null, frogs: [], estruturas: [], holes: [], terrain: [], platforms: [], rocks: [], books: [], groups: [], risers: [], acid: []
   });
   // y do mundo: 0 = chão normal, negativo = mais alto, positivo = mais baixo, Infinity = buraco
   const bb = bordaBuraco(fase); // distância da borda do buraco até onde a laje desenhada termina
@@ -40,6 +41,7 @@ export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = op
       B.estruturas.push(e);
       e.degraus.forEach(([a, b, y]) => B.terrain.push({ x: e.x + a * e.sc, w: (b - a) * e.sc, top: -Math.round((e.h - y) * e.sc - e.base), oculto: true }));
     }
+    else if (e.tipo === 'ra' || e.tipo === 'lobo') B.frogs.push(makeFrog(e)); // bichos soltos pela fase: rã e lobo (js/battle/frog.js)
     else if (e.tipo === 'terra') B.risers.push({ x: e.x, w: e.w, k: 0, up: false, solid: false });
   });
   const chefe = fase.eventos.find(e => e.tipo === 'chefe' || e.tipo === 'gigante'); // um chefão por fase (o Leviatã depois dos mares)

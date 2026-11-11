@@ -1,4 +1,5 @@
 import { updateBird } from './bird.js';
+import { cleanFrogs, frogsIn, hitFrog, updateFrogs } from './frog.js';
 import { bossAlive, bossBlocksWin, bossBox, damageBoss, spitAcid, updateAcid, updateBoss } from './boss.js';
 import { attack, damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
 import { DASH_CD, DASH_SPEED, ESPR, GRAV, GROUND, SPIT_ANIM, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
@@ -21,6 +22,7 @@ export function updateBattle(rdt) {
 
   updateBoss(dt); // Leviatã no mar
   updateAcid(dt); // bolas de ácido (Leviatã e cobra verde)
+  updateFrogs(dt); // rãs soltas pela fase
   // terra submersa: sobe da água depois que o chefão cai; quando chega em cima vira chão firme
   B.risers.forEach(r => {
     if (!r.up || r.solid) return;
@@ -159,10 +161,12 @@ export function updateBattle(rdt) {
       if (damageDemon(d)) B.fx.push({ burst: true, x: sl.x, y: sl.y, t: .25, c: sl.c });
     });
     B.rocks.forEach(r => { if (r.hp > 0 && !sl.hit.has(r) && overlap(box, rockBox(r))) { sl.hit.add(r); hitRock(r); } });
+    frogsIn(box, f => { if (!sl.hit.has(f)) { sl.hit.add(f); hitFrog(f, 8 * (B.power ? B.power.mult : 1), sl.c.claro); } });
     if (bossAlive(B.boss) && !sl.hit.has(B.boss) && overlap(box, bossBox(B.boss))) { sl.hit.add(B.boss); damageBoss(8 * (B.power ? B.power.mult : 1), sl.c.claro); B.fx.push({ burst: true, x: sl.x, y: sl.y, t: .25, c: sl.c }); }
     if (sl.x < B.cam - 80 || sl.x > B.cam + 1040 || sl.y < -80 || sl.y > GROUND + 40) sl.dead = true;
   });
   B.slashes = B.slashes.filter(sl => !sl.dead);
+  cleanFrogs();
   B.fx = B.fx.filter(f => (f.t -= rdt) > 0);
   B.floats = B.floats.filter(f => (f.t -= rdt) > 0);
   B.shards.forEach(s => { s.vy += 700 * rdt; s.x += s.vx * rdt; s.y += s.vy * rdt; s.r += rdt * 6; });

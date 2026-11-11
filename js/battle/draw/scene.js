@@ -1,10 +1,12 @@
 import { GROUND, HERO, HERO_ATK, HERO_DEF, HERO_DEFWALK, HERO_IDLE, HERO_SCALE, HERO_THRUST, SWING_HIT, ctx } from '../config.js';
 import { drawBird, drawDuvida, drawSpriteDemon, drawTentacao } from './enemies.js';
 import { drawBalloon, drawFatal, drawHUD, drawHpBar, drawTip, layoutBalloons } from './hud.js';
-import { bordaBuraco, drawBook, drawEstrutura, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky } from './world.js';
+import { bordaBuraco, drawBook, drawEstrutura, drawShadow, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky } from './world.js';
 import { halted, tema } from '../hud.js';
 import { drawAcid, drawGiant, drawGiantLie } from '../boss.js';
+import { drawFrog } from '../frog.js';
 import { B } from '../state.js';
+import { terrainTop } from '../world.js';
 import { D } from '../../core/utils.js';
 
 // ---------- Desenho ----------
@@ -21,6 +23,7 @@ export function drawBattle() {
   B.platforms.forEach(drawPlatform);
   drawGoal(B.fase.comprimento - 160);
   B.rocks.forEach(r => r.hp > 0 ? drawRock(r) : drawRubble(r));
+  B.frogs.forEach(drawFrog);
   B.books.forEach(drawBook);
 
   // herói
@@ -75,6 +78,14 @@ export function drawBattle() {
     ctx.beginPath(); ctx.arc(h.x + 10 * h.face, GROUND + h.y - 120, 110, h.face > 0 ? -1.1 : Math.PI - 1.1, h.face > 0 ? 1.1 : Math.PI + 1.1); ctx.stroke(); ctx.restore();
   }
 
+  // sombras leves no chão embaixo dos monstros (antes deles, para ficarem por baixo)
+  B.demons.forEach(d => {
+    if (d.state === 'dead' || d.state === 'enter' && d.x > B.cam + 1000) return;
+    const gy = GROUND + terrainTop(d.x);
+    if (d.s.mergulho) return drawShadow(d.x, gy, 100, gy - d.y - 40, .3); // ave: sombra no chão, menor quanto mais alto
+    if (d.s.chao) drawShadow(d.x, d.y, { leao: 165, verde: 95 }[d.s.sprite] || 120); // de chão: pisam em d.y
+  });
+  if (B.boss && B.boss.kind === 'gigante' && !['hidden', 'dead'].includes(B.boss.state)) drawShadow(B.boss.x, GROUND, 190, 0, .42);
   // demônios
   B.demons.forEach(d => { if (d.state === 'dead' && !(d.pop > 0)) return; d.s.mergulho ? drawBird(d) : d.s.sprite ? drawSpriteDemon(d) : d.s.chao ? drawTentacao(d) : drawDuvida(d); }); // morto: só o clarão antes de estourar
   drawGiant(); // Golias (chefão da Jornada 2)

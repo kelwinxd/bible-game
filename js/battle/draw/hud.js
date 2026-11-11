@@ -10,6 +10,9 @@ import { D, reduced } from '../../core/utils.js';
 export function tutTip() {
   const T = B.tut; if (!T || T.done || B.peek >= 0 || B.pendingFly) return null;
   const h = B.hero, hole = B.holes[0], rock = B.rocks[0];
+  // a 1ª rã (só patrulha) ensina a atacar: a dica aparece quando o herói chega perto e some quando ela morre
+  const ra = B.frogs.find(f => f.ensina && !f.dead);
+  if (ra && Math.abs(h.x - ra.x) < 220) return ['[K] atacar', 'Golpeie a rã antes que ela encoste em você'];
   if (hole && h.x < hole.x + hole.w + 40) return ['[A] [D] andar   ·   [W] ou [Espaço] pular', 'Pule o buraco!'];
   // cada dica some assim que o jogador faz o que ela pede (não espera o objetivo inteiro)
   if (rock && rock.hp > 0) return rock.hp < rock.maxHp ? null : h.x > rock.x - 330 ? ['[K] atacar', 'Destrua o bezerro de ouro'] : ['Há uma luz no caminho… siga em frente'];

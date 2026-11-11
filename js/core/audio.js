@@ -11,7 +11,8 @@ export function sfx(type) {
     const P = {
       hit: ['square', 880, 440, .12, .15], miss: ['sine', 120, 80, .2, .25], refute: ['triangle', 600, 1400, .35, .2],
       beam: ['sawtooth', 1200, 600, .08, .05], block: ['square', 300, 900, .15, .15], hurt: ['sawtooth', 160, 60, .2, .2],
-      wrong: ['sine', 200, 150, .2, .2], slash: ['square', 500, 200, .08, .1], whoosh: ['sine', 400, 200, .1, .05], fire: ['sawtooth', 300, 100, .3, .08]
+      wrong: ['sine', 200, 150, .2, .2], slash: ['square', 500, 200, .08, .1], whoosh: ['sine', 400, 200, .1, .05], fire: ['sawtooth', 300, 100, .3, .08],
+      croak: ['sawtooth', 150, 85, .14, .07] // rã pulando
     }[type];
     o.type = P[0]; o.frequency.setValueAtTime(P[1], t); o.frequency.exponentialRampToValueAtTime(P[2], t + P[3]);
     g.gain.setValueAtTime(P[4], t); g.gain.exponentialRampToValueAtTime(.001, t + P[3]);

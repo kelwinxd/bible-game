@@ -10,9 +10,9 @@ export const ESPR = {
   serpente: { attack: new Image(), run: new Image(), FW: 275, FH: 257, ax: 142, nRun: 7 },
   ave: { attack: new Image(), run: new Image(), FW: 226, FH: 285, ax: 180, ay: 162, nRun: 8, runName: 'fly' },
   // cobra verde (cospe ácido; sobra do quadro vizinho limpa da borda da tira de andar): 4 quadros andando + 8 do cuspe (arma 0–3 · cospe 4–7), 270×292, alinhados pela base; boca no cuspe = (boca)
-  // leão (Babilônia, Daniel 6): 6 quadros andando + 6 do ataque (encara → agacha → salta → garras → aterrissa → volta), 310×162,
-  // arte reduzida a 75% e alinhada pela pata de trás; usa o mapa de quadros da serpente (aviso 0–2, bote 3, volta 4)
-  leao: { attack: new Image(), run: new Image(), FW: 310, FH: 162, ax: 140, nRun: 6, ext: 'webp' },
+  // leão (Babilônia, Daniel 6; o de cicatrizes e olhos vermelhos): 6 quadros andando + 6 do ataque (encara → agacha → salta →
+  // garras → aterrissa → volta), 284×166, arte reduzida a 70% (mesmo tamanho do leão anterior) e alinhada pela pata de trás; usa o mapa de quadros da serpente (aviso 0–2, bote 3, volta 4)
+  leao: { attack: new Image(), run: new Image(), FW: 284, FH: 166, ax: 128, nRun: 6, ext: 'webp' },
   verde: { attack: new Image(), run: new Image(), FW: 270, FH: 292, ax: 100, nRun: 4, nAtk: 8, ext: 'webp', topo: 240, boca: [96, -106], sc: .8 } // sc: desenhada a 80% (era grande demais); boca/topo já na escala
 };
 for (const k in ESPR) { const e = ESPR[k].ext || 'png'; ESPR[k].attack.src = `assets/sprites/enemy/${k}-attack.${e}`; ESPR[k].run.src = `assets/sprites/enemy/${k}-${ESPR[k].runName || 'run'}.${e}`; }

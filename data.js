@@ -326,24 +326,31 @@ window.DATA = {
     chao: "assets/img/chao-exodus.webp", // laje de terra e pedras (miolo repetido + pontas nas bordas)
     eventos: [
       // 1) buraco e o bezerro de ouro no chão → Êxodo 20:3 ("Não terás outros deuses diante de mim")
+      // rãs (Êxodo 8): soltas pela fase, fora das arenas; encostar fere, morrem fácil (js/battle/frog.js)
+      { tipo: "ra", x: 480, ronda: true, ensina: true }, // a 1ª só patrulha (o jogador ainda está aprendendo a andar) e ensina o [K]
       { tipo: "buraco", x: 650, w: 190 },
       { tipo: "pedra", x: 1050, verso: "ex20-3" },
+      { tipo: "ra", x: 1280 },
       //    → 2 serpentes da Idolatria, uma de cada vez, com um terreno alto entre elas (a 1ª provoca com o bezerro)
       { tipo: "inimigos", x: 1900, inimigos: ["idolatria"], vida: 0.6, frases: ["Curve-se ao bezerro de ouro. Esse deus você pode ver."] },
       { tipo: "terreno", x: 2350, w: 380, altura: 90 },
+      { tipo: "ra", x: 2950 },
       { tipo: "inimigos", x: 3500, inimigos: ["idolatria"], vida: 0.7, frases: ["Tenha quantos deuses quiser. Todos levam ao mesmo lugar."] },
       // 2) caminho longo até o 2º versículo: buraco, mar com uma laje no meio, mar largo com 2 lajes, penhasco com a pedra no topo → Hebreus 4:12
       { tipo: "buraco", x: 4000, w: 200 },
+      { tipo: "ra", x: 4330 },
       { tipo: "mar", x: 4500, w: 500 },
       { tipo: "plataforma", x: 4640, w: 200, altura: 40 },
       { tipo: "mar", x: 5300, w: 330 },
       { tipo: "plataforma", x: 5400, w: 130, altura: 50 },
       { tipo: "plataforma", x: 5720, w: 140, altura: 70 },
       { tipo: "terreno", x: 5880, w: 460, altura: 140 },
+      { tipo: "ra", x: 6600 },
       { tipo: "pedra", x: 6150, verso: "hb4-12" },
       //    → 2 Mentiras (serpentes), uma de cada vez, que desacreditam a Bíblia (Hebreus 4:12 refuta)
       // a 1ª Mentira é a cobra verde: cospe ácido de longe (aparencia troca sprite e ataque; o tema e as mentiras continuam os da Mentira)
       { tipo: "inimigos", x: 7200, inimigos: ["mentira"], vida: 0.6, frases: ["A Bíblia é só um livro antigo. Não serve pra nada hoje."], aparencia: { sprite: "verde", acido: true, tell: 0.7, cadencia: 2, passo: 80 } },
+      { tipo: "ra", x: 7850 },
       { tipo: "inimigos", x: 8500, inimigos: ["mentira"], vida: 0.75, frases: ["Palavras velhas e mortas. Isso não muda ninguém."] },
       // 3) chegada: um mar largo, atravessado numa laje que vai e volta — e nele mora a chefona, a Naja (o Leviatã com a arte da naja verde; mente como o Golias)
       { tipo: "mar", x: 8800, w: 1300 }, // ~80% da tela de água aberta; o resto até o fim é a terra submersa
@@ -365,20 +372,26 @@ window.DATA = {
     eventos: [
       // 1) buraco e pedra no chão → Isaías 41:10
       { tipo: "buraco", x: 700, w: 200 },
+      // lobos soltos pela fase (patrulham; com o herói perto, correm e saltam mordendo — js/battle/frog.js)
+      { tipo: "lobo", x: 1000 },
       { tipo: "pedra", x: 1250, verso: "is41-10" },
       //    → 1 ave, depois um terreno alto
       { tipo: "inimigos", x: 2200, inimigos: ["duvida"], vida: 0.7, frases: ["Você é fraco e medroso. Desista."] },
       { tipo: "terreno", x: 2650, w: 400, altura: 100 },
+      { tipo: "lobo", x: 3550 },
       // 2) buraco e descida ao vale: a pedra fica lá embaixo ("vale da sombra da morte") → Salmos 23:4
       { tipo: "buraco", x: 4400, w: 200 },
       { tipo: "terreno", x: 4900, w: 560, altura: -90 },
       { tipo: "pedra", x: 5180, verso: "sl23-4" },
+      { tipo: "lobo", x: 5330 },
       { tipo: "inimigos", x: 6400, inimigos: ["duvida"], vida: 0.8, frases: ["Deus te abandonou."] },
       // 3) buraco largo com lajes e penhasco (sem versículo: no máximo 2 por fase)
+      { tipo: "lobo", x: 7300 },
       { tipo: "buraco", x: 8000, w: 330 },
       { tipo: "plataforma", x: 8100, w: 130, altura: 50 },
       { tipo: "plataforma", x: 8420, w: 140, altura: 70 },
       { tipo: "terreno", x: 8580, w: 460, altura: 140 },
+      { tipo: "lobo", x: 9200 },
       //    → final: uma ave e uma cobra vermelha juntas (a cobra é uma Dúvida com a aparência da serpente, no chão)
       { tipo: "inimigos", x: 10050, inimigos: ["duvida", "duvida"], vida: 0.7, frases: ["Seus inimigos são fortes demais.", "Você está sozinho no escuro."],
         aparencia: [null, { sprite: "serpente", chao: true, mergulho: false, passo: 70, tell: 0.6, cadencia: 1.8 }] },
