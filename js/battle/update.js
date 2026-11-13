@@ -1,5 +1,7 @@
 import { updateBird } from './bird.js';
-import { cleanFrogs, frogsIn, hitFrog, updateFrogs } from './frog.js';
+import { cleanFrogs, frogsIn, hitFrog, makeFrog, updateFrogs } from './frog.js';
+import { updateSheep } from './sheep.js';
+import { updateCena, updatePreCena } from './cena.js';
 import { bossAlive, bossBlocksWin, bossBox, damageBoss, spitAcid, updateAcid, updateBoss } from './boss.js';
 import { attack, damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
 import { DASH_CD, DASH_SPEED, ESPR, GRAV, GROUND, SPIT_ANIM, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
@@ -11,7 +13,22 @@ import { $, D, reduced } from '../core/utils.js';
 import { setShield } from '../input/controls.js';
 import { sp } from '../ui/sparks.js';
 
+// passagem entre a superfície e a caverna: escurece (FADE s), troca de lugar no escuro, tela preta (PRETO s) e clareia (FADE s);
+// o jogo fica parado enquanto isso
+export const PASSAGEM = { FADE: .6, PRETO: 2 };
+export function passagemAlfa(P) {
+  const { FADE, PRETO } = PASSAGEM;
+  return P.t < FADE ? P.t / FADE : P.t < FADE + PRETO ? 1 : Math.max(0, 1 - (P.t - FADE - PRETO) / FADE);
+}
 export function updateBattle(rdt) {
+  if (updateCena(rdt)) return; // cena em tela cheia (a estátua desperta): o jogo fica parado
+  if (updatePreCena(rdt)) return; // antes dela: tremor, fala e câmera na estátua (o jogo fica parado)
+  if (B.passagem) { // escurecendo / tela preta / clareando
+    const P = B.passagem; P.t += rdt;
+    if (!P.feito && P.t >= PASSAGEM.FADE) { P.feito = true; P.acao(); }
+    if (P.t >= PASSAGEM.FADE * 2 + PASSAGEM.PRETO) B.passagem = null;
+    return;
+  }
   const ts = B.fatal && !reduced ? .25 : 1, dt = rdt * ts;
   B.time += dt;
   const h = B.hero; h.at += dt; h.hurt = Math.max(0, h.hurt - dt);
@@ -23,6 +40,7 @@ export function updateBattle(rdt) {
   updateBoss(dt); // Leviatã no mar
   updateAcid(dt); // bolas de ácido (Leviatã e cobra verde)
   updateFrogs(dt); // rãs soltas pela fase
+  updateSheep(dt); // ovelha perdida
   // terra submersa: sobe da água depois que o chefão cai; quando chega em cima vira chão firme
   B.risers.forEach(r => {
     if (!r.up || r.solid) return;
@@ -33,7 +51,9 @@ export function updateBattle(rdt) {
   // plataformas móveis: vão e voltam suavemente; quem está em pé em cima vai junto
   B.platforms.forEach(pl => {
     if (!pl.move) return;
-    const nx = pl.x0 + pl.move * (.5 - .5 * Math.cos(B.time * Math.PI * 2 / pl.periodo)), dx = nx - pl.x;
+    if (pl.espera && (!B.boss || B.boss.state === 'hidden')) return; // espera o chefão surgir para começar a ir e voltar
+    pl.tm += dt;
+    const nx = pl.x0 + pl.move * (.5 - .5 * Math.cos(pl.tm * Math.PI * 2 / pl.periodo)), dx = nx - pl.x;
     if (h.ground && Math.abs(h.y - pl.top) < 1 && h.x > pl.x - 10 && h.x < pl.x + pl.w + 10) h.x += dx;
     pl.x = nx;
   });
@@ -42,7 +62,8 @@ export function updateBattle(rdt) {
   if (!B.over) {
     const mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
     const sp = SPEED * (B.shield ? .35 : h.swing > 0 ? (h.ground ? 0 : .5) : 1); // golpeando no chão ele finca os pés (a arte do ataque é parada); no ar segue o pulo
-    let lo = B.arena ? B.arena.left + 50 : 50, hi = B.arena ? B.arena.right - 50 : B.fase.comprimento - 50;
+    const cav = B.zona === 'caverna' && B.caverna; // dentro da caverna: os limites são os dela
+    let lo = B.arena ? B.arena.left + 50 : cav ? cav.x0 + 50 : 50, hi = B.arena ? B.arena.right - 50 : cav ? cav.x1 - 50 : B.fase.comprimento - 50;
     // pedra inteira bloqueia quem está na mesma altura dela (é alta demais para pular)
     const rock = B.rocks.find(r => r.hp > 0 && r.x > h.x && h.y > r.base - 158 && h.y - 200 < r.base);
     if (rock) hi = Math.min(hi, rock.x - 95);
@@ -61,7 +82,23 @@ export function updateBattle(rdt) {
     h.y = Math.min(floor, h.y + h.vy * dt);
     h.ground = h.y === floor; if (h.ground) h.vy = 0;
     if (h.ground && terrainTop(h.x - 45) !== Infinity && terrainTop(h.x + 45) !== Infinity) h.safe = { x: h.x, y: h.y };
-    if (h.y > 420) fallInHole(h);
+    const C = B.caverna;
+    if (C && !B.zona && h.x > C.x && h.x < C.x + C.w && h.y > 90) { // caiu na boca do vale: despenca dentro da caverna
+      sfx('hurt');
+      B.passagem = { t: 0, acao: () => { // no escuro: já está lá embaixo, caindo do teto da caverna
+        B.zona = 'caverna'; h.x = C.entrada; h.y = -300; h.vy = 0; h.safe = { x: C.entrada, y: 0 }; B.cam = C.x0;
+        B.notice = { lines: ['Você caiu na caverna escura!', 'Ache a Palavra aqui embaixo e a saída do outro lado'], t: 4, c: '#ffb46a' };
+      } };
+    } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && (B.groups.some(g => g.apos && !g.done) || B.demons.length || B.frogs.some(f => f.bando && !f.dead && f.x > C.x0))) {
+      // a saída só abre com a caverna limpa (as ondas também contam para o Golias aparecer depois)
+      h.x = C.x1 - 170; if (!B.notice) B.notice = { lines: ['Uma força te prende aqui embaixo…', 'Derrote os monstros da caverna para sair'], t: 2.5, c: '#ff8a6a' };
+    } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160) { // subiu a rampa do fim: sai logo depois do vale
+      h.vy = 0;
+      B.passagem = { t: 0, acao: () => {
+        B.zona = null; h.x = C.saida; h.y = 0; h.vy = 0; h.safe = { x: C.saida, y: 0 }; B.cam = Math.max(0, h.x - 360);
+        B.notice = { lines: ['Você saiu da caverna', 'Siga pelo vale'], t: 3, c: '#9fc3ff' };
+      } };
+    } else if (h.y > 420) fallInHole(h);
     if (h.swing > 0) {
       h.swing -= dt;
       if (!h.hitDone && (h.swingT || SWING) - h.swing >= (h.swingHit || SWING_HIT)) { h.hitDone = true; swingHit(); }
@@ -72,7 +109,7 @@ export function updateBattle(rdt) {
     if (anim !== h.anim) { h.anim = anim; if (anim !== 'attack') h.at = 0; }
     // câmera segue o herói; numa luta fica travada na arena
     // (suave: ao destravar a arena a câmera desliza até o herói, sem salto)
-    const camT = B.arena ? B.arena.left : Math.max(0, Math.min(B.fase.comprimento - 960, h.x - 360));
+    const camT = B.arena ? B.arena.left : cav ? Math.max(cav.x0, Math.min(cav.x1 - 960, h.x - 360)) : Math.max(0, Math.min(B.fase.comprimento - 960, h.x - 360));
     B.cam += (camT - B.cam) * Math.min(1, dt * 5);
   }
 
@@ -191,13 +228,26 @@ export function updateBattle(rdt) {
   B.books = B.books.filter(b => !b.got);
   // inimigos surgem quando o herói chega perto; a câmera trava (arena) até o grupo cair
   if (!B.arena && !B.over) {
-    const gr = B.groups.find(g => !g.done && h.x >= g.x - 600); // trava cedo: o herói fica à esquerda e sobra espaço para os inimigos espaçados
-    if (gr) { gr.done = true; B.arena = { left: gr.x - 740, right: gr.x + 220 }; // a câmera desliza até a arena; os que voam ficam nas vagas da direita; os de chão (que perseguem) mais perto do herói
+    // apos: grupo em ondas (data.js) — não dispara por posição, e sim quando o bando anterior (grupo + lobos com esse
+    // bando) acabou, com o herói por perto; a arena é montada à frente dele (dentro da caverna, antes da rampa)
+    const pronto = b => B.groups.every(o => o.bando !== b || o.done) && !B.demons.length && !B.frogs.some(f => f.bando === b && !f.dead);
+    const gr = B.groups.find(g => !g.done && !g.apos && h.x >= g.x - 600 && h.x < g.x + 400) // perto dele (a caverna fica longe, depois do fim) // trava cedo: o herói fica à esquerda e sobra espaço para os inimigos espaçados
+      || B.groups.find(g => !g.done && g.apos && Math.abs(h.x - g.x) < 1500 && pronto(g.apos) && (g.pausa = (g.pausa ?? 3) - dt) <= 0); // 3 s de folga entre uma onda e outra
+    if (gr && gr.apos) {
+      const C = B.zona === 'caverna' && B.caverna, a = C ? C.x0 + 740 : 740, z = C ? C.x1 - 900 : B.fase.comprimento - 220; // na caverna: a arena acaba antes da ovelha e da rampa
+      gr.x = Math.max(a, Math.min(z, h.x + 480));
+    }
+    if (gr) { gr.done = true; B.arena = { left: gr.x - 740, right: gr.x + 220, gr }; // a câmera desliza até a arena; os que voam ficam nas vagas da direita; os de chão (que perseguem) mais perto do herói
       const order = gr.inimigos.map((t, i) => i).sort((a, b) => !!D.inimigos[gr.inimigos[a]].chao - !!D.inimigos[gr.inimigos[b]].chao);
       B.demons = gr.inimigos.map((t, i) => { const d = Object.assign(makeDemon(t, order.indexOf(i), gr.vida || 1, gr.inimigos.length, Array.isArray(gr.aparencia) ? gr.aparencia[i] : gr.aparencia), { frase: gr.frases && gr.frases[i] }); pickLie(d); d.lieFlash = 0; return d; });
+      // lobos / soldados: N bichos chegam junto com o monstro (contam no bando do grupo): entram andando pela direita, de fora
+      // da tela, um atrás do outro, e patrulham na metade direita da arena
+      const reforco = (tipo, n) => { for (let k = 0; k < n; k++) { const w = makeFrog({ tipo, x: B.arena.right + 200 + k * 160, bando: gr.bando }); w.home = B.arena.right - 160 - k * 220; w.face = -1; B.frogs.push(w); } };
+      if (gr.lobos) { reforco('lobo', gr.lobos); B.notice = { lines: ['Mais lobos na escuridão!'], t: 2.5, c: '#ffb46a' }; }
+      if (gr.soldados) reforco('soldado', gr.soldados);
     } // já entram com a mentira sobre a cabeça
   }
-  if (!B.over && !B.fase.dev && !B.arena && !B.demons.length && !bossBlocksWin() && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done)) { B.over = true; endScreen(true); }
+  if (!B.over && !B.fase.dev && !B.zona && !B.arena && !B.demons.length && !bossBlocksWin() && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done)) { B.over = true; endScreen(true); }
 
   // HUD DOM
   if (B.callout && (B.callout.t -= rdt) <= 0) B.callout = null;

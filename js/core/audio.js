@@ -21,6 +21,24 @@ export function sfx(type) {
   if (navigator.vibrate && (type === 'hit' || type === 'hurt')) navigator.vibrate(30);
 }
 
+// balido de ovelha, baixinho: "mééé" — dente de serra filtrado (voz anasalada) com tremolo rápido (o tremido do balido),
+// o tom cai um pouco no fim; vol = volume (baixo por padrão)
+export function bleat(vol = .05) {
+  if (!opts.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime, d = .75 + Math.random() * .2, f0 = 330 + Math.random() * 60;
+    const o = actx.createOscillator(), lp = actx.createBiquadFilter(), bp = actx.createBiquadFilter(), g = actx.createGain(), trem = actx.createGain();
+    const lfo = actx.createOscillator(), lg = actx.createGain();
+    o.type = 'sawtooth'; o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f0 * 1.08, t + .12); o.frequency.linearRampToValueAtTime(f0 * .88, t + d);
+    lp.type = 'lowpass'; lp.frequency.value = 1800; bp.type = 'bandpass'; bp.frequency.value = 900; bp.Q.value = 1.2;
+    lfo.frequency.value = 26; lg.gain.value = .45; lfo.connect(lg); lg.connect(trem.gain); trem.gain.value = .55; // tremolo
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + .06); g.gain.setValueAtTime(vol, t + d * .7); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+    o.connect(lp); lp.connect(bp); bp.connect(trem); trem.connect(g); g.connect(actx.destination);
+    o.start(t); lfo.start(t); o.stop(t + d + .05); lfo.stop(t + d + .05);
+  } catch (e) {}
+}
+
 // Fatality: batida de metal + trecho curto de melodia medieval (~2s), tudo sintetizado
 export function fatalSound() {
   if (!opts.sound) return;

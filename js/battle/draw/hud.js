@@ -10,18 +10,22 @@ import { D, reduced } from '../../core/utils.js';
 export function tutTip() {
   const T = B.tut; if (!T || T.done || B.peek >= 0 || B.pendingFly) return null;
   const h = B.hero, hole = B.holes[0], rock = B.rocks[0];
-  // a 1ª rã (só patrulha) ensina a atacar: a dica aparece quando o herói chega perto e some quando ela morre
+  // dicas graduais, uma coisa de cada vez; cada uma some assim que o jogador faz o que ela pede
+  // 1) andar e pular: só até atravessar o 1º buraco
+  if (!T.pulou && hole && h.x > hole.x + hole.w) T.pulou = true;
+  if (!T.pulou) return hole ? ['[A] [D] andar   ·   [W] ou [Espaço] pular', 'Pule o buraco!'] : null;
+  // 2) atacar: a 1ª rã (depois do buraco, só patrulha) ensina o [K]; some no 1º golpe
   const ra = B.frogs.find(f => f.ensina && !f.dead);
-  if (ra && Math.abs(h.x - ra.x) < 220) return ['[K] atacar', 'Golpeie a rã antes que ela encoste em você'];
-  if (hole && h.x < hole.x + hole.w + 40) return ['[A] [D] andar   ·   [W] ou [Espaço] pular', 'Pule o buraco!'];
-  // cada dica some assim que o jogador faz o que ela pede (não espera o objetivo inteiro)
-  if (rock && rock.hp > 0) return rock.hp < rock.maxHp ? null : h.x > rock.x - 330 ? ['[K] atacar', 'Destrua o bezerro de ouro'] : ['Há uma luz no caminho… siga em frente'];
+  if (!T.golpe && ra && Math.abs(h.x - ra.x) < 260) return ['[K] atacar', 'Golpeie a rã antes que ela encoste em você'];
+  // 3) o versículo: bezerro → livro → refutar
+  if (rock && rock.hp > 0) return rock.hp === rock.maxHp && h.x > rock.x - 260 ? ['Destrua o bezerro de ouro com [K]'] : null;
   if (!B.deck.length) return ['Pegue o livro dourado!'];
-  if (!T.refuted) return ['Os versículos são suas armas. Utilize o certo para refutar e atacar.', 'Pressione [1] ou clique no card'];
-  // depois de refutar: uma linha por ação; cada uma some quando a tecla é usada
-  const left = [!T.attacked && 'Sua lâmina brilha: [K] ataque o demônio', !T.shielded && 'Segure [J] para erguer o escudo'].filter(Boolean);
-  if (!T.killed && left.length) return left;
-  T.done = true; return null;
+  if (!T.refuted) return B.arena ? ['Os versículos são suas armas. Utilize o certo para refutar e atacar.', 'Pressione [1] ou clique no card'] : null;
+  if (!T.attacked && !T.killed) return ['Sua lâmina brilha: [K] ataque o demônio'];
+  // 4) escudo: só quando aparece a cobra verde que cospe ácido
+  if (B.demons.some(d => d.s.acido && d.hp > 0)) { T.acido = true; if (!T.shielded) return ['Segure [J] para erguer o escudo', 'Ele bloqueia o ácido da cobra']; }
+  if (T.shielded) T.done = true;
+  return null;
 }
 // caixa no alto da tela; trechos entre [ ] viram teclas desenhadas
 export function drawTip() {
@@ -57,7 +61,7 @@ export function drawHUD() {
   const P = B.power;
   bar(240, 14, 236, 22, P ? P.t / P.dur : 0, !P ? '#f2c84b' : B.shield ? '#6a6a6a' : tema(P.v).cor, P ? (B.shield ? 'Poder (pausado — escudo)' : `Poder · ${P.v.ref}`) : 'Espada inerte — refute');
   drawBossBar(bar);
-  ctx.fillStyle = '#f3e7d3'; ctx.font = '700 20px Cinzel, serif'; ctx.textAlign = 'right'; ctx.fillText(B.fase.dev ? 'Bestiário' : `Jornada ${Math.min(100, Math.round(B.hero.x / B.fase.comprimento * 100))}%`, W - 16, 33); ctx.textAlign = 'center';
+  ctx.fillStyle = '#f3e7d3'; ctx.font = '700 20px Cinzel, serif'; ctx.textAlign = 'right'; ctx.fillText(B.fase.dev ? 'Bestiário' : B.zona === 'caverna' ? 'Caverna' : `Jornada ${Math.min(100, Math.round(B.hero.x / B.fase.comprimento * 100))}%`, W - 16, 33); ctx.textAlign = 'center';
 }
 export function bar(x, y, w, hh, p, c, label) {
   ctx.fillStyle = '#2a1d16'; ctx.fillRect(x, y, w, hh);

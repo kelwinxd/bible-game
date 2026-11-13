@@ -8,6 +8,7 @@ import { faseMax, found, markFound, shieldMax } from '../core/progress.js';
 import { $, D, byId, rand, reduced } from '../core/utils.js';
 import { makeBoss, makeGiant, nextGiantLie } from './boss.js';
 import { makeFrog } from './frog.js';
+import { makeSheep } from './sheep.js';
 import { bordaBuraco } from './draw/world.js';
 import { show } from '../ui/screens.js';
 import { burst, sp } from '../ui/sparks.js';
@@ -28,20 +29,25 @@ export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = op
     tut: all || fi > 0 ? null : { refuted: false, attacked: false, shielded: false, killed: false, done: false }, // tutorial só na 1ª jornada normal
     hero: { x: 200, y: 0, vy: 0, face: 1, anim: 'idle', at: 0, hurt: 0, swing: 0, hitDone: true, ground: true, safe: null, dash: 0, dashHit: null },
     time: 0, trans: 0, fatal: null, over: false,
-    cam: 0, arena: null, frogs: [], estruturas: [], holes: [], terrain: [], platforms: [], rocks: [], books: [], groups: [], risers: [], acid: []
+    cam: 0, arena: null, caverna: null, zona: null, frogs: [], ovelhas: [], estruturas: [], holes: [], terrain: [], platforms: [], rocks: [], books: [], groups: [], risers: [], acid: []
   });
   // y do mundo: 0 = chão normal, negativo = mais alto, positivo = mais baixo, Infinity = buraco
   const bb = bordaBuraco(fase); // distância da borda do buraco até onde a laje desenhada termina
   fase.eventos.forEach(e => {
     if (e.tipo === 'buraco' || e.tipo === 'mar') { B.holes.push({ x: e.x, w: e.w, mar: e.tipo === 'mar' }); B.terrain.push({ x: e.x + bb, w: e.w - 2 * bb, top: Infinity }); } // cai onde o chão desenhado acaba
     else if (e.tipo === 'terreno') B.terrain.push({ x: e.x, w: e.w, top: -e.altura });
-    else if (e.tipo === 'plataforma') B.platforms.push({ x: e.x, w: e.w, top: -e.altura, x0: e.x, move: e.move || 0, periodo: e.periodo || 6 });
+    else if (e.tipo === 'plataforma') B.platforms.push({ x: e.x, w: e.w, top: -e.altura, x0: e.x, move: e.move || 0, periodo: e.periodo || 6, espera: !!e.espera, tm: 0, img: e.img }); // espera: parada até o chefão surgir
     else if (e.tipo === 'inimigos') B.groups.push({ ...e, done: false });
     else if (e.tipo === 'estrutura') { // arte inteira com degraus: cada degrau [x0, x1, y da superfície] em px da arte vira terreno invisível
       B.estruturas.push(e);
       e.degraus.forEach(([a, b, y]) => B.terrain.push({ x: e.x + a * e.sc, w: (b - a) * e.sc, top: -Math.round((e.h - y) * e.sc - e.base), oculto: true }));
     }
-    else if (e.tipo === 'ra' || e.tipo === 'lobo') B.frogs.push(makeFrog(e)); // bichos soltos pela fase: rã e lobo (js/battle/frog.js)
+    else if (e.tipo === 'caverna') { // boca da caverna: um vão fundo no chão; quem cai nele vai para a área da caverna (x0–x1)
+      B.caverna = e; B.terrain.push({ x: e.x, w: e.w, top: 600 });
+      B.terrain.push({ x: e.x1 - 420, w: 420, top: -110 }); // no fim da caverna, a rampa de pedra até a saída
+    }
+    else if (e.tipo === 'ovelha') B.ovelhas.push(makeSheep(e)); // ovelha perdida: foge e cai no vão (js/battle/sheep.js)
+    else if (e.tipo === 'ra' || e.tipo === 'lobo' || e.tipo === 'soldado') B.frogs.push(makeFrog(e)); // bichos soltos pela fase: rã e lobo (js/battle/frog.js)
     else if (e.tipo === 'terra') B.risers.push({ x: e.x, w: e.w, k: 0, up: false, solid: false });
   });
   const chefe = fase.eventos.find(e => e.tipo === 'chefe' || e.tipo === 'gigante'); // um chefão por fase (o Leviatã depois dos mares)

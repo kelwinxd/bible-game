@@ -245,11 +245,15 @@ window.DATA = {
     { texto: "Isso é forte demais pra você.", tipo: "tentacao", ideal: ["1co10-13"] },
     { texto: "Você está sozinho no escuro.", tipo: "duvida", ideal: ["sl23-4"] },
     { texto: "Ninguém vai te socorrer.", tipo: "duvida", ideal: ["is41-10"] },
+    { texto: "Aqui embaixo ninguém te acha.", tipo: "duvida", ideal: ["sl23-4"] },
     { texto: "Você vai perder essa batalha.", tipo: "duvida", ideal: ["sl3-7", "is41-10"] },
     // Golias (chefão da Jornada 2): fala estas na ordem, alternando o versículo que refuta (Isaías 41:10 ↔ Salmos 23:4)
     { texto: "Olhe meu tamanho. Ninguém vai te socorrer de mim!", tipo: "gigante", ideal: ["is41-10"] },
     { texto: "Neste vale só existe morte. Tenha medo de mim!", tipo: "gigante", ideal: ["sl23-4"] },
     { texto: "Sou forte demais. Você vai cair aqui, sozinho!", tipo: "gigante", ideal: ["is41-10"] },
+    // Nabucodonosor (chefão da Babilônia, Daniel 3–4): orgulho do rei → humildade (1 Pedro 5:6) e confiança no Senhor (Provérbios 3:5)
+    { texto: "Eu ergui Babilônia com a minha força!", tipo: "rei", ideal: ["1pe5-6"] },
+    { texto: "Que deus te livrará das minhas mãos?", tipo: "rei", ideal: ["pv3-5"] },
     { texto: "O seu Deus não desce a este vale escuro.", tipo: "gigante", ideal: ["sl23-4"] },
     // Naja, chefona do mar da jornada 1: duas mentiras que se alternam (uma para cada versículo da jornada)
     { texto: "Curve-se a mim. Eu sou o seu deus agora!", tipo: "naja", ideal: ["ex20-3"] },
@@ -327,15 +331,14 @@ window.DATA = {
     eventos: [
       // 1) buraco e o bezerro de ouro no chão → Êxodo 20:3 ("Não terás outros deuses diante de mim")
       // rãs (Êxodo 8): soltas pela fase, fora das arenas; encostar fere, morrem fácil (js/battle/frog.js)
-      { tipo: "ra", x: 480, ronda: true, ensina: true }, // a 1ª só patrulha (o jogador ainda está aprendendo a andar) e ensina o [K]
       { tipo: "buraco", x: 650, w: 190 },
-      { tipo: "pedra", x: 1050, verso: "ex20-3" },
-      { tipo: "ra", x: 1280 },
+      { tipo: "ra", x: 1020, ronda: true, ensina: true }, // a 1ª vem logo depois do buraco, só patrulha e ensina o [K]
+      { tipo: "pedra", x: 1500, verso: "ex20-3" }, // afastado da rã: sobra espaço para a luta
       //    → 2 serpentes da Idolatria, uma de cada vez, com um terreno alto entre elas (a 1ª provoca com o bezerro)
-      { tipo: "inimigos", x: 1900, inimigos: ["idolatria"], vida: 0.6, frases: ["Curve-se ao bezerro de ouro. Esse deus você pode ver."] },
-      { tipo: "terreno", x: 2350, w: 380, altura: 90 },
+      { tipo: "inimigos", x: 2250, inimigos: ["idolatria"], vida: 0.6, frases: ["Curve-se ao bezerro de ouro. Esse deus você pode ver."] },
+      { tipo: "terreno", x: 2550, w: 330, altura: 90 },
       { tipo: "ra", x: 2950 },
-      { tipo: "inimigos", x: 3500, inimigos: ["idolatria"], vida: 0.7, frases: ["Tenha quantos deuses quiser. Todos levam ao mesmo lugar."] },
+      { tipo: "inimigos", x: 3650, inimigos: ["idolatria"], vida: 0.7, frases: ["Tenha quantos deuses quiser. Todos levam ao mesmo lugar."] },
       // 2) caminho longo até o 2º versículo: buraco, mar com uma laje no meio, mar largo com 2 lajes, penhasco com a pedra no topo → Hebreus 4:12
       { tipo: "buraco", x: 4000, w: 200 },
       { tipo: "ra", x: 4330 },
@@ -349,13 +352,12 @@ window.DATA = {
       { tipo: "pedra", x: 6150, verso: "hb4-12" },
       //    → 2 Mentiras (serpentes), uma de cada vez, que desacreditam a Bíblia (Hebreus 4:12 refuta)
       // a 1ª Mentira é a cobra verde: cospe ácido de longe (aparencia troca sprite e ataque; o tema e as mentiras continuam os da Mentira)
-      { tipo: "inimigos", x: 7200, inimigos: ["mentira"], vida: 0.6, frases: ["A Bíblia é só um livro antigo. Não serve pra nada hoje."], aparencia: { sprite: "verde", acido: true, tell: 0.7, cadencia: 2, passo: 80 } },
-      { tipo: "ra", x: 7850 },
-      { tipo: "inimigos", x: 8500, inimigos: ["mentira"], vida: 0.75, frases: ["Palavras velhas e mortas. Isso não muda ninguém."] },
+      { tipo: "inimigos", x: 7200, inimigos: ["mentira"], vida: 0.6, frases: ["A Bíblia é só um livro antigo. Não serve pra nada hoje."], aparencia: { sprite: "verde", acido: true, tell: 0.7, cadencia: 2, passo: 80 }, ras: 2 }, // ras: N → N rãs caem do céu quando a arena acaba
+      { tipo: "inimigos", x: 8500, inimigos: ["mentira"], vida: 0.75, frases: ["Palavras velhas e mortas. Isso não muda ninguém."], ras: 10 }, // a praga antes da chefona
       // 3) chegada: um mar largo, atravessado numa laje que vai e volta — e nele mora a chefona, a Naja (o Leviatã com a arte da naja verde; mente como o Golias)
       { tipo: "mar", x: 8800, w: 1300 }, // ~80% da tela de água aberta; o resto até o fim é a terra submersa
       { tipo: "terra", x: 9570, w: 530 }, // o chão do fim: fica embaixo d'água até o Leviatã cair, depois sobe
-      { tipo: "plataforma", x: 8820, w: 230, altura: 30, move: 505, periodo: 10 }, // larga: dá para lutar em cima
+      { tipo: "plataforma", x: 8820, w: 340, altura: 30, move: 400, periodo: 10, espera: true, img: "assets/img/jangada.webp" }, // bem larga: dá para lutar em cima; parada até a Naja surgir (ela surge quando o herói pisa na laje)
       { tipo: "chefe", x: 9185, vida: 50, pele: "naja" }
     ]
   }, {
@@ -365,7 +367,7 @@ window.DATA = {
     // chão: grama de um campo de batalha (elmos, flechas, estandarte, corvo) — as 2 artes enviadas emendadas numa laje só.
     // Sem tingir (é verde); medidas próprias: superfície em y=145, faixa de pedras em y 250–390. Pontas largas que terminam em
     // grama limpa (esq. 440 px: estandarte + elmo; dir. 581 px: elmo + flecha), dissolvendo só nos últimos 50 px — sem objeto cortado
-    chao: "assets/img/chao-guerra.webp", chaoCor: null, chaoMedidas: { cap: 440, capR: 581, capFade: 50, capOut: 60, surf: 145, band: [250, 390], fade: 160, s: .45 },
+    chao: "assets/img/chao-guerra.webp", chaoCor: null, chaoMedidas: { cap: 440, capR: 581, capFade: 50, capOut: 60, surf: 162, band: [250, 390], fade: 160, s: .45 },
     // fundo: céu vermelho-escuro com lua e montanhas, ampliado 1,2× e esticado pela fase toda (anda só ~190 px do início ao fim)
     fundo: { img: "assets/img/fundo-vale.webp", estica: 1.2, escuro: 0.4 },
     dica: ["A Dúvida ataca do alto: a ave mergulha onde você está", "Saia do lugar ou erga o escudo [J]; pule para golpeá-la"],
@@ -373,17 +375,31 @@ window.DATA = {
       // 1) buraco e pedra no chão → Isaías 41:10
       { tipo: "buraco", x: 700, w: 200 },
       // lobos soltos pela fase (patrulham; com o herói perto, correm e saltam mordendo — js/battle/frog.js)
-      { tipo: "lobo", x: 1000 },
-      { tipo: "pedra", x: 1250, verso: "is41-10" },
+      { tipo: "lobo", x: 1080 },
+      { tipo: "pedra", x: 1650, verso: "is41-10" }, // bem afastado do lobo: sobra espaço para a luta
       //    → 1 ave, depois um terreno alto
-      { tipo: "inimigos", x: 2200, inimigos: ["duvida"], vida: 0.7, frases: ["Você é fraco e medroso. Desista."] },
-      { tipo: "terreno", x: 2650, w: 400, altura: 100 },
+      { tipo: "inimigos", x: 2550, inimigos: ["duvida"], vida: 0.7, frases: ["Você é fraco e medroso. Desista."] },
+      { tipo: "terreno", x: 2900, w: 400, altura: 100 },
       { tipo: "lobo", x: 3550 },
       // 2) buraco e descida ao vale: a pedra fica lá embaixo ("vale da sombra da morte") → Salmos 23:4
-      { tipo: "buraco", x: 4400, w: 200 },
-      { tipo: "terreno", x: 4900, w: 560, altura: -90 },
-      { tipo: "pedra", x: 5180, verso: "sl23-4" },
-      { tipo: "lobo", x: 5330 },
+      { tipo: "buraco", x: 4000, w: 200 }, // recuado: o chão até a boca da caverna ficou largo (700 px), com miolo limpo para a ovelha
+      // o vale fundo é a boca de uma CAVERNA: quem cai nele despenca lá dentro (área x0–x1, depois do fim da fase, com fundo
+      // próprio). Lá embaixo: lobos, monstros e o ídolo de Salmos 23:4 ("ainda que eu andasse pelo vale da sombra da morte");
+      // no fim, uma rampa de pedra leva à saída, que devolve o herói logo depois do vale (x saida)
+      { tipo: "ovelha", x: 4540 }, // ovelha perdida: com o herói perto ela foge e cai na boca da caverna
+      { tipo: "caverna", x: 4900, w: 560, x0: 12400, x1: 15000, entrada: 12620, saida: 5560,
+        fundo: { img: "assets/img/fundo-caverna.webp", estica: 1, escuro: 0.25 },
+        // chão de pedra da caverna: as 2 variações enviadas emendadas numa faixa só (o miolo alterna entre elas ao repetir)
+        chao: { img: "assets/img/chao-caverna.webp", medidas: { cap: 330, capR: 310, capFade: 60, capOut: 50, surf: 240, band: [280, 345], fade: 160, s: 0.5, semFaixa: true } } },
+      // em ondas (bando/apos): o ídolo logo na queda; 2 lobos esperando; mortos eles, vem a ave com mais 2 lobos;
+      // mortos todos, a cobra vermelha com mais 2 lobos (cada onda só começa quando a anterior acabou inteira)
+      { tipo: "pedra", x: 12820, verso: "sl23-4" },
+      { tipo: "lobo", x: 13550, bando: "cav1" }, // fora da 1ª tela: esperando mais adiante
+      { tipo: "lobo", x: 13800, bando: "cav1" },
+      { tipo: "inimigos", x: 13800, apos: "cav1", bando: "cav2", lobos: 2, inimigos: ["duvida"], vida: 0.7, frases: ["Você está sozinho no escuro."] },
+      { tipo: "ovelha", x: 14450, calma: true }, // no fim da caverna, antes da rampa: a ovelha perdida (a que fugiu e caiu); tocar nela dá vida
+      { tipo: "inimigos", x: 13800, apos: "cav2", bando: "cav3", lobos: 2, inimigos: ["duvida"], vida: 0.7, frases: ["Aqui embaixo ninguém te acha."],
+        aparencia: { sprite: "serpente", chao: true, mergulho: false, passo: 70, tell: 0.6, cadencia: 1.8 } },
       { tipo: "inimigos", x: 6400, inimigos: ["duvida"], vida: 0.8, frases: ["Deus te abandonou."] },
       // 3) buraco largo com lajes e penhasco (sem versículo: no máximo 2 por fase)
       { tipo: "lobo", x: 7300 },
@@ -401,13 +417,14 @@ window.DATA = {
   }, {
     // Jornada 3: Babilônia, a cidade dos ídolos e do orgulho (Daniel 3–4). 2 versículos de humildade e dependência do Senhor
     // (1 Pedro 5:6, Provérbios 3:5) e 4 inimigos — só leões e harpias.
-    nome: "Babilônia", comprimento: 9500,
+    nome: "Babilônia", comprimento: 9900,
     mapa: { x: 84, y: 60, icone: "zigurate", cor: "#d9a441" },
     // fundo: a cidade com o zigurate, a estátua e fumaça, esticada pela fase (parallax lento)
-    fundo: { img: "assets/img/fundo-babilonia.webp", estica: 1.05, escuro: 0.5 }, // imagem larga (1920×819, parada): já passa da tela, anda ~380 px pela fase; véu de 50%: a arte é bem clara
+    fundo: { img: "assets/img/fundo-babilonia.webp", estica: 1.05, escuro: 0.5, final: "assets/img/fundo-babilonia-final.webp", foco: [0.28, 0.3] }, // foco: onde está a estátua na arte (fração x, y) — a câmera vai até ela antes da cena // imagem larga (1920×819, parada): já passa da tela, anda ~380 px pela fase; véu de 50%: a arte é bem clara
     // chão: o altar de pedra dourada com panos, cálices e vinho derramado. Pontas: esq. 560 px (pano vermelho e cálice
-    // até a pilastra), dir. 260 px (pérolas e cálice); superfície em y=140, faixa de blocos em y 320–400; sem tingir
-    chao: "assets/img/chao-babilonia.webp", chaoCor: null, chaoMedidas: { cap: 560, capR: 260, capFade: 50, capOut: 40, surf: 140, band: [320, 400], fade: 160, s: .45 },
+    // até a pilastra), dir. 260 px (pérolas e cálice); superfície em y=140, faixa de blocos em y 320–400; tingido mais escuro (chaoCor)
+    chao: "assets/img/chao-babilonia.webp", chaoCor: "#b8aa9c", // tingido ~25% mais escuro (a arte era clara demais)
+    chaoMedidas: { cap: 560, capR: 260, capFade: 50, capOut: 40, surf: 140, band: [320, 400], fade: 160, s: .45 },
     // buracos: mar vermelho com mãos de armadura (GIF "Mãos Blindadas nas Ondas Vermelhas": 12 quadros 358×338, 0,11 s;
     // o céu preto do GIF virou transparente, o mar fica sólido)
     maos: { img: "assets/sprites/hazard/mar-vermelho.webp", FW: 358, FH: 338, n: 12, dur: 0.11, agua: 120, fundo: ["#2a0606", "#120202"] },
@@ -415,20 +432,36 @@ window.DATA = {
     eventos: [
       // 1) buraco e pedra no chão → 1 Pedro 5:6 (humildade)
       { tipo: "buraco", x: 800, w: 200 },
+      // soldados esqueletos de Babilônia (js/battle/frog.js → BICHO.soldado): soltos pela fase, patrulham e estocam com a lança
+      { tipo: "soldado", x: 1200 },
       { tipo: "pedra", x: 1500, verso: "1pe5-6" },
       // o Leão do Orgulho (Daniel 6): a 1ª mentira é sobre força própria → 1 Pedro 5:6
       { tipo: "inimigos", x: 2600, inimigos: ["orgulho"], vida: 0.8, frases: ["Você é forte sozinho. Não se curve a ninguém!"] },
+      { tipo: "soldado", x: 3120 },
       { tipo: "terreno", x: 3300, w: 420, altura: 100 },
+      { tipo: "soldado", x: 4000 },
       { tipo: "buraco", x: 4300, w: 220 },
+      { tipo: "soldado", x: 4850 }, // entre o buraco e a escadaria
       // 2) a escadaria do zigurate (arte inteira, 1994×630 desenhada a 45%): 4 degraus que se sobem pulando
       //    (20, 47, 110 e 146 px acima do chão); no degrau mais alto, o ídolo → Provérbios 3:5 (dependência do Senhor)
       { tipo: "estrutura", x: 5200, img: "assets/img/escadaria-babilonia.webp", w: 1994, h: 630, sc: .45, base: 45,
         degraus: [[0, 500, 485], [500, 800, 425], [800, 1340, 285], [1340, 1994, 205]] },
       { tipo: "pedra", x: 5950, verso: "pv3-5" },
-      { tipo: "inimigos", x: 7000, inimigos: ["duvida"], vida: 0.8, frases: ["Confie no seu braço. Só os fracos pedem ajuda."] },
+      //    → a harpia, com um soldado chegando junto
+      { tipo: "inimigos", x: 7000, inimigos: ["duvida"], vida: 0.8, frases: ["Confie no seu braço. Só os fracos pedem ajuda."], soldados: 1 },
+      { tipo: "soldado", x: 7450 },
       { tipo: "buraco", x: 7800, w: 200 },
-      //    → final: um leão e uma harpia juntos (na Babilônia só aparecem esses dois)
-      { tipo: "inimigos", x: 8600, inimigos: ["orgulho", "duvida"], vida: 0.8, frases: ["Você chegou aqui sozinho. Ninguém te deu nada.", "Sua força vem de você. Deus é para os fracos."] }
+      // depois do último buraco, até a fornalha: piso de pedra escura com cinzas e pergaminhos queimados (arte inteira que
+      // substitui o chão; as rochas da ponta esquerda fazem a borda do buraco, as da direita encostam no piso da fornalha)
+      { tipo: "estrutura", x: 7990, img: "assets/img/chao-cinzas-babilonia.webp", w: 1000, h: 230, sc: 1, base: 85, substitui: true, corte: 0, degraus: [] },
+      //    → final: a cobra vermelha sozinha (um monstro com frase por vez), com 2 soldados chegando junto
+      { tipo: "inimigos", x: 8600, inimigos: ["orgulho"], vida: 0.8, frases: ["Você chegou aqui sozinho. Ninguém te deu nada."], soldados: 2,
+        aparencia: { sprite: "serpente", chao: true, mergulho: false, passo: 70, tell: 0.6, cadencia: 1.8, salto: 0 } },
+      // fim da fase: o piso de pedra queimada diante da FORNALHA ARDENTE (Daniel 3), arte inteira que substitui o chão normal
+      // (o chão termina numa ponta antes dela); o herói pisa no piso (y≈297 da arte), a fornalha e a escada ficam ao fundo; a cruz fica diante dela
+      // chefão: Nabucodonosor, diante da fornalha (a arena trava sobre o piso de pedra; a cruz só depois que ele cai)
+      { tipo: "gigante", pele: "rei", x: 9480, vida: 60 },
+      { tipo: "estrutura", x: 8988, img: "assets/img/chao-forno-babilonia.webp", w: 1086, h: 362, sc: 0.84, base: 54, substitui: true, corte: 30, degraus: [] }
     ]
   }],
   // Exercitar a fé: leitura + quiz sobre os heróis de Hebreus 11. Passar no quiz aumenta a duração do escudo.

@@ -1,15 +1,21 @@
 import { GROUND, HERO, HERO_ATK, HERO_DEF, HERO_DEFWALK, HERO_IDLE, HERO_SCALE, HERO_THRUST, SWING_HIT, ctx } from '../config.js';
 import { drawBird, drawDuvida, drawSpriteDemon, drawTentacao } from './enemies.js';
 import { drawBalloon, drawFatal, drawHUD, drawHpBar, drawTip, layoutBalloons } from './hud.js';
-import { bordaBuraco, drawBook, drawEstrutura, drawShadow, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky } from './world.js';
+import { bordaBuraco, drawBook, drawCaveExit, drawCaveMouth, drawEstrutura, drawShadow, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky, relevo } from './world.js';
 import { halted, tema } from '../hud.js';
 import { drawAcid, drawGiant, drawGiantLie } from '../boss.js';
 import { drawFrog } from '../frog.js';
+import { drawSheep } from '../sheep.js';
+import { passagemAlfa } from '../update.js';
+import { drawCena, drawFalaPre } from '../cena.js';
+import { drawEstatua } from '../giant.js';
 import { B } from '../state.js';
 import { terrainTop } from '../world.js';
 import { D } from '../../core/utils.js';
 
 // ---------- Desenho ----------
+// o pé acompanha o relevo da arte do chão (fora de plataformas e sem estar caindo num buraco)
+export const pisoHeroi = h => h.y > 0 || B.platforms.some(pl => h.x > pl.x - 10 && h.x < pl.x + pl.w + 10 && h.y <= pl.top + 1) ? 0 : relevo(h.x);
 export const DASH_FILTER = 'grayscale(1) sepia(1) hue-rotate(165deg) saturate(6) brightness(1.25)'; // herói azul no impulso
 export function drawBattle() {
   const W = 960, H = 540, h = B.hero, cam = B.cam;
@@ -17,13 +23,17 @@ export function drawBattle() {
 
   const sh = B.shake * 30, screen = ctx.getTransform(); // tremor da explosão; screen = coordenadas da tela (para a dica)
   ctx.save(); ctx.translate(-cam + (Math.random() - .5) * sh, (Math.random() - .5) * sh); // daqui até o restore: coordenadas do mundo
+  drawCaveMouth();
+  drawEstatua(); // atrás do chão
   drawGround(cam);
+  drawCaveExit();
   B.estruturas.forEach(drawEstrutura);
   B.holes.forEach(drawHole);
   B.platforms.forEach(drawPlatform);
   drawGoal(B.fase.comprimento - 160);
   B.rocks.forEach(r => r.hp > 0 ? drawRock(r) : drawRubble(r));
   B.frogs.forEach(drawFrog);
+  B.ovelhas.forEach(drawSheep);
   B.books.forEach(drawBook);
 
   // herói
@@ -62,12 +72,17 @@ export function drawBattle() {
 
   // caindo num buraco: o herói só aparece entre as bordas do chão e acima da linha d'água (afunda no mar)
   const pit = h.y > 0 && B.holes.find(o => h.x > o.x && h.x < o.x + o.w);
+  // sombra de contato sob o herói (no chão, na laje ou na jangada): encolhe e clareia quando ele pula
+  if (!pit && h.deadAt == null) {
+    const pl = B.platforms.find(p => h.x > p.x - 10 && h.x < p.x + p.w + 10 && h.y <= p.top + 1), gy = pl ? pl.top : terrainTop(h.x);
+    if (gy !== Infinity) drawShadow(h.x, GROUND + gy + (pl ? 0 : relevo(h.x)), 92, gy - h.y);
+  }
   ctx.save();
   if (pit) { const bb = bordaBuraco(B.fase); ctx.beginPath(); ctx.rect(pit.x + bb, 0, pit.w - 2 * bb, GROUND + 28); ctx.clip(); }
   if (h.dash > 0) ctx.filter = DASH_FILTER + ' drop-shadow(0 0 16px #3ab4ff)'; // todo azul no impulso
   else if (B.power && !B.shield) ctx.filter = `drop-shadow(0 0 14px ${tema(B.power.v).brilho})`;
   if (h.hurt > 0 && Math.floor(h.hurt * 30) % 2) ctx.globalAlpha = .4;
-  ctx.translate(h.x - (B.shield && !def ? 12 * h.face : 0), GROUND + h.y); ctx.scale(h.face, 1);
+  ctx.translate(h.x - (B.shield && !def ? 12 * h.face : 0), GROUND + h.y + pisoHeroi(h)); ctx.scale(h.face, 1);
   ctx.scale(HERO_SCALE * (dim.sc || 1), HERO_SCALE * (dim.sc || 1));
   if (img.naturalWidth) ctx.drawImage(img, fr * dim.FW, 0, dim.FW, dim.FH, -dim.ax, 2 - dim.FH, dim.FW, dim.FH);
   ctx.restore();
@@ -85,7 +100,7 @@ export function drawBattle() {
     if (d.s.mergulho) return drawShadow(d.x, gy, 100, gy - d.y - 40, .3); // ave: sombra no chão, menor quanto mais alto
     if (d.s.chao) drawShadow(d.x, d.y, { leao: 165, verde: 95 }[d.s.sprite] || 120); // de chão: pisam em d.y
   });
-  if (B.boss && B.boss.kind === 'gigante' && !['hidden', 'dead'].includes(B.boss.state)) drawShadow(B.boss.x, GROUND, 190, 0, .42);
+  if (B.boss && B.boss.kind === 'gigante' && !['hidden', 'dead'].includes(B.boss.state)) drawShadow(B.boss.x, GROUND, B.boss.rei ? 120 : 190, 0, .42);
   // demônios
   B.demons.forEach(d => { if (d.state === 'dead' && !(d.pop > 0)) return; d.s.mergulho ? drawBird(d) : d.s.sprite ? drawSpriteDemon(d) : d.s.chao ? drawTentacao(d) : drawDuvida(d); }); // morto: só o clarão antes de estourar
   drawGiant(); // Golias (chefão da Jornada 2)
@@ -132,6 +147,7 @@ export function drawBattle() {
     ctx.strokeText(B.callout.s, h.x, cy); ctx.fillStyle = B.callout.c.cor; ctx.shadowColor = B.callout.c.brilho; ctx.shadowBlur = 16; ctx.fillText(B.callout.s, h.x, cy);
     ctx.restore();
   }
+  drawFalaPre(); // "O que é isso?!" (antes da cena da estátua)
   ctx.restore(); // fim das coordenadas do mundo
 
   drawHUD();
@@ -141,5 +157,7 @@ export function drawBattle() {
   }
   if (B.fatal) drawFatal();
   if (halted()) { ctx.fillStyle = '#000a'; ctx.fillRect(0, 0, W, H); }
+  drawCena(); // a estátua desperta (por cima de tudo)
+  if (B.passagem) { ctx.save(); ctx.globalAlpha = passagemAlfa(B.passagem); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.restore(); } // entrar/sair da caverna
 }
 // céu muda ao longo da jornada (noite → aurora dourada perto do fim) e tem 3 camadas de parallax

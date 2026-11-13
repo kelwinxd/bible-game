@@ -3,6 +3,7 @@ import { D, reduced } from '../core/utils.js';
 import { GROUND, ctx } from './config.js';
 import { hitHero, overlap } from './combat.js';
 import { B } from './state.js';
+import { rainOnPlatform } from './frog.js';
 import { drawGiant, drawGiantLie, giantBox, giantDies, giantLieY, makeGiant, nextGiantLie, updateGiant } from './giant.js';
 export { drawGiant, drawGiantLie, giantLieY, makeGiant, nextGiantLie };
 // B.boss é um chefão só por fase: o Leviatã (kind 'leviata', no mar) ou Golias (kind 'gigante', em terra, js/battle/giant.js)
@@ -33,11 +34,12 @@ export const PELES = {
   // naja do mar (só no Bestiário): 3 tiras enviadas, igualadas pela do bote e alinhadas pela cauda e pela base; olha para a direita
   // jato: o ácido é o próprio sprite (sem bola): tocar no jato (quadros 3–4) tira dano; caixa em px da arte a partir de ax/foot
   // mentiras = tipo das mentiras do data.js que ela alterna (refutáveis com versículo, como o Golias); lieY = base do balão
-  naja: { nome: 'Naja', titulo: 'a serpente do mar', furia: 'A Naja está furiosa!', morte: 'A Naja foi derrotada!', mentiras: 'naja', lieY: GROUND - 305, sc: 1.25, dir: 1, boca: [249, 138], jato: { x: [235, 400], y: [108, 188], fr: [3, 5] },
+  naja: { nome: 'Naja', titulo: 'a serpente do mar', furia: 'A Naja está furiosa!', morte: 'A Naja foi derrotada!', mentiras: 'naja', lieY: GROUND - 305, distancia: 380, ras: 5, sc: 1.25, dir: 1, boca: [249, 138], jato: { x: [235, 400], y: [108, 188], fr: [3, 5] },
     swim: { ...NAJA.swim, row: 0 }, bite: { ...NAJA.bite, row: 0 }, acid: { ...NAJA.acid, row: 0 } }
 };
 const SURGE_T = 1.4, SPEED = 75, REACH = 300, CD = 2, BITE_T = 1.2, BITE = [.55, .8], DMG = 15;
 const ACID_T = 1.3, ACID_SPIT = .8, ACID_DMG = 12, ACID_FLY = .75, ACID_G = 900, ACID_REACH = 650;
+const RAS_T = 5; // s entre uma rã e outra caindo na jangada
 const DIVE_T = .9, UNDER_T = 1.8, ATKS_PER_DIVE = 3;
 const WATER = 60; // a base do corpo fica dentro da água, abaixo da borda da tela (o corte de baixo da arte nunca aparece)
 
@@ -55,12 +57,13 @@ export function bossBox(L) {
   return [L.x - 95 * sc * .7, top, L.x + 95 * sc * .7, GROUND + 20]; // da água até a cabeça
 }
 // leva golpe: fora d'água (mergulhando ou embaixo d'água, não)
-export const bossAlive = L => L && ['surge', 'swim', 'bite', 'acid', 'enter', 'walk', 'atk', 'slam'].includes(L.state);
+export const bossAlive = L => L && ['surge', 'swim', 'approach', 'retreat', 'bite', 'acid', 'invoca', 'chamas', 'sopro', 'enter', 'walk', 'atk', 'slam'].includes(L.state);
 const fighting = L => L && L.state !== 'hidden' && L.state !== 'dead';
 const heroBox = h => [h.x - 22, GROUND + h.y - 200, h.x + 22, GROUND + h.y];
 
 function endAttack(L) { // depois de cada ataque: a cada 3, mergulha
   L.atks++; L.t = 0; L.cd = CD;
+  if (L.pele.distancia) { L.state = L.lastAtk === 'bite' ? 'retreat' : 'swim'; return; } // naja: depois do bote recua (e aí mergulha)
   L.state = L.atks % ATKS_PER_DIVE ? 'swim' : 'dive';
   if (L.state === 'dive') splash(L, 14);
 }
@@ -70,7 +73,10 @@ export function updateBoss(dt) {
   L.flash = Math.max(0, L.flash - dt); L.t += dt;
   if (L.kind === 'gigante') return updateGiant(L, dt);
   if (L.state === 'hidden') { // espera o herói chegar perto e sobe do fundo
-    if (h.x > L.sea.x - 420) {
+    // com uma laje que espera no mar: só surge quando o herói pisa nela; sem ela, quando ele chega perto do mar
+    const laje = B.platforms.find(pl => pl.espera && pl.x < L.sea.x + L.sea.w && pl.x + pl.w > L.sea.x);
+    const pisou = laje && h.ground && Math.abs(h.y - laje.top) < 1 && h.x > laje.x - 10 && h.x < laje.x + laje.w + 10;
+    if (laje ? pisou : h.x > L.sea.x - 420) {
       L.state = 'surge'; L.t = 0; sfx('hurt');
       B.notice = { lines: [`${L.pele.nome}, ${L.pele.titulo}!`, 'Golpeie-o da laje ou da margem — e cuidado com o bote'], t: 4, c: '#ff7a6a' };
       splash(L, 22);
@@ -78,12 +84,19 @@ export function updateBoss(dt) {
     return;
   }
   if (L.state === 'dead') { L.sink = Math.min(1, L.sink + dt / 1.6); return; }
+  if (L.fila > 0 && (L.rasT -= dt) <= 0) { // rãs na jangada: uma a cada RAS_T s (no máximo 6 vivas lá em cima)
+    const pl = B.platforms.find(p => p.espera) || B.platforms[0];
+    if (pl && B.frogs.filter(f => f.pl && !f.dead).length < 6) { rainOnPlatform(1, pl, L.rasAviso); L.rasAviso = false; L.fila--; }
+    L.rasT = RAS_T;
+  }
   if (!L.lie && L.lieIn > 0 && (L.lieIn -= dt) <= 0 && L.lies.length) { L.lie = L.lies[0]; L.lieFlash = .3; } // 5 s depois de surgir começa a mentir
   if (L.state === 'surge') { if (L.t >= SURGE_T) { L.state = 'swim'; L.t = 0; } return; }
+  const N = L.pele.distancia; // naja: fica a N px do herói; só chega perto para o bote, depois recua e mergulha
+  if (N && (L.state === 'approach' || L.state === 'retreat')) return updateDistante(L, h, dt, N);
   if (L.state === 'dive') { if (L.t >= DIVE_T) { L.state = 'under'; L.t = 0; } return; }
   if (L.state === 'under') { // embaixo d'água: reaparece perto do herói, de surpresa
     if (L.t >= UNDER_T) {
-      L.x = Math.max(lo(L), Math.min(hi(L), h.x + (Math.random() < .5 ? -1 : 1) * (170 + Math.random() * 120)));
+      L.x = Math.max(lo(L), Math.min(hi(L), h.x + (Math.random() < .5 ? -1 : 1) * (N ? N + Math.random() * 60 : 170 + Math.random() * 120)));
       L.face = h.x < L.x ? -1 : 1; L.state = 'surge'; L.t = 0; L.cd = .8; splash(L, 18); sfx('hurt');
     }
     return;
@@ -91,8 +104,8 @@ export function updateBoss(dt) {
   // metade da vida: passa a cuspir ácido também
   if (!L.fase2 && L.hp <= L.maxHp / 2) { L.fase2 = true; L.nextAcid = true; B.notice = { lines: [L.pele.furia, 'Agora ele cospe ácido — erga o escudo [J] ou saia do caminho'], t: 4, c: '#a8ff4a' }; }
   if (L.state === 'swim') { // segue o herói dentro do mar e olha para ele
-    const want = Math.max(lo(L), Math.min(hi(L), h.x + (h.x < L.x ? 150 : -150)));
-    L.x += Math.sign(want - L.x) * Math.min(Math.abs(want - L.x), SPEED * dt);
+    const want = N ? longe(L, h, N) : Math.max(lo(L), Math.min(hi(L), h.x + (h.x < L.x ? 150 : -150)));
+    L.x += Math.sign(want - L.x) * Math.min(Math.abs(want - L.x), SPEED * (N ? 1.6 : 1) * dt);
     L.face = h.x < L.x ? -1 : 1;
     L.cd -= dt;
     const d = Math.abs(h.x - L.x);
@@ -100,17 +113,37 @@ export function updateBoss(dt) {
     const J = L.pele.jato, alcance = J ? J.x[1] * L.pele.sc - 30 : ACID_REACH; // com jato: só cospe se o herói estiver ao alcance dele
     const acid = L.fase2 && (L.nextAcid || d >= REACH) && d < alcance;
     if (acid) { L.state = 'acid'; L.t = 0; L.spat = false; L.nextAcid = false; }
+    else if (N) { if (d > N * .75 || L.cd < -1.5) { L.state = 'approach'; L.t = 0; } } // vem para o bote (só depois de ter se afastado)
     else if (d < REACH) { L.state = 'bite'; L.t = 0; L.bitHit = false; L.nextAcid = L.fase2; swordSfx('swing'); }
   } else if (L.state === 'bite') {
     if (!L.bitHit && L.t >= BITE[0] && L.t <= BITE[1] && overlap(biteBox(L), heroBox(h))) { L.bitHit = true; hitHero(DMG); }
-    if (L.t >= BITE_T) endAttack(L);
+    if (L.t >= BITE_T) { L.lastAtk = 'bite'; endAttack(L); }
   } else if (L.state === 'acid') {
     const J = L.pele.jato;
     if (J) { // o jato do sprite é o golpe: pega se o herói estiver nele enquanto o ácido sai da boca
       const fr = Math.floor(L.t / ACID_T * L.pele.acid.n);
       if (!L.spat && fr >= J.fr[0] && fr < J.fr[1] && overlap(jetBox(L, J), heroBox(h))) { L.spat = true; hitHero(ACID_DMG); goo(h.x, GROUND + h.y - 100, 12); }
     } else if (!L.spat && L.t >= ACID_SPIT) { L.spat = true; spit(L, h); }
-    if (L.t >= ACID_T) endAttack(L);
+    if (L.t >= ACID_T) { L.lastAtk = 'acid'; endAttack(L); }
+  }
+}
+// ponto a N px do herói, do lado em que ela já está (se não couber no mar, do outro lado)
+function longe(L, h, N) {
+  let s = Math.sign(L.x - h.x) || 1, x = h.x + s * N;
+  if (x < lo(L) || x > hi(L)) { s = -s; x = h.x + s * N; }
+  return Math.max(lo(L), Math.min(hi(L), x));
+}
+const APPROACH_V = 300, RETREAT_V = 240, BOTE_D = 190;
+function updateDistante(L, h, dt, N) {
+  L.face = h.x < L.x ? -1 : 1;
+  if (L.state === 'approach') { // avança rápido até ficar a BOTE_D px e dá o bote
+    const want = Math.max(lo(L), Math.min(hi(L), h.x - L.face * BOTE_D));
+    L.x += Math.sign(want - L.x) * Math.min(Math.abs(want - L.x), APPROACH_V * dt);
+    if (Math.abs(want - L.x) < 8 || L.t > 1.6) { L.state = 'bite'; L.t = 0; L.bitHit = false; L.nextAcid = L.fase2; swordSfx('swing'); }
+  } else { // recua até a distância e mergulha
+    const want = longe(L, h, N);
+    L.x += Math.sign(want - L.x) * Math.min(Math.abs(want - L.x), RETREAT_V * dt);
+    if (Math.abs(want - L.x) < 8 || L.t > 1.4) { L.state = 'dive'; L.t = 0; splash(L, 14); }
   }
 }
 // a boca no bote: para o lado em que ele olha, na altura do peito do herói (da laje ou da margem)
@@ -147,8 +180,13 @@ const goo = (x, y, n) => { for (let k = 0; k < (reduced ? n / 3 : n); k++) B.sha
 export function damageBoss(dmg, cor = '#bbb') {
   const L = B.boss; if (!bossAlive(L)) return;
   L.hp -= dmg; L.flash = .15;
+  if (L.pele && L.pele.ras) { // 5 momentos da vida (a cada 1/6 perdido): rãs caem do céu na jangada
+    const k = Math.min(5, Math.floor((L.maxHp - Math.max(0, L.hp)) / (L.maxHp / 6))), pl = B.platforms.find(p => p.espera) || B.platforms[0];
+    while ((L.rasK || 0) < k) { L.rasK = (L.rasK || 0) + 1; if (L.hp > 0) { L.fila = (L.fila || 0) + L.pele.ras; if (!(L.rasT > 0)) L.rasT = 0; L.rasAviso = true; } } // entram na fila: caem uma a uma
+  }
   B.floats.push({ x: L.x, y: bossBox(L)[1] - 10, t: .8, s: dmg.toFixed(dmg % 1 ? 1 : 0), c: cor });
-  if (B.fase.dev && L.hp <= 0) { L.hp = L.maxHp; B.floats.push({ x: L.x, y: bossBox(L)[1] - 45, t: 1, s: 'imortal · vida cheia', c: '#9fe4ff' }); return; } // Bestiário
+  if (B.fase.dev && L.hp <= 0 && !L.rei && !L.estatua) { // Bestiário: imortais (menos o rei e a estátua, para ver a cena e a queda)
+    L.hp = L.maxHp; B.floats.push({ x: L.x, y: bossBox(L)[1] - 45, t: 1, s: 'imortal · vida cheia', c: '#9fe4ff' }); return; } // Bestiário
   if (L.hp <= 0 && L.kind === 'gigante') { L.hp = 0; return giantDies(L); }
   if (L.hp <= 0) { // afunda de vez
     L.hp = 0; L.state = 'dead'; L.t = 0; B.shake = .5; B.acid = [];

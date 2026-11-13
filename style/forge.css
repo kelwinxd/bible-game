@@ -124,6 +124,11 @@
 .fres-st.ok b { color:#ffd34d; } .fres-st.ok { border-color:#8a6534; }
 .fres-st.bad b { color:#ff5a4a; } .fres-st.bad { border-color:#7a2a20; }
 .fres-btns { justify-content:center; margin-top:18px; gap:10px; }
+/* passou de nível: a mesma tela, em dourado */
+.fres.win { border-color:#8a6534; background:radial-gradient(ellipse at 50% 0%, #ffd34d24, transparent 60%), linear-gradient(#1a130d, #0f0a08); }
+.fres.win h2 { color:#ffd34d; text-shadow:0 0 18px #ffd34d66; }
+.fres-dano { margin:4px 0 6px; font-family:Cinzel, serif; color:var(--ink); }
+.fres-dano b { color:#ffd34d; }
 /* vidas da forja: corações no canto superior direito da caixa do forjador; cada erro quebra um, 3 erros = perde */
 .smith-hp { grid-area:smith; justify-self:end; align-self:start; position:relative; z-index:2; display:flex; gap:6px; margin:14px 16px 0 0; pointer-events:none; }
 .smith-hp i { display:block; width:clamp(24px, 2vw, 30px); height:clamp(24px, 2vw, 30px); }

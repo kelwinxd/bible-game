@@ -9,6 +9,7 @@ import { fatalSound, sfx, swordSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
 import { dashDmg, unlockFase } from '../core/progress.js';
 import { $, D, reduced, rgbOf } from '../core/utils.js';
+import { rainFrogs } from './frog.js';
 
 // ave: balão EMBAIXO dela (em cima ficava atrás do HUD), preso à altura de pairar para não descer junto no mergulho
 export const balloonBelow = d => !!d.s.mergulho;
@@ -37,7 +38,8 @@ export function attack() {
   const g = HERO_ATK[h.combo]; h.swingT = g.T; h.swingHit = g.HIT;
   h.swing = h.swingT; h.hitDone = false; h.anim = 'attack'; h.at = 0;
   swordSfx(B.power ? 'laser' : 'swing'); // a lâmina corta o ar; com poder, vento + zumbido de energia
-  if (B.tut && B.tut.refuted) B.tut.attacked = true; // tutorial: a dica do [K] some
+  if (B.tut && B.tut.pulou) B.tut.golpe = true; // tutorial: a dica do [K] na rã some no 1º golpe depois do buraco
+  if (B.tut && B.tut.refuted) B.tut.attacked = true; // tutorial: a dica do [K] no demônio some
 }
 export function renderFires(changed = -1, cls = '') {
   [...$('dashFires').children].forEach((f, k) => {
@@ -145,6 +147,7 @@ export function startFatal(d, v, espirito = false) {
 export function endFatal() {
   B.demons = B.demons.filter(d => d !== B.fatal.d); B.fatal = null;
   if (!B.demons.length && B.arena) {
+    const gr = B.arena.gr; if (gr && gr.ras) rainFrogs(gr.ras, B.arena); // data.js ras: N → rãs caem do céu quando a arena acaba
     B.arena = null; B.hp = Math.min(100, B.hp + 20);
     B.floats.push({ x: B.hero.x, y: GROUND - 250, t: 1.2, s: '+20', c: '#7dff8a' });
   }

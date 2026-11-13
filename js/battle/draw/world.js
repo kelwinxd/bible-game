@@ -1,7 +1,8 @@
 import { GROUND, IDOL, ctx } from '../config.js';
 import { drawBoss } from '../boss.js';
 import { B } from '../state.js';
-import { D, hash, mix } from '../../core/utils.js';
+import { D, hash, mix, reduced } from '../../core/utils.js';
+import { focoEstatua } from '../cena.js';
 
 // fundo com imagem (data.js → fases[].fundo): na altura da tela, rola devagar (parallax) e se repete
 // sempre na mesma orientação; o fim da imagem se dissolve no começo dela mesma (faixa de transição de 320 px),
@@ -26,18 +27,37 @@ function drawImageBg(F, img, off) {
 // fundo "estica": uma imagem só, ampliada (F.estica) e presa no topo (lua abaixo do HUD), que atravessa a fase inteira bem devagar:
 // no início mostra a borda esquerda e no fim a direita (sem repetir, sem emenda, sem perder qualidade)
 // quadros (opcional) = a imagem é uma tira de N quadros lado a lado (GIF animado), tocada a `qps` quadros por segundo
-function drawStretchedBg(F, img, cam) {
+function drawStretchedBg(F, img, cam, a = 0, b = B.fase.comprimento) { // a–b: trecho do mundo que a imagem atravessa
   const n = F.quadros || 1, fw = img.naturalWidth / n, H = 540 * F.estica, W = fw * H / img.naturalHeight;
   const q = n > 1 ? Math.floor(B.time * (F.qps || 5)) % n : 0;
-  const t = Math.max(0, Math.min(1, cam / Math.max(1, B.fase.comprimento - 960)));
+  const t = Math.max(0, Math.min(1, (cam - a) / Math.max(1, b - a - 960)));
   ctx.imageSmoothingQuality = 'high';
+  const k = F.foco && F === B.fase.fundo ? focoEstatua() : 0; // antes da cena da estátua: a câmera vai até ela no fundo
+  if (k > 0) {
+    const tf = Math.max(0, Math.min(1, (F.foco[0] * W - 480) / (W - 960))), tt = t + (tf - t) * k, ox = -tt * (W - 960);
+    const px = ox + F.foco[0] * W, py = F.foco[1] * H, z = 1 + .4 * k; // zoom em volta da estátua, que vem para o meio
+    ctx.save(); ctx.translate(480 + (px - 480) * (1 - k), py); ctx.scale(z, z); ctx.translate(-px, -py);
+    ctx.drawImage(img, q * fw, 0, fw, img.naturalHeight, ox, 0, W, H); ctx.restore();
+    if (F.escuro) { ctx.fillStyle = `rgba(6, 3, 8, ${F.escuro * (1 - .4 * k)})`; ctx.fillRect(0, 0, 960, 540); }
+    return;
+  }
   ctx.drawImage(img, q * fw, 0, fw, img.naturalHeight, -Math.round(t * (W - 960)), 0, W, H); // presa no topo: a sobra embaixo fica atrás do chão
   if (F.escuro) { ctx.fillStyle = `rgba(6, 3, 8, ${F.escuro})`; ctx.fillRect(0, 0, 960, 540); }
 }
 export function drawSky(cam) {
+  const Z = B.zona === 'caverna' && B.caverna && B.caverna.fundo; // dentro da caverna: o fundo dela
+  if (Z) {
+    const img = BG[Z.img] || (BG[Z.img] = Object.assign(new Image(), { src: Z.img }));
+    if (img.naturalWidth) return drawStretchedBg(Z, img, cam, B.caverna.x0, B.caverna.x1);
+    ctx.fillStyle = '#0c0705'; return ctx.fillRect(0, 0, 960, 540);
+  }
   const F = B.fase.fundo;
   if (F) {
-    const img = BG[F.img] || (BG[F.img] = Object.assign(new Image(), { src: F.img }));
+    // fundo.final (data.js): troca quando a estátua de ouro desperta (no fundo final ela não está mais no pedestal);
+    // a troca acontece já no começo da cena, que cobre a tela, então não aparece
+    const fim = F.final && B.boss && (B.boss.estatua || (B.boss.rei && B.boss.cenaVista && !B.prec)), src = fim ? F.final : F.img;
+    const img = BG[src] || (BG[src] = Object.assign(new Image(), { src }));
+    if (F.final && !BG[F.final]) BG[F.final] = Object.assign(new Image(), { src: F.final }); // pré-carrega
     if (img.naturalWidth && F.estica) return drawStretchedBg(F, img, cam);
     if (img.naturalWidth) return drawImageBg(F, img, cam * F.parallax);
   }
@@ -96,6 +116,8 @@ function groundKit(img, M = GSRC) {
   const [f, fc] = mk(fade * s, H); fc.drawImage(img, cap + midSrc - fade, 0, fade, img.height, 0, 0, fade * s, H);
   const g = fc.createLinearGradient(0, 0, fade * s, 0); g.addColorStop(0, '#000'); g.addColorStop(1, '#0000');
   fc.globalCompositeOperation = 'destination-in'; fc.fillStyle = g; fc.fillRect(0, 0, fade * s, H); mc.drawImage(f, 0, 0);
+  // semFaixa (medidas): sem a faixa de rochas repetida embaixo — o terreno alto termina onde a arte termina (a caverna)
+  if (M.semFaixa) return kitFim(img, M, mid, s, cap, capR, H);
   // chão alto: o miolo até o fim das rochas e, abaixo, a faixa de rochas repetida (escurecendo com a profundidade)
   const b0 = band[0] * s, b1 = band[1] * s, [tall, tc] = mk(P, 420);
   tc.drawImage(mid, 0, 0, P, b1, 0, 0, P, b1);
@@ -118,15 +140,53 @@ function groundKit(img, M = GSRC) {
   const capL = capCv(0, false, cap), capRc = capCv(img.width - capR, true, capR);
   return { mid, tall, capL, capR: capRc, cw, cwR: capR * s, outL: (M.capOut ?? cap * .25) * s, outR: (M.capOut ?? capR * .25) * s, fadeL: (M.capFade || cap * .55) * s, fadeR: (M.capFade || capR * .55) * s, surf: M.surf * s, pat: ctx.createPattern(tall, 'repeat-x'), patMid: ctx.createPattern(mid, 'repeat-x') };
 }
+function kitFim(img, M, mid, s, cap, capR, H) {
+  const k = groundKit(img, { ...M, semFaixa: false });
+  return { ...k, tall: mid, pat: k.patMid, semFaixa: true };
+}
 const GK = {};
+// dentro da caverna (data.js → caverna.chao): o chão de pedra dela, com as próprias medidas e sem tingir
+function chaoAtual() {
+  const C = B.zona === 'caverna' && B.caverna && B.caverna.chao;
+  return C ? { F: C.img, M: C.medidas, cor: null } : { F: B.fase.chao, M: B.fase.chaoMedidas, cor: B.fase.chaoCor === undefined ? CHAO_COR : B.fase.chaoCor };
+}
 function groundImg() {
-  const F = B.fase.chao; if (!F) return null;
+  const { F, M: med, cor } = chaoAtual(); if (!F) return null;
   if (!BG[F]) { // monta o kit só depois de decodificar: antes disso o tingimento saía chapado, sem a textura
     BG[F] = Object.assign(new Image(), { src: F });
-    const cor = B.fase.chaoCor === undefined ? CHAO_COR : B.fase.chaoCor, M = { ...GSRC, ...(B.fase.chaoMedidas || {}) };
+    const M = { ...GSRC, ...(med || {}) };
     BG[F].decode().then(() => { GK[F] = groundKit(cor ? tingir(BG[F], cor) : BG[F], M); });
   }
   return GK[F] || null;
+}
+// relevo do chão: a arte tem altos e baixos (montinhos de grama, sulcos), mas o colisor é reto. Mede, por coluna do miolo
+// repetido, onde a terra começa (ignorando pontas de grama soltas) e compara com a mediana: onde a borda da terra fica mais
+// baixa que o normal o pé desce (+), onde fica mais alta ele sobe (−), no máximo 7 px. Só no desenho (herói e bichos no chão).
+function perfil(k) {
+  if (k.perfil) return k.perfil;
+  const c = k.mid, W = c.width, H = c.height, d = c.getContext('2d').getImageData(0, 0, W, H).data, raw = new Float32Array(W);
+  for (let x = 0; x < W; x++) {
+    let y = 0, run = 0;
+    for (; y < H; y++) { run = d[(y * W + x) * 4 + 3] > 200 ? run + 1 : 0; if (run >= 8) { y -= 7; break; } } // 8 px seguidos opacos = terra
+    raw[x] = y;
+  }
+  const p = new Float32Array(W), R = 35; // suaviza bem (ondulação suave, sem sacudir ao andar), puxando um pouco para o mais alto
+  for (let x = 0; x < W; x++) { let m = Infinity, s = 0; for (let i = -R; i <= R; i++) { const v = raw[(x + i + W) % W]; m = Math.min(m, v); s += v; } p[x] = m * .3 + s / (2 * R + 1) * .7; }
+  const mq = [...p].sort((a, b) => a - b)[W >> 1]; // centrado: na média o pé fica onde sempre ficou
+  for (let x = 0; x < W; x++) p[x] = Math.max(-7, Math.min(7, p[x] - mq));
+  return (k.perfil = p);
+}
+export function relevo(x) {
+  const k = groundImg(); if (!k) return 0;
+  // perto de bordas de buraco e desníveis vale a arte da ponta: o ajuste some aos poucos
+  if (B.estruturas.some(e => e.substitui && x > e.x && x < e.x + e.w * e.sc)) return 0; // no piso de uma estrutura: sem relevo do chão
+  const borda = k.cw * .9, longe = d => Math.max(0, Math.min(1, (d - borda * .5) / (borda * .5)));
+  let w = 1;
+  B.holes.forEach(o => { w = Math.min(w, longe(Math.abs(x - o.x)), longe(Math.abs(x - o.x - o.w))); });
+  B.terrain.forEach(t => { if (t.top !== Infinity && !t.oculto) w = Math.min(w, longe(Math.abs(x - t.x)), longe(Math.abs(x - t.x - t.w))); });
+  if (!w) return 0;
+  const p = perfil(k), P = p.length;
+  return w * p[((Math.round(x) % P) + P) % P];
 }
 // um pedaço de laje entre a e b com a superfície em y; tampas arredondadas onde capL/capR
 function slab(k, a, b, y, capL, capR, sc = 1, fundo = false) {
@@ -146,7 +206,9 @@ function slab(k, a, b, y, capL, capR, sc = 1, fundo = false) {
   if (capR) ctx.drawImage(k.capR, b + oR - cwR, top, cwR, k.capR.height * sc);
 }
 function drawGroundImg(k, cam) {
-  const x0 = cam - 80, x1 = cam + 1040;
+  // margem larga: as pontas de buraco/desnível passam centenas de px da borda (na fase 2, até 260 px); com margem curta
+  // a ponta sumia quando a borda do buraco saía da conta, ainda com a arte dela à vista
+  const x0 = cam - 500, x1 = cam + 1460;
   // trechos visíveis com a altura de cada um (buracos = Infinity)
   let segs = [{ a: x0, b: x1, top: 0 }];
   const cut = (x, w, top) => {
@@ -155,10 +217,14 @@ function drawGroundImg(k, cam) {
   };
   B.terrain.filter(t => t.top !== Infinity && !t.oculto).forEach(t => cut(t.x, t.w, t.top)); // degraus de estrutura: a arte dela já mostra
   B.holes.forEach(o => cut(o.x + 14, o.w - 28, Infinity)); // a laje avança um pouco sobre a borda do buraco, onde ainda dá pé
+  // estrutura que substitui o chão (data.js → substitui: true): a arte dela é o piso ali; o chão normal termina numa ponta antes dela
+  B.estruturas.forEach(e => { if (e.substitui) cut(e.x + (e.corte || 0), e.w * e.sc, Infinity); });
   // fundo dos buracos: escuridão por trás das lajes (no mar: o mar agitado)
   B.holes.forEach(o => { if (o.mar) return drawSea(o); if (drawSeaHands(o)) return; const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
   // terra submersa subindo (ou já em cima): na frente do mar
   B.risers.forEach(r => { if (r.k > 0) slab(k, r.x, r.x + r.w, GROUND + riseOff(r), true, false); });
+  // sem faixa (caverna): o terreno alto fica apoiado em cima do piso normal, que continua por baixo dele
+  if (k.semFaixa) segs.forEach(s => { if (s.top < 0) slab(k, s.a, s.b, GROUND, false, false); });
   // do mais baixo para o mais alto: a parede de quem é mais alto fica na frente
   segs.map((s, i) => ({ s, l: segs[i - 1], r: segs[i + 1] })).filter(q => q.s.top !== Infinity).sort((p, q) => q.s.top - p.s.top)
     .forEach(({ s, l, r }) => slab(k, s.a, s.b, GROUND + s.top, l && l.top > s.top, r && r.top > s.top));
@@ -186,8 +252,19 @@ export function drawGround(cam) {
   });
   strip(cur, x1, 0);
 }
+// plataforma com arte própria (img: a jangada da Naja): a arte cobre a largura da laje; a superfície onde se pisa fica a
+// 52% da altura da arte (o convés), e ela balança de leve na água
+const PLAT_IMG = {}, PLAT_PISO = .52;
 export function drawPlatform(pl) {
-  const y = GROUND + pl.top, k = groundImg();
+  const y = GROUND + pl.top;
+  if (pl.img) {
+    const im = PLAT_IMG[pl.img] || (PLAT_IMG[pl.img] = Object.assign(new Image(), { src: pl.img }));
+    if (im.naturalWidth) {
+      const h = im.naturalHeight * pl.w / im.naturalWidth, bob = reduced ? 0 : Math.sin(B.time * 2.2) * 1.5;
+      return ctx.drawImage(im, pl.x, y - h * PLAT_PISO + bob, pl.w, h);
+    }
+  }
+  const k = groundImg();
   if (k) return slab(k, pl.x, pl.x + pl.w, y + 4, true, true, .5, true); // laje flutuante pequena, com a base arredondada
   ctx.fillStyle = '#4a3a2e'; ctx.beginPath(); ctx.roundRect(pl.x, y, pl.w, 18, 4); ctx.fill();
   ctx.fillStyle = '#6b5240'; ctx.fillRect(pl.x + 3, y, pl.w - 6, 4);
@@ -324,6 +401,19 @@ export function drawShadow(x, gy, w, alt = 0, a = .38) {
   ctx.save(); ctx.translate(x, gy - 2); ctx.scale(1, ry / rx);
   const g = ctx.createRadialGradient(0, 0, 0, 0, 0, rx); g.addColorStop(0, `rgba(0,0,0,${a * k})`); g.addColorStop(.6, `rgba(0,0,0,${a * k * .55})`); g.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, rx, 0, 7); ctx.fill(); ctx.restore();
+}
+// boca da caverna: escuridão no vão (desenhada antes do chão, as bordas da laje ficam por cima)
+export function drawCaveMouth() {
+  const C = B.caverna; if (!C || B.zona) return;
+  const g = ctx.createLinearGradient(0, GROUND - 20, 0, 540); g.addColorStop(0, '#0000'); g.addColorStop(.3, '#050302'); g.addColorStop(1, '#000');
+  ctx.fillStyle = g; ctx.fillRect(C.x, GROUND - 20, C.w, 560 - GROUND);
+}
+// saída da caverna: um facho de luz fraca descendo no topo da rampa
+export function drawCaveExit() {
+  const C = B.caverna; if (!C || B.zona !== 'caverna') return;
+  const x = C.x1 - 110, g = ctx.createLinearGradient(x - 60, 0, x + 60, 0);
+  g.addColorStop(0, 'rgba(180,200,255,0)'); g.addColorStop(.5, `rgba(200,215,255,${.22 + .08 * Math.sin(B.time * 2)})`); g.addColorStop(1, 'rgba(180,200,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(x - 60, 60, 120, GROUND - 110 - 60);
 }
 const EST = {};
 export function drawEstrutura(e) {

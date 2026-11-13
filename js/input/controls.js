@@ -12,7 +12,7 @@ export function setShield(on) {
   if (on && (B.shieldLock || B.shieldE <= 0)) on = false;
   if (on && !B.shield) B.shieldAt = B.time; // começo da animação de erguer o escudo
   B.shield = on; $('shieldBtn').classList.toggle('on', on);
-  if (on && B.tut && B.tut.refuted) B.tut.shielded = true; // tutorial: a dica do [J] some
+  if (on && B.tut && B.tut.acido) B.tut.shielded = true; // tutorial: a dica do [J] (na cobra do ácido) some
 }
 export const sb = $('shieldBtn');
 sb.addEventListener('pointerdown', e => { e.preventDefault(); sb.setPointerCapture(e.pointerId); setShield(true); });
@@ -27,7 +27,7 @@ addEventListener('keydown', e => {
   if (curSharp && /^Digit[1-4]$/.test(e.code)) { const b = $('sharpOpts').children[+e.code.slice(5) - 1]; b && pickSharp(b); }
   if (B) {
     if (e.code === 'KeyP' && !B.over && B.peek < 0) { setPause(!B.paused); return; }
-    if (e.code === 'Escape' || (e.code === 'Enter' && B.peek >= 0)) { e.preventDefault(); if (B.peek >= 0) togglePeek(B.peek); else if (B.paused) setPause(false); return; }
+    if (e.code === 'Escape' || (e.code === 'Enter' && B.peek >= 0)) { e.preventDefault(); if (B.peek >= 0) togglePeek(B.peek); else if (B.paused) setPause(false); else if (!B.over && !B.fatal) setPause(true); return; } // Esc também pausa
     if (B.paused) return;
     if (['Space', 'KeyW', 'ArrowUp'].includes(e.code) && B.hero.ground && !B.over && B.peek < 0) { B.hero.vy = -JUMP; B.hero.ground = false; }
     if (e.code === 'KeyS' || e.code === 'ArrowDown' || e.code === 'KeyJ') setShield(true);

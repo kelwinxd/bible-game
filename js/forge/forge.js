@@ -1,6 +1,6 @@
 import { sfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
-import { progOf, verseMult } from '../core/progress.js';
+import { progOf, saveProg, verseMult } from '../core/progress.js';
 import { $, D, shuffle } from '../core/utils.js';
 import { levelResult } from './verse.js';
 import { show } from '../ui/screens.js';
@@ -168,7 +168,33 @@ export function finishForge() {
   $('forgeInfo').textContent = '';
   const m = D.niveis.forja;
   if (f.errors) return forgeFail(f);
-  levelResult('forgeDone', 'forja', f.v, f.level, f.errors, () => `Dano agora ×${verseMult(f.v.id)} (${m.nomes[progOf(f.v.id).forja - 1]}).`);
+  forgeWin(f);
+}
+// passou de nível: a mesma tela de resultado, mas de parabéns (métricas, o dano novo e o próximo passo)
+function forgeWin(f) {
+  if (curForge !== f) return;
+  const p = progOf(f.v.id), m = D.niveis.forja;
+  if (f.level > p.forja) { p.forja = f.level; saveProg(); }
+  const n = f.gaps.length, last = f.level >= 3;
+  $('forge').classList.add('result');
+  $('forgeDone').innerHTML = `<div class="fres win">
+    <h2>${last ? '✦ Versículo forjado! ✦' : `✓ Nível ${f.level} concluído!`}</h2>
+    <p class="fres-ref">${f.v.ref} · Nível ${f.level}</p>
+    <div class="fres-stats">
+      <div class="fres-st ok"><b>${n}</b><span>acerto${n === 1 ? '' : 's'}</span></div>
+      <div class="fres-st"><b>0</b><span>erros</span></div>
+      <div class="fres-st ok"><b>100%</b><span>precisão</span></div>
+    </div>
+    <p class="fres-dano">Dano agora <b>×${verseMult(f.v.id)}</b> · ${m.nomes[p.forja - 1]}</p>
+    <p class="muted">${last ? 'Você forjou o versículo inteiro, palavra por palavra. A lâmina está no máximo.' : `Parabéns, nenhuma palavra errada! Próximo nível: ${m.descr[f.level]}.`}</p>
+    <div class="row fres-btns">
+      <button onclick="show('menu')">← Voltar ao menu</button>
+      ${last ? `<button class="primary" onclick="openVerse(byId['${f.v.id}'])">Ver o versículo</button>`
+        : `<button class="primary" onclick="openForge(byId['${f.v.id}'], ${f.level + 1})">Nível ${f.level + 1} →</button>`}
+    </div>
+  </div>`;
+  $('forgeDone').querySelector('.primary').focus();
+  const r = $('forgeDone').querySelector('h2').getBoundingClientRect(); burst(r.left + r.width / 2, r.top + 10, 50, '#ffd34d');
 }
 $('hammerBtn').onclick = e => { e.stopPropagation(); hammer(); };
 $('strip').onclick = () => { if (opts.forge !== 'sempressa') hammer(); };
