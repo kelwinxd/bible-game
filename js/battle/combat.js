@@ -5,9 +5,9 @@ import { B } from './state.js';
 import { bossAlive, bossBox, damageBoss } from './boss.js';
 import { frogsIn, hitFrog } from './frog.js';
 import { hitRock, rockBox } from './world.js';
-import { fatalSound, sfx, swordSfx } from '../core/audio.js';
+import { fatalSound, poderSfx, sfx, swordSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
-import { dashDmg, unlockFase } from '../core/progress.js';
+import { abertaBase, dashDmg, marcarVitoria, venceu } from '../core/progress.js';
 import { $, D, reduced, rgbOf } from '../core/utils.js';
 import { rainFrogs } from './frog.js';
 
@@ -37,7 +37,7 @@ export function attack() {
   h.combo = chain ? 1 - (h.combo || 0) : 0; h.comboQ = false;
   const g = HERO_ATK[h.combo]; h.swingT = g.T; h.swingHit = g.HIT;
   h.swing = h.swingT; h.hitDone = false; h.anim = 'attack'; h.at = 0;
-  swordSfx(B.power ? 'laser' : 'swing'); // a lâmina corta o ar; com poder, vento + zumbido de energia
+  if (!B.power) swordSfx('swing'); else if (!poderSfx()) swordSfx('laser'); // a lâmina corta o ar; com poder, o som gravado (poder.mp3)
   if (B.tut && B.tut.pulou) B.tut.golpe = true; // tutorial: a dica do [K] na rã some no 1º golpe depois do buraco
   if (B.tut && B.tut.refuted) B.tut.attacked = true; // tutorial: a dica do [K] no demônio some
 }
@@ -69,7 +69,7 @@ export function startDash() {
   if (back) { h.faceAfter = h.face; h.face = -h.face; B.dashBack = 0; } // volta pelo mesmo caminho e depois encara a frente de novo
   else B.dashBack = B.fire >= FIRE_MAX ? DASH_T + DASH_BACK_WIN : 0;
   h.dash = DASH_T; h.dashHit = new Set(); h.swing = 0; h.comboQ = false; h.vy = 0; B.dashCd = DASH_CD; // recarga conta a partir do último
-  sfx('whoosh'); sfx('beam');
+  if (!poderSfx()) { sfx('whoosh'); sfx('beam'); } // o mesmo som do poder (poder.mp3); o sintetizado só se não carregou
 }
 // durante o impulso: fere quem o herói atravessa (uma vez por impulso) e acerta a pedra
 export function dashHits(h) {
@@ -116,7 +116,7 @@ export function swingHit() {
 export function heroDies() { B.over = true; B.hero.deadAt = B.time; setTimeout(() => endScreen(false), 1400); } // dá tempo de ver a queda
 export function hitHero(dmg) {
   if (B.over || B.hero.dash > 0) return; // atravessando no impulso: intocável
-  if (B.shield) { sfx('block'); B.fx.push({ ring: true, t: .3 }); return; }
+  if (B.shield) { B.fx.push({ ring: true, t: .3 }); return; }
   sfx('hurt'); if (!opts.god) B.hp -= dmg; B.hero.hurt = .3;
   B.floats.push({ x: B.hero.x, y: GROUND + B.hero.y - 250, t: .9, s: '-' + dmg, c: '#ff5a4a' });
   if (B.hp <= 0) { B.hp = 0; heroDies(); }
@@ -159,13 +159,17 @@ export function endScreen(win) {
     $('endBtns').innerHTML = `<button onclick="openBestiary()">← Bestiário</button><button class="primary" onclick="startBestiary('${B.fase.dev}')">Lutar de novo</button>`;
     return $('endOverlay').classList.add('on');
   }
-  const fi = B.faseIdx, next = win && fi + 1 < D.fases.length;
-  if (next) unlockFase(fi + 1);
+  // vitória: marca a jornada; as que essa vitória abriu (data.js → abre) aparecem no texto, e a 1ª delas vira o botão principal
+  const fi = B.faseIdx, antes = D.fases.filter(abertaBase);
+  if (win) marcarVitoria(B.fase.id);
+  const novas = win ? D.fases.filter(f => abertaBase(f) && !antes.includes(f)) : [];
+  const prox = win && (novas[0] || D.fases.find(f => abertaBase(f) && !venceu(f.id))), pi = prox ? D.fases.indexOf(prox) : -1;
   $('endTitle').textContent = win ? 'Vitória' : 'Você caiu';
   $('endText').textContent = !win ? 'Levante-se. Volte à forja, afie a lâmina e tente de novo.'
-    : next ? `Jornada ${fi + 1} concluída. A jornada ${fi + 2} foi liberada.` : 'Todas as jornadas concluídas. Você encontrou a Palavra e refutou as mentiras.';
+    : novas.length ? `Jornada ${fi + 1} concluída. Liberada: ${novas.map(f => f.nome).join(' e ')}.`
+    : prox ? `Jornada ${fi + 1} concluída.` : 'Todas as jornadas concluídas. Você encontrou a Palavra e refutou as mentiras.';
   $('endBtns').innerHTML = `<button onclick="habView('hub')">Habilidades</button>` + (!win
     ? `<button class="primary" onclick="startBattle(${fi})">Jogar de novo</button>`
-    : next ? `<button class="primary" onclick="startBattle(${fi + 1})">Jornada ${fi + 2} →</button>` : `<button class="primary" onclick="show('menu')">Menu</button>`);
+    : `<button onclick="show('mapa')">Mapa</button>` + (prox ? `<button class="primary" onclick="startBattle(${pi})">${prox.nome} →</button>` : `<button class="primary" onclick="show('menu')">Menu</button>`));
   $('endOverlay').classList.add('on');
 }

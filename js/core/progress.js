@@ -3,10 +3,19 @@ import { D } from './utils.js';
 // progresso por versículo: forja 0–3 (dano) e afia 0–3 (duração do poder)
 export let prog = {};
 try { prog = JSON.parse(localStorage.getItem('ef-prog') || '{}'); } catch (e) {}
-// jornadas liberadas: índice da última (vencer uma libera a próxima)
-export let faseMax = 0;
-try { faseMax = +localStorage.getItem('ef-fase') || 0; } catch (e) {}
-export function unlockFase(i) { if (i <= faseMax) return; faseMax = i; try { localStorage.setItem('ef-fase', i); } catch (e) {} }
+// jornadas vencidas (ids de data.js → fases[].id). Uma jornada fica aberta quando não tem `abre` (as do começo: Exodus e
+// As Pragas, o jogador escolhe por qual começar) ou quando o herói já venceu alguma das listadas em `abre` (o Vale abre com
+// o Exodus OU As Pragas; a Babilônia com o Vale). Antes era um índice só (ef-fase): migra marcando as anteriores a ele
+export let vencidas = null;
+try { vencidas = JSON.parse(localStorage.getItem('ef-won') || 'null'); } catch (e) {}
+if (!Array.isArray(vencidas)) {
+  let fm = 0; try { fm = +localStorage.getItem('ef-fase') || 0; } catch (e) {}
+  vencidas = D.fases.slice(0, fm).map(f => f.id);
+}
+const saveWon = () => { try { localStorage.setItem('ef-won', JSON.stringify(vencidas)); } catch (e) {} };
+export const venceu = id => vencidas.includes(id);
+export const abertaBase = f => !f.abre || f.abre.some(venceu); // sem contar as opções de teste (Tudo liberado / jornadasLiberadas)
+export function marcarVitoria(id) { if (!id || venceu(id)) return; vencidas.push(id); saveWon(); }
 export const saveProg = () => { try { localStorage.setItem('ef-prog', JSON.stringify(prog)); } catch (e) {} };
 // versículos já encontrados na jornada (livro dourado); a forja só mostra estes
 export let found = [];

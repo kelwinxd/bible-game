@@ -1,4 +1,4 @@
-import { GROUND, HERO, HERO_ATK, HERO_DEF, HERO_DEFWALK, HERO_IDLE, HERO_SCALE, HERO_THRUST, SWING_HIT, ctx } from '../config.js';
+import { GROUND, HERO, HERO_ATK, HERO_DEF, HERO_DEFWALK, HERO_IDLE, HERO_QUEDA, HERO_SCALE, HERO_THRUST, SWING_HIT, ctx } from '../config.js';
 import { drawBird, drawDuvida, drawSpriteDemon, drawTentacao } from './enemies.js';
 import { drawBalloon, drawFatal, drawHUD, drawHpBar, drawTip, layoutBalloons } from './hud.js';
 import { bordaBuraco, drawBook, drawCaveExit, drawCaveMouth, drawEstrutura, drawShadow, drawCrescent, drawGoal, drawGround, drawHole, drawHoleFire, drawPlatform, drawRock, drawRubble, drawSky, relevo } from './world.js';
@@ -25,6 +25,16 @@ export function drawBattle() {
   ctx.save(); ctx.translate(-cam + (Math.random() - .5) * sh, (Math.random() - .5) * sh); // daqui até o restore: coordenadas do mundo
   drawCaveMouth();
   drawEstatua(); // atrás do chão
+  // caindo num buraco: o herói é desenhado AQUI, antes do chão — fica atrás da água, das mãos e das bordas (some no buraco)
+  const caindo = h.y > 0 && h.deadAt == null && B.holes.some(o => h.x > o.x && h.x < o.x + o.w) && HERO_QUEDA.img.naturalWidth;
+  if (caindo) {
+    const Q = HERO_QUEDA, fr = h.preso == null ? Math.min(Q.n - 1, Math.floor(h.y / Q.porY)) // descendo até a água
+      : h.preso < Q.preso ? Math.floor(h.preso * Q.fps) % Q.n : Q.n - 1; // preso: em loop (termina deitado); depois afunda deitado
+    ctx.save(); ctx.translate(h.x, GROUND + h.y - 80); ctx.scale(h.face, 1);
+    if (h.hurt > 0 && Math.floor(h.hurt * 30) % 2) ctx.globalAlpha = .4;
+    ctx.drawImage(Q.img, fr * Q.FW, 0, Q.FW, Q.FH, -Q.FW / 2, -Q.FH / 2, Q.FW, Q.FH);
+    ctx.restore();
+  }
   drawGround(cam);
   drawCaveExit();
   B.estruturas.forEach(drawEstrutura);
@@ -84,7 +94,7 @@ export function drawBattle() {
   if (h.hurt > 0 && Math.floor(h.hurt * 30) % 2) ctx.globalAlpha = .4;
   ctx.translate(h.x - (B.shield && !def ? 12 * h.face : 0), GROUND + h.y + pisoHeroi(h)); ctx.scale(h.face, 1);
   ctx.scale(HERO_SCALE * (dim.sc || 1), HERO_SCALE * (dim.sc || 1));
-  if (img.naturalWidth) ctx.drawImage(img, fr * dim.FW, 0, dim.FW, dim.FH, -dim.ax, 2 - dim.FH, dim.FW, dim.FH);
+  if (img.naturalWidth && !caindo) ctx.drawImage(img, fr * dim.FW, 0, dim.FW, dim.FH, -dim.ax, 2 - dim.FH, dim.FW, dim.FH); // caindo: já foi desenhado atrás do chão
   ctx.restore();
   B.holes.forEach(drawHoleFire); // mãos na frente do herói: quem cai é engolido por elas
   if (B.shield) { // escudo erguido

@@ -39,6 +39,39 @@ export function bleat(vol = .05) {
   } catch (e) {}
 }
 
+// som celestial (pegar o livro/a Bíblia): coro suave que cresce + arpejo de sinos de vidro subindo + brilho, com cauda longa (eco)
+export function celestial() {
+  if (!opts.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    const t = actx.currentTime, out = actx.createGain(); out.gain.value = .5;
+    const eco = actx.createDelay(1), fb = actx.createGain(), wet = actx.createGain(); eco.delayTime.value = .19; fb.gain.value = .38; wet.gain.value = .35;
+    out.connect(actx.destination); out.connect(eco); eco.connect(fb); fb.connect(eco); eco.connect(wet); wet.connect(actx.destination);
+    // coro: acorde de Ré maior com 3 vozes levemente desafinadas cada, filtro suave, vibrato lento, entra e sai devagar
+    const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 1900; lp.connect(out);
+    [294, 440, 587, 740, 880].forEach(f => [-8, 0, 8].forEach(d => {
+      const o = actx.createOscillator(), g = actx.createGain(), vib = actx.createOscillator(), vg = actx.createGain();
+      o.type = 'sawtooth'; o.frequency.value = f; o.detune.value = d; vib.frequency.value = 5 + Math.random(); vg.gain.value = 6; vib.connect(vg); vg.connect(o.detune);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.012, t + .35); g.gain.setValueAtTime(.012, t + .9); g.gain.exponentialRampToValueAtTime(.0001, t + 1.9);
+      o.connect(g); g.connect(lp); o.start(t); o.stop(t + 2); vib.start(t); vib.stop(t + 2);
+    }));
+    // sinos de vidro: arpejo subindo (cada nota com um parcial de sino por cima)
+    [1175, 1480, 1760, 2349, 2960, 3520].forEach((f, i) => {
+      const at = t + .05 + i * .07;
+      [[1, .1], [2.76, .025]].forEach(([m, v]) => {
+        const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; o.frequency.value = f * m;
+        g.gain.setValueAtTime(.0001, at); g.gain.exponentialRampToValueAtTime(v, at + .008); g.gain.exponentialRampToValueAtTime(.0001, at + .9);
+        o.connect(g); g.connect(out); o.start(at); o.stop(at + .92);
+      });
+    });
+    // brilho: chiado agudo bem baixinho subindo
+    const n = actx.createBufferSource(), nf = actx.createBiquadFilter(), ng = actx.createGain();
+    n.buffer = noise(1.2); nf.type = 'bandpass'; nf.Q.value = 3; nf.frequency.setValueAtTime(4000, t); nf.frequency.exponentialRampToValueAtTime(9000, t + 1.2);
+    ng.gain.setValueAtTime(.0001, t); ng.gain.exponentialRampToValueAtTime(.06, t + .3); ng.gain.exponentialRampToValueAtTime(.0001, t + 1.2);
+    n.connect(nf); nf.connect(ng); ng.connect(out); n.start(t);
+  } catch (e) {}
+}
+
 // Fatality: batida de metal + trecho curto de melodia medieval (~2s), tudo sintetizado
 export function fatalSound() {
   if (!opts.sound) return;
@@ -88,15 +121,22 @@ export function swordSfx(kind) {
     };
     if (kind === 'swing') {
       hiss(.17, 380, 1300, .8, 1.3); // sopro curto: o filtro sobe e cai rápido, sem tom de metal
-    } else if (kind === 'laser') { // poder do versículo: vento leve + feixe de luz fino (senoides limpas que deslizam, sem zumbido grave)
-      hiss(.22, 1000, 3300, .8, .6);
-      const L = .3;
-      [[2050, 870, .14], [3075, 1300, .05]].forEach(([f0, f1, v]) => { // o feixe e um harmônico bem baixo
-        const o = actx.createOscillator(), g = actx.createGain(), vib = actx.createOscillator(), vg = actx.createGain();
-        o.type = 'sine'; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + L);
-        vib.frequency.value = 38; vg.gain.value = f0 * .012; vib.connect(vg); vg.connect(o.frequency); // tremor leve = brilho de energia
-        g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(v, t + .02); g.gain.exponentialRampToValueAtTime(.0005, t + L);
-        o.connect(g); g.connect(out); o.start(t); o.stop(t + L); vib.start(t); vib.stop(t + L);
+    } else if (kind === 'laser') { // poder do versículo: rajada de luz — sopro que sobe + acorde brilhante que abre + sininho no fim
+      hiss(.32, 500, 5200, 1.1, .9); // o sopro de energia subindo
+      const o0 = actx.createOscillator(), g0 = actx.createGain(); o0.type = 'sine'; // o "tum" do impulso
+      o0.frequency.setValueAtTime(120, t); o0.frequency.exponentialRampToValueAtTime(55, t + .18);
+      g0.gain.setValueAtTime(.5, t); g0.gain.exponentialRampToValueAtTime(.001, t + .2); o0.connect(g0); g0.connect(out); o0.start(t); o0.stop(t + .21);
+      const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 4; lp.frequency.setValueAtTime(600, t); lp.frequency.exponentialRampToValueAtTime(7000, t + .22); lp.connect(out);
+      [523, 659, 784, 1047].forEach((f, i) => { // acorde maior que sobe uma oitava e abre o filtro (brilho, sem zumbido)
+        const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sawtooth'; o.detune.value = (i - 1.5) * 7;
+        o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 2, t + .22);
+        g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.05, t + .03); g.gain.exponentialRampToValueAtTime(.0005, t + .42);
+        o.connect(g); g.connect(lp); o.start(t); o.stop(t + .43);
+      });
+      [2093, 3136].forEach((f, i) => { // o sininho de luz quando o corte sai
+        const o = actx.createOscillator(), g = actx.createGain(), at = t + .12 + i * .05; o.type = 'sine'; o.frequency.value = f;
+        g.gain.setValueAtTime(.0001, at); g.gain.exponentialRampToValueAtTime(.09, at + .01); g.gain.exponentialRampToValueAtTime(.0005, at + .5);
+        o.connect(g); g.connect(out); o.start(at); o.stop(at + .52);
       });
     } else if (kind === 'cut') { // golpe na carne: pancada surda + tapa úmido do corte, sem nada de metal
       const o = actx.createOscillator(), g = actx.createGain(); o.type = 'sine'; // a pancada no corpo
@@ -144,6 +184,56 @@ export function stoneSfx(kind, dano = 0) {
         thump(at, 90 + Math.random() * 60, .5 * v); burst(at, .12, 'bandpass', 500 + Math.random() * 500, 1.2, .5 * v);
       }
       burst(t + .3, 1, 'bandpass', 2600, 1.5, .18, 1400); // poeira e cascalho no fim
+    }
+  } catch (e) {}
+}
+
+// ---------- Sons gravados (assets/audio) ----------
+// escudo.mp3 (~8,7 s, um zumbido contínuo): toca EM LOOP enquanto o escudo está erguido (entra e sai com fade curto)
+// poder.mp3 (~4,2 s): o golpe com o poder do versículo (no lugar do 'laser' sintetizado, que fica de reserva até carregar)
+const RAW = { escudo: 'assets/audio/escudo.mp3', poder: 'assets/audio/poder.mp3' }, BUF = {}, BYTES = {};
+for (const k in RAW) fetch(RAW[k]).then(r => r.ok ? r.arrayBuffer() : null).then(a => { BYTES[k] = a; decode(); }).catch(() => {});
+function decode() { // só decodifica depois que o AudioContext existe (ele nasce no 1º som, já com um clique/tecla do jogador)
+  if (!actx) return;
+  for (const k in BYTES) if (BYTES[k] && !BUF[k]) { const a = BYTES[k]; BYTES[k] = null; actx.decodeAudioData(a).then(b => { BUF[k] = b; }).catch(() => {}); }
+}
+function ctxOk() {
+  actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  decode(); return actx;
+}
+// golpe com poder; devolve false se o arquivo ainda não carregou (aí quem chama usa o som sintetizado)
+export function poderSfx() {
+  if (!opts.sound) return true;
+  try {
+    ctxOk(); if (!BUF.poder) return false;
+    const s = actx.createBufferSource(), g = actx.createGain(); s.buffer = BUF.poder; g.gain.value = .4;
+    s.connect(g); g.connect(actx.destination); s.start(); return true;
+  } catch (e) { return false; }
+}
+// versículo certo: um trecho de ~1 s do mesmo som do escudo, MAIS AGUDO (tocado 1,6× mais rápido), com fade; false se não carregou
+export function acertoSfx() {
+  if (!opts.sound) return true;
+  try {
+    ctxOk(); if (!BUF.escudo) return false;
+    const s = actx.createBufferSource(), g = actx.createGain(), t = actx.currentTime, dur = 1;
+    s.buffer = BUF.escudo; s.playbackRate.value = 1.6;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.45, t + .03); g.gain.setValueAtTime(.45, t + .4); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    s.connect(g); g.connect(actx.destination); s.start(t, .3, dur * 1.6 + .05); return true;
+  } catch (e) { return false; }
+}
+let esc = null; // o loop do escudo tocando agora: { s, g }
+export function escudoSom(on) {
+  try {
+    if (on && opts.sound) {
+      ctxOk(); if (esc || !BUF.escudo) return;
+      const s = actx.createBufferSource(), g = actx.createGain(), t = actx.currentTime;
+      s.buffer = BUF.escudo; s.loop = true; s.loopStart = .3; s.loopEnd = 8.4; // o miolo contínuo, sem o começo nem o fade do fim
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.35, t + .08);
+      s.connect(g); g.connect(actx.destination); s.start(); esc = { s, g };
+    } else if (esc) {
+      const { s, g } = esc, t = actx.currentTime; esc = null;
+      g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.exponentialRampToValueAtTime(.0001, t + .15); s.stop(t + .16);
     }
   } catch (e) {}
 }

@@ -18,6 +18,7 @@
 .menu-list button.primary:hover, .menu-list button.primary:focus-visible { background:#8a3214f0; }
 .menu-back { margin-top:16px; background:transparent; border-color:#5a4030; }
 .menu-sub .setting { background:#1a120ecc; }
+.menu-sub .setting-sec { margin:18px 2px 4px; font:600 12px system-ui; letter-spacing:2px; text-transform:uppercase; color:#ffb46a; }
 .menu-sub .setting select { flex:none; font:inherit; font-size:14px; color:var(--ink); background:#2a1f18; border:1px solid #6b4a32; border-radius:6px; padding:6px 8px; }
 .menu-test { margin-top:14px; }
 .menu-test summary { cursor:pointer; color:var(--muted); font-size:14px; padding:6px 2px; }

@@ -2,15 +2,17 @@ import { attack, startDash } from '../battle/combat.js';
 import { JUMP, cv } from '../battle/config.js';
 import { setPause, togglePeek, useVerse } from '../battle/hud.js';
 import { B, keys } from '../battle/state.js';
+import { escudoSom } from '../core/audio.js';
 import { $ } from '../core/utils.js';
 import { hammer } from '../forge/forge.js';
 import { curSharp, pickSharp } from '../forge/sharpen.js';
 
 // ---------- Entrada ----------
 export function setShield(on) {
-  if (!B) return;
+  if (!B) return escudoSom(false);
   if (on && (B.shieldLock || B.shieldE <= 0)) on = false;
   if (on && !B.shield) B.shieldAt = B.time; // começo da animação de erguer o escudo
+  if (on !== !!B.shield) escudoSom(on); // o zumbido do escudo (escudo.mp3) em loop enquanto erguido
   B.shield = on; $('shieldBtn').classList.toggle('on', on);
   if (on && B.tut && B.tut.acido) B.tut.shielded = true; // tutorial: a dica do [J] (na cobra do ácido) some
 }

@@ -27,12 +27,13 @@
       <h2>Configurações</h2>
       <label class="setting"><span><b>Som</b><span class="muted">Efeitos sonoros do jogo</span></span>
         <input type="checkbox" id="optSound" checked><span class="switch"></span></label>
+      <h3 class="setting-sec">Desenvolvedor</h3>
+      <label class="setting"><span><b>Imortalidade</b><span class="muted">Ligada: a vida não cai. Desligada: o jogo de verdade (dá para morrer)</span></span>
+        <input type="checkbox" id="optGod" checked><span class="switch"></span></label>
       <details class="menu-test">
         <summary>Opções de teste do protótipo</summary>
         <label class="setting"><span><b>Faixa da forja</b><span class="muted">Velocidade das palavras ao martelar</span></span>
           <select id="optForge"><option value="normal">Normal</option><option value="calma">Calma</option><option value="sempressa">Parada</option></select></label>
-        <label class="setting"><span><b>Jogador imortal</b><span class="muted">A vida não cai</span></span>
-          <input type="checkbox" id="optGod" checked><span class="switch"></span></label>
         <label class="setting"><span><b>Tudo liberado</b><span class="muted">Todos os versículos, 3 fogos e todas as jornadas</span></span>
           <input type="checkbox" id="optAll"><span class="switch"></span></label>
       </details>
@@ -67,7 +68,7 @@
   <header class="hab-top">
     <button onclick="habBack()" id="habBack">← Menu</button>
     <h1 class="hab-title" id="habTitle">Habilidades</h1>
-    <button class="primary" onclick="startBattle()">Ir para a jornada ⚔</button>
+    <button class="primary" onclick="show('mapa')">Ir para a jornada ⚔</button>
   </header>
   <div class="hab-body">
     <!-- Forjar versículos -->
@@ -282,6 +283,8 @@
     <div id="pauseSettings" style="display:none">
       <label class="setting"><span><b>Som</b><span class="muted">Efeitos sonoros do jogo</span></span>
         <input type="checkbox" id="pauseSound" checked><span class="switch"></span></label>
+      <label class="setting"><span><b>Imortalidade</b><span class="muted">Desenvolvedor · a vida não cai (vale na hora)</span></span>
+        <input type="checkbox" id="pauseGod" checked><span class="switch"></span></label>
     </div>
   </div>
 </div></div>

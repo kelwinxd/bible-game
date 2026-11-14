@@ -4,7 +4,7 @@ import { updateSheep } from './sheep.js';
 import { updateCena, updatePreCena } from './cena.js';
 import { bossAlive, bossBlocksWin, bossBox, damageBoss, spitAcid, updateAcid, updateBoss } from './boss.js';
 import { attack, damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
-import { DASH_CD, DASH_SPEED, ESPR, GRAV, GROUND, SPIT_ANIM, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
+import { DASH_CD, DASH_SPEED, ESPR, GRAV, GROUND, HERO_QUEDA, SPIT_ANIM, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
 import { B, keys } from './state.js';
 import { ENEMY_GAP, stepIdol, collectBook, fallInHole, floorAt, hitRock, makeDemon, moveX, pickLie, restoreLie, rockBox, terrainTop } from './world.js';
 import { sfx } from '../core/audio.js';
@@ -15,7 +15,7 @@ import { sp } from '../ui/sparks.js';
 
 // passagem entre a superfície e a caverna: escurece (FADE s), troca de lugar no escuro, tela preta (PRETO s) e clareia (FADE s);
 // o jogo fica parado enquanto isso
-export const PASSAGEM = { FADE: .6, PRETO: 2 };
+export const PASSAGEM = { FADE: .6, PRETO: 1 };
 export function passagemAlfa(P) {
   const { FADE, PRETO } = PASSAGEM;
   return P.t < FADE ? P.t / FADE : P.t < FADE + PRETO ? 1 : Math.max(0, 1 - (P.t - FADE - PRETO) / FADE);
@@ -80,18 +80,23 @@ export function updateBattle(rdt) {
     const floor = floorAt(h);
     if (!(h.dash > 0)) h.vy += GRAV * dt;
     h.y = Math.min(floor, h.y + h.vy * dt);
-    h.ground = h.y === floor; if (h.ground) h.vy = 0;
+    h.ground = h.y === floor; if (h.ground) { h.vy = 0; h.preso = null; }
+    // caiu num buraco: ao chegar à água fica preso ~1 s atrás das ondas (animação em loop) e só então afunda
+    if (h.preso == null && !B.fase.buracoSeco && !h.ground && h.y >= HERO_QUEDA.para && B.holes.some(o => h.x > o.x && h.x < o.x + o.w)) { h.preso = 0; h.presoX = h.x; }
+    if (h.preso != null && h.preso < HERO_QUEDA.preso) { h.preso += dt; h.y = HERO_QUEDA.para; h.vy = 0; h.x = h.presoX; h.dash = 0; }
     if (h.ground && terrainTop(h.x - 45) !== Infinity && terrainTop(h.x + 45) !== Infinity) h.safe = { x: h.x, y: h.y };
     const C = B.caverna;
     if (C && !B.zona && h.x > C.x && h.x < C.x + C.w && h.y > 90) { // caiu na boca do vale: despenca dentro da caverna
       sfx('hurt');
       B.passagem = { t: 0, acao: () => { // no escuro: já está lá embaixo, caindo do teto da caverna
         B.zona = 'caverna'; h.x = C.entrada; h.y = -300; h.vy = 0; h.safe = { x: C.entrada, y: 0 }; B.cam = C.x0;
-        B.notice = { lines: ['Você caiu na caverna escura!', 'Ache a Palavra aqui embaixo e a saída do outro lado'], t: 4, c: '#ffb46a' };
+        B.notice = { lines: C.aviso || ['Você caiu na caverna escura!', 'Ache a Palavra aqui embaixo e a saída do outro lado'], t: 4, c: '#ffb46a' };
       } };
     } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && (B.groups.some(g => g.apos && !g.done) || B.demons.length || B.frogs.some(f => f.bando && !f.dead && f.x > C.x0))) {
       // a saída só abre com a caverna limpa (as ondas também contam para o Golias aparecer depois)
       h.x = C.x1 - 170; if (!B.notice) B.notice = { lines: ['Uma força te prende aqui embaixo…', 'Derrote os monstros da caverna para sair'], t: 2.5, c: '#ff8a6a' };
+    } else if (C && C.fim && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && !B.over) { // caverna do fim da jornada (As Pragas): chegou ao fim dela = venceu
+      B.over = true; endScreen(true);
     } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160) { // subiu a rampa do fim: sai logo depois do vale
       h.vy = 0;
       B.passagem = { t: 0, acao: () => {

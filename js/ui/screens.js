@@ -1,4 +1,5 @@
 import { setB } from '../battle/state.js';
+import { escudoSom } from '../core/audio.js';
 import { $ } from '../core/utils.js';
 import { clearForge } from '../forge/forge.js';
 import { renderList } from '../forge/list.js';
@@ -16,5 +17,5 @@ export function show(id) {
   if (id === 'mapa') renderMap();
   if (id !== 'forge') clearForge();
   if (id !== 'sharpen') clearSharp();
-  if (id !== 'battle') setB(null);
+  if (id !== 'battle') { setB(null); escudoSom(false); } // saiu da batalha: o loop do escudo para
 }

@@ -31,6 +31,10 @@ HERO_DEF.img.src = 'assets/sprites/hero/defend.webp';
 // alinhados pelo capacete (os pés mudam de lugar a cada passo)
 export const HERO_DEFWALK = { img: new Image(), FW: 172, FH: 204, ax: 111, n: 6, fps: 7 };
 HERO_DEFWALK.img.src = 'assets/sprites/hero/defend-walk.webp';
+// caindo num buraco: 6 quadros 151×222 (espada erguida → tomba para trás → deitado), centrados; o quadro segue a altura da queda
+// ao chegar à água (para: px abaixo do chão) ele fica PRESO ~1 s atrás das ondas com a animação em loop (fps), depois afunda
+export const HERO_QUEDA = { img: new Image(), FW: 151, FH: 222, n: 6, porY: 55, para: 60, preso: 1, fps: 12 }; // porY: px de queda por quadro
+HERO_QUEDA.img.src = 'assets/sprites/hero/queda.webp';
 // Golpes do combo no chão: dois ataques de 6 quadros cada (attack1 / attack2), na mesma escala visual do idle
 // (a guarda do 1º quadro tem a mesma altura nos dois), cada quadro alinhado pelo pé de trás → ax = meio dos pés, pés na base.
 // sc = escala extra ao desenhar (1,08: na arte o golpe ficava um pouco menor que o idle).

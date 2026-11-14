@@ -3,7 +3,7 @@ import { CALLOUT_T, WRONG_COLOR, WRONG_T } from './config.js';
 import { B, keys } from './state.js';
 import { bossAlive, giantLieY } from './boss.js';
 import { flyToCard, restoreLie } from './world.js';
-import { sfx } from '../core/audio.js';
+import { acertoSfx, sfx } from '../core/audio.js';
 import { gradeIdx, powerDur, runeHTML, verseMult } from '../core/progress.js';
 import { $, D } from '../core/utils.js';
 import { setShield } from '../input/controls.js';
@@ -75,7 +75,7 @@ export function useVerse(i) {
   if (!target) { sfx('wrong'); B.deck.forEach((_, k) => B.cd[k] = 2.5); B.callout = { s: 'Versículo errado', t: WRONG_T, dur: WRONG_T, c: WRONG_COLOR }; addFire(-1); return; }
   if (B.tut) B.tut.refuted = true;
   B.callout = { s: v.ref, t: CALLOUT_T, dur: CALLOUT_T, c: tema(v) }; // referência certa aparece na cor do tema acima do herói
-  sfx('refute');
+  if (!acertoSfx()) sfx('refute'); // o som do escudo, mais agudo
   // a mentira continua visível até o demônio morrer; o balão só ganha um brilho na cor do versículo
   B.fx.push({ burst: true, x: Math.min(B.cam + 900, Math.max(B.cam + 60, target.x)), y: target.kind ? giantLieY(target) - 30 : balloonY(target) - 30, t: .25, c: tema(v) });
   target.vuln = true; target.lastVerse = v;

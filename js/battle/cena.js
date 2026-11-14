@@ -81,7 +81,7 @@ export function drawCena() {
       const a = Math.min(1, (C.t - IMPACTO - .25) / .3);
       ctx.globalAlpha = a; ctx.textAlign = 'center'; ctx.lineJoin = 'round';
       ctx.font = '800 34px Cinzel, Georgia, serif'; ctx.lineWidth = 7; ctx.strokeStyle = '#1a0a04'; ctx.fillStyle = '#ffd36a';
-      ctx.strokeText('A estátua de ouro despertou!', W / 2, H - 70); ctx.fillText('A estátua de ouro despertou!', W / 2, H - 70);
+      ctx.strokeText('O Ídolo Babilônico despertou!', W / 2, H - 70); ctx.fillText('O Ídolo Babilônico despertou!', W / 2, H - 70);
       ctx.font = '600 18px Georgia, serif'; ctx.lineWidth = 5; ctx.fillStyle = '#f3e7d3';
       ctx.strokeText('"Não serviremos a teus deuses, nem adoraremos a estátua de ouro" — Daniel 3:18', W / 2, H - 38);
       ctx.fillText('"Não serviremos a teus deuses, nem adoraremos a estátua de ouro" — Daniel 3:18', W / 2, H - 38);

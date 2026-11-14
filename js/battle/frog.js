@@ -41,20 +41,35 @@ const BICHO = {
   soldado: { vida: 40, dano: 8, anda: 50, corre: 130, perto: 230, ronda: 160, coleira: 320, arma: .45, golpe: .45, salto: 22, cd: 1.6, ataca: 145, colado: 95,
     run: { img: new Image(), FW: 127, FH: 153, ax: 59, n: 8 }, atk: { img: new Image(), FW: 183, FH: 129, ax: 34, n: 5 }, nArma: 2, arcoAt: [0, 0, 0, 0, 0],
     caixa: (f, y) => [f.x - 30, y - 125, f.x + 30, y],
-    ponta: (f, y, fr) => fr >= 2 && fr <= 3 ? [Math.min(f.x, f.x + f.face * 145), y - 105, Math.max(f.x, f.x + f.face * 145), y - 40] : null, sombra: 80, som: 'slash' }
+    ponta: (f, y, fr) => fr >= 2 && fr <= 3 ? [Math.min(f.x, f.x + f.face * 145), y - 105, Math.max(f.x, f.x + f.face * 145), y - 40] : null, sombra: 80, som: 'slash' },
+  // mulher dos piolhos (Exodus, Êxodo 8:16–18, a praga dos piolhos): corre com as mãos na cabeça; de longe PARA e cospe uma nuvem
+  // de piolhos no herói — o ataque vai do 1º ao último quadro (abre os braços, a boca cospe) e VOLTA do último ao 1º (volta).
+  // Os piolhos são pontinhos marrons (a cor dos da arte) que voam da boca até onde o herói estava; a nuvem fere uma vez (o escudo
+  // bloqueia). Não morde: só a nuvem fere. Sprites (olha para a direita): piolhenta-run.webp 6 quadros 132×187 (alinhados pelo
+  // tronco); piolhenta-attack.webp 6 quadros 214×196 (alinhados pelos pés; a arte do ataque era ~21% menor e foi igualada pelo rosto)
+  piolhenta: { vida: 30, dano: 7, anda: 50, corre: 120, perto: 420, ronda: 170, coleira: 380, arma: .6, golpe: .75, salto: 0, cd: 2.2, ataca: 330, colado: 240,
+    run: { img: new Image(), FW: 132, FH: 187, ax: 70, n: 6 }, atk: { img: new Image(), FW: 214, FH: 196, ax: 57, n: 6 }, idle: { img: new Image(), FW: 108, FH: 198, ax: 43, n: 6, fps: 6 }, nArma: 6, arcoAt: [0, 0, 0, 0, 0, 0],
+    volta: true, cospe: { boca: [65, 148], n: 16, solta: .3, vel: [330, 470], abre: .2, vida: 1.5 },
+    caixa: (f, y) => [f.x - 27, y - 145, f.x + 27, y], sombra: 70, som: 'whoosh', cores: ['200,180,140', '110,70,30'] }
 };
 BICHO.soldado.run.img.src = 'assets/sprites/enemy/soldado-run.webp'; BICHO.soldado.atk.img.src = 'assets/sprites/enemy/soldado-attack.webp';
+BICHO.piolhenta.idle.img.src = 'assets/sprites/enemy/piolhenta-idle.webp'; // parada: agachada, puxando os cabelos (alinhada pelos pés)
+BICHO.piolhenta.run.img.src = 'assets/sprites/enemy/piolhenta-run.webp'; BICHO.piolhenta.atk.img.src = 'assets/sprites/enemy/piolhenta-attack.webp';
 function makeWolf(e) {
   const P = BICHO[e.tipo] || BICHO.lobo;
   return { kind: e.tipo in BICHO ? e.tipo : 'lobo', P, bando: e.bando, x: e.x, home: e.x, face: Math.random() < .5 ? -1 : 1, hp: P.vida, maxHp: P.vida, state: 'walk', t: 0, wait: 0, ph: Math.random() * 6, flash: 0, cd: 0, moving: false };
 }
 // quadro do ataque (-1 = andando): armando → nArma quadros; golpe → os outros
-const wolfFrame = f => { const P = f.P, nG = P.atk.n - P.nArma; return f.state === 'arm' ? Math.min(P.nArma - 1, Math.floor(f.t / P.arma * P.nArma)) : f.state === 'leap' ? P.nArma + Math.min(nG - 1, Math.floor(f.t / P.golpe * nG)) : -1; };
+const wolfFrame = f => {
+  const P = f.P, n = P.atk.n;
+  if (P.volta) return f.state === 'arm' ? Math.min(n - 1, Math.floor(f.t / P.arma * n)) : f.state === 'leap' ? Math.max(0, n - 1 - Math.floor(Math.max(0, f.t - .2) / (P.golpe - .2) * n)) : -1;
+  const nG = n - P.nArma; return f.state === 'arm' ? Math.min(P.nArma - 1, Math.floor(f.t / P.arma * P.nArma)) : f.state === 'leap' ? P.nArma + Math.min(nG - 1, Math.floor(f.t / P.golpe * nG)) : -1; };
 const wolfBox = f => { const fr = wolfFrame(f), y = GROUND + terrainTop(f.x) - (fr >= 0 ? f.P.arcoAt[fr] : 0); return f.P.caixa(f, y); };
 function updateWolf(f, h, dt) {
   const P = f.P, dx = h.x - f.x, perto = Math.abs(dx) < P.perto && Math.abs(h.y - terrainTop(f.x)) < 90 && h.deadAt == null;
   const ok = x => terrainTop(x) !== Infinity && terrainTop(x) >= terrainTop(f.x) - 30; // sem buraco nem parede
   f.moving = false; f.t += dt;
+  if (P.cospe) piolhos(f, h, dt);
   if (f.state === 'walk') {
     if (perto && !(f.chaseOff > 0)) f.face = Math.sign(dx) || f.face;
     if (perto && Math.abs(dx) < P.ataca && f.cd <= 0) { f.state = 'arm'; f.t = 0; return; } // ao alcance: arma o golpe
@@ -69,30 +84,66 @@ function updateWolf(f, h, dt) {
     if ((Math.abs(nx - f.home) <= lim || volta) && ok(nx + f.face * 50)) { f.x = nx; f.moving = true; }
     else f.face = -f.face; // fim da ronda, buraco ou parede: dá meia-volta
   } else if (f.state === 'arm') {
-    if (f.t >= P.arma) { f.state = 'leap'; f.t = 0; f.hit = false; f.x0 = f.x; sfx(P.som); }
+    if (f.t >= P.arma) { f.state = 'leap'; f.t = 0; f.hit = false; f.x0 = f.x; sfx(P.som); if (P.cospe) cuspir(f, h); }
   } else if (f.state === 'leap') {
     const k = Math.min(1, f.t / P.golpe), stop = h.x - f.face * 45;
     let to = f.x0 + f.face * P.salto * Math.sin(k * Math.PI / 2);
     to = f.face > 0 ? Math.min(to, Math.max(f.x, stop)) : Math.max(to, Math.min(f.x, stop)); // não atravessa o herói
     if (ok(to)) f.x = to;
-    const fr = wolfFrame(f), y = GROUND + terrainTop(f.x), golpe = P.ponta ? P.ponta(f, y, fr) : wolfBox(f); // lança: só a ponta, nos quadros da estocada
+    const fr = wolfFrame(f), y = GROUND + terrainTop(f.x), golpe = P.cospe ? null : P.ponta ? P.ponta(f, y, fr) : wolfBox(f); // a que cospe não morde // lança: só a ponta, nos quadros da estocada
     if (!f.hit && golpe && overlap(golpe, heroBox(h))) { f.hit = true; hitHero(P.dano); }
     if (f.t >= P.golpe) { f.state = 'walk'; f.t = 0; f.cd = P.cd; }
   }
 }
 function drawWolf(f) {
-  const P = f.P, fr = wolfFrame(f), S = fr >= 0 ? P.atk : P.run; if (!S.img.naturalWidth) return;
-  const q = fr >= 0 ? fr : f.moving ? Math.floor(f.ph * (f.cd > 0 || Math.abs(B.hero.x - f.x) < P.perto ? 12 : 7)) % S.n : 0;
+  const P = f.P, fr = wolfFrame(f), parada = fr < 0 && !f.moving && P.idle && P.idle.img.naturalWidth; // parada: a animação idle (se tiver)
+  const S = fr >= 0 ? P.atk : parada ? P.idle : P.run; if (!S.img.naturalWidth) return;
+  const q = fr >= 0 ? fr : parada ? Math.floor(f.ph * P.idle.fps) % S.n : f.moving ? Math.floor(f.ph * (f.cd > 0 || Math.abs(B.hero.x - f.x) < P.perto ? 12 : 7)) % S.n : 0;
   drawShadow(f.x + f.face * 4, GROUND + terrainTop(f.x) + relevo(f.x), P.sombra, fr >= 0 ? P.arcoAt[fr] : 0);
   ctx.save(); ctx.translate(f.x, GROUND + terrainTop(f.x) + relevo(f.x)); ctx.scale(f.face, 1);
   if (f.flash > 0) ctx.filter = 'brightness(3) saturate(0)';
   else if (f.state === 'arm') ctx.filter = 'drop-shadow(0 0 10px #ff2020)';
   ctx.drawImage(S.img, q * S.FW, 0, S.FW, S.FH, -S.ax, 2 - S.FH, S.FW, S.FH);
   ctx.restore();
+  if (f.piol) drawPiolhos(f);
+}
+// a nuvem: N piolhos saem da boca em sequência (ao longo de "solta" s), em leque até onde o herói está; voam caindo um pouco
+function cuspir(f, h) {
+  const C = f.P.cospe, x = f.x + f.face * C.boca[0], y = GROUND + terrainTop(f.x) - C.boca[1];
+  const mira = Math.atan2(GROUND + h.y - 100 - y, h.x - x), volley = { hit: false };
+  f.piol = (f.piol || []).filter(p => !p.dead);
+  for (let k = 0; k < C.n; k++) {
+    const a = mira + (Math.random() - .5) * 2 * C.abre, v = C.vel[0] + Math.random() * (C.vel[1] - C.vel[0]);
+    f.piol.push({ x, y, vx: Math.cos(a) * v, vy: Math.sin(a) * v, espera: k / C.n * C.solta, t: 0, volley, r: 2.4 + Math.random() * 1.4, ph: Math.random() * 6 });
+  }
+}
+function piolhos(f, h, dt) {
+  if (!f.piol) return;
+  f.piol.forEach(p => {
+    if (p.espera > 0) { p.espera -= dt; return; } // ainda não saiu da boca
+    p.t += dt; p.vy += 160 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+    if (p.t > f.P.cospe.vida || p.y > GROUND + terrainTop(p.x) + 5) { p.dead = true; return; }
+    if (overlap([p.x - 5, p.y - 5, p.x + 5, p.y + 5], heroBox(h))) { p.dead = true; if (!p.volley.hit) { p.volley.hit = true; hitHero(f.P.dano); } } // a nuvem fere uma vez
+  });
+  f.piol = f.piol.filter(p => !p.dead);
+}
+// pontinho marrom (as cores dos piolhos da arte): corpo oval com contorno escuro e um brilho, tremendo um pouco no voo
+function drawPiolhos(f) {
+  ctx.save();
+  f.piol.forEach(p => {
+    if (p.espera > 0) return;
+    const a = Math.atan2(p.vy, p.vx), w = p.r * (1.15 + .15 * Math.sin(p.ph + p.t * 40)), al = Math.min(1, (f.P.cospe.vida - p.t) / .25);
+    ctx.globalAlpha = al; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(a);
+    ctx.fillStyle = '#381808'; ctx.beginPath(); ctx.ellipse(0, 0, w + 1.2, p.r * .8 + 1.2, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#86562a'; ctx.beginPath(); ctx.ellipse(0, 0, w, p.r * .8, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#c08a48'; ctx.beginPath(); ctx.arc(w * .3, -p.r * .25, p.r * .3, 0, 7); ctx.fill();
+    ctx.restore();
+  });
+  ctx.restore();
 }
 
 export function makeFrog(e) {
-  if (e.tipo in BICHO) return makeWolf(e); // lobo, soldado
+  if (e.tipo in BICHO) return makeWolf(e); // lobo, soldado, mulher dos piolhos
   // ronda (data.js): só patrulha, nunca persegue; ensina: a dica do tutorial "[K] atacar" aparece perto dela
   return { bando: e.bando, x: e.x, home: e.x, ronda: !!e.ronda, ensina: !!e.ensina, face: Math.random() < .5 ? -1 : 1, hp: VIDA, maxHp: VIDA, state: 'idle', t: 0, wait: .8 + Math.random() * 1.6, ph: Math.random() * 6, flash: 0, cd: 0, x0: e.x, x1: e.x };
 }
@@ -161,9 +212,10 @@ export function hitFrog(f, dmg, cor = '#bbb') {
   const b = frogBox(f);
   B.floats.push({ x: f.x, y: b[1] - 14, t: .7, s: dmg.toFixed(dmg % 1 ? 1 : 0), c: cor });
   if (f.hp > 0) return;
+  if (B.fase && B.fase.dev) { f.hp = f.maxHp; return; } // Bestiário: imortal (a vida volta cheia)
   f.dead = true; sfx('slash');
   for (let k = 0; k < (reduced ? 6 : 16); k++)
-    B.shards.push({ x: f.x + (Math.random() - .5) * 50, y: b[1] + 30, vx: (Math.random() - .5) * 300, vy: -100 - Math.random() * 260, r: Math.random() * 6, t: .7, c: f.kind === 'soldado' ? (Math.random() < .5 ? '200,170,120' : '170,40,30') : f.kind === 'lobo' ? (Math.random() < .5 ? '70,60,58' : '150,40,30') : Math.random() < .5 ? '120,160,50' : '200,170,80', sz: .4 + Math.random() * .5 });
+    B.shards.push({ x: f.x + (Math.random() - .5) * 50, y: b[1] + 30, vx: (Math.random() - .5) * 300, vy: -100 - Math.random() * 260, r: Math.random() * 6, t: .7, c: f.P && f.P.cores ? f.P.cores[Math.random() < .5 ? 0 : 1] : f.kind === 'soldado' ? (Math.random() < .5 ? '200,170,120' : '170,40,30') : f.kind === 'lobo' ? (Math.random() < .5 ? '70,60,58' : '150,40,30') : Math.random() < .5 ? '120,160,50' : '200,170,80', sz: .4 + Math.random() * .5 });
 }
 // toca no herói (golpe/rasgo/impulso): cada fonte de dano chama isto com a sua caixa
 export function frogsIn(box, fn) { B.frogs.forEach(f => { if (!f.dead && overlap(box, frogBox(f))) fn(f); }); }

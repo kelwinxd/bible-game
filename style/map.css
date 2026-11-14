@@ -10,11 +10,16 @@
 .map-head .menu-back { margin:0; background:#1a120ecc; }
 .map-head h2 { margin:0; color:var(--gold); font-size:clamp(20px, 3vw, 30px); text-shadow:0 2px 0 #000; }
 
-.map-stage { position:relative; z-index:1; margin:auto; aspect-ratio:16/9; container-type:inline-size;
-  width:min(100vw, calc(100vh * 16 / 9)); width:min(100vw, calc(100dvh * 16 / 9)); }
-@media (orientation:portrait) {
-  .map-stage { aspect-ratio:9/16; width:min(100vw, calc(100vh * 9 / 16)); width:min(100vw, calc(100dvh * 9 / 16)); }
-}
+/* o palco ocupa a tela inteira (o mapa geográfico estica um pouco para caber) */
+.map-stage { position:absolute; inset:0; z-index:1; container-type:inline-size; }
+/* fundo geográfico (js/ui/map.js → GEO): pergaminho com textura, mares, rios e montes; nomes das regiões por cima */
+.map-geo { position:absolute; inset:0; width:100%; height:100%; opacity:.9; }
+.map-reg { position:absolute; transform:translate(-50%, -50%); pointer-events:none; white-space:nowrap;
+  font-family:Cinzel, serif; font-weight:700; text-transform:uppercase; letter-spacing:.5cqw; font-size:clamp(12px, 1.7cqw, 26px);
+  color:#e8cf9a55; text-shadow:0 1px 0 #0008; }
+.map-reg.peq { font-size:clamp(10px, 1.05cqw, 16px); letter-spacing:.3cqw; color:#e8cf9a44; }
+.map-reg.mar { font-style:italic; text-transform:none; letter-spacing:.2cqw; color:#9fc4d877; }
+.map-reg.rio { font-style:italic; text-transform:none; color:#9fc4d866; }
 /* rosa dos ventos no canto */
 .map-stage::before { content:'✦'; position:absolute; right:4cqw; bottom:4cqw; font-size:9cqw; line-height:1; color:#c9a45c33; text-shadow:0 0 20px #c9a45c22; }
 
@@ -25,9 +30,9 @@
 .map-trail path.fog { stroke:url(#fadeTrail); }
 
 /* ponto da jornada: medalhão ilustrado + legenda; região em volta brilha na cor da jornada */
-.map-node { position:absolute; transform:translate(-50%, -50%); width:11cqw; padding:0; background:none; border:0; min-height:0;
+.map-node { position:absolute; z-index:2; transform:translate(-50%, -50%); width:6.2cqw; padding:0; background:none; border:0; min-height:0;
   display:flex; flex-direction:column; align-items:center; gap:1.2cqw; }
-@media (orientation:portrait) { .map-node { width:26cqw; gap:2.4cqw; } }
+@media (orientation:portrait) { .map-node { width:15cqw; gap:2cqw; } }
 .map-node::before { content:''; position:absolute; left:50%; top:38%; width:320%; aspect-ratio:1; transform:translate(-50%, -50%); z-index:-1; pointer-events:none;
   background:radial-gradient(circle, color-mix(in srgb, var(--c) 42%, transparent) 0%, color-mix(in srgb, var(--c) 12%, transparent) 38%, transparent 66%); }
 .map-node, .map-node.primary, .map-node:hover:not(:disabled) { background:none; border:0; } /* sem o fundo de botão (nem o laranja do .primary) */
@@ -37,9 +42,9 @@
 .map-node:hover:not(:disabled) .medal, .map-node:focus-visible .medal { transform:scale(1.07); border-color:var(--gold);
   box-shadow:0 0 0 .35cqw #1a120e, 0 0 0 .6cqw var(--gold), 0 0 3cqw var(--c); }
 .map-node:focus-visible { outline:none; box-shadow:none; }
-.cap { display:flex; flex-direction:column; align-items:center; text-align:center; padding:.5cqw 1.4cqw; border-radius:.8cqw; background:#120c09d9; border:1px solid #5a4030; white-space:nowrap; }
-.cap small { font-size:clamp(10px, 1.05cqw, 14px); color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
-.cap b { font-family:Cinzel, serif; font-size:clamp(13px, 1.6cqw, 24px); color:var(--ink); }
+.cap { display:flex; flex-direction:column; align-items:center; text-align:center; padding:.35cqw 1cqw; border-radius:.8cqw; background:#120c09d9; border:1px solid #5a4030; white-space:nowrap; }
+.cap small { font-size:clamp(9px, .8cqw, 12px); color:var(--muted); letter-spacing:1px; text-transform:uppercase; }
+.cap b { font-family:Cinzel, serif; font-size:clamp(11px, 1.15cqw, 18px); color:var(--ink); }
 @media (orientation:portrait) { .cap small { font-size:clamp(10px, 2.6cqw, 14px); } .cap b { font-size:clamp(13px, 4cqw, 22px); } }
 .map-node:focus-visible .cap, .map-node:hover:not(:disabled) .cap { border-color:var(--gold); }
 
@@ -53,9 +58,9 @@
 .map-node.locked .medal svg { filter:grayscale(1) brightness(.45); }
 .map-node.locked .cap { opacity:.6; }
 .map-node:disabled { opacity:1; }
-.lock { position:absolute; inset:0; display:grid; place-items:center; font-size:3.6cqw; }
+.lock { position:absolute; inset:0; display:grid; place-items:center; font-size:2.2cqw; }
 .seal { position:absolute; right:6%; bottom:6%; width:28%; aspect-ratio:1; display:grid; place-items:center; border-radius:50%;
-  background:#f2c84b; color:#1a120c; font-weight:800; font-size:1.8cqw; border:.3cqw solid #1a120e; }
+  background:#f2c84b; color:#1a120c; font-weight:800; font-size:1.1cqw; border:.3cqw solid #1a120e; }
 @media (prefers-reduced-motion:reduce) { .map-node.cur .medal, .here { animation:none; } }
 
 /* Bestiário (só dev): grade de cards, um por monstro; clicar luta só com ele */

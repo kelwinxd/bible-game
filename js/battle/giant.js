@@ -8,7 +8,7 @@ import { B } from './state.js';
 import { makeFrog } from './frog.js';
 import { startPreCena } from './cena.js';
 
-// ---------- Chefão da Jornada 2: Golias, o gigante de Gate (1 Samuel 17) ----------
+// ---------- Chefão da Jornada 3: Golias, o gigante de Gate (1 Samuel 17) ----------
 // data.js → { tipo: "gigante", x, vida }. Quando o herói chega perto, a câmera trava numa arena e ele entra pela direita.
 // Anda até o herói e, de perto, dá uma estocada de lança (arma brilhando vermelho → estoca). Bem maior que o herói.
 // A cada 3 ataques (ou se o herói ficar longe) bate a lança no CHÃO: a tela treme e quem estiver no chão leva dano
@@ -29,7 +29,7 @@ const SPEED = 70, REACH = 250, CD = 1.4, DMG = 18;
 const ATK_T = 1.05, ATK = [[0, 0], [.15, 1], [.35, 2], [.52, 3], [.78, 4]], HIT = [.52, .68]; // [t, quadro]; acerta na estocada
 const ENTER_T = 1.6, DIE_T = 1.4;
 
-// ---------- Chefão da Jornada 3: Nabucodonosor, o rei de Babilônia (Daniel 3–4) ----------
+// ---------- Chefão da Jornada 4: Nabucodonosor, o rei de Babilônia (Daniel 3–4) ----------
 // data.js → { tipo: "gigante", pele: "rei", x, vida }. Mesma arena e mesmas mentiras do Golias, mas luta de longe: anda
 // guardando ~320 px do herói e, parado (idle) com os olhos brilhando, dispara FOGO DOS OLHOS em linha reta no herói
 // (o escudo bloqueia); a cada 3 ataques, uma rajada de 3. Para golpeá-lo é preciso chegar perto (ou usar o rasgo do poder).
@@ -63,14 +63,27 @@ ESTATUA.idle.img.src = 'assets/sprites/enemy/estatua-idle.webp'; ESTATUA.soco.im
 ESTATUA.sopro = { img: new Image(), FW: 360, FH: 667, n: 6 }; ESTATUA.sopro.img.src = 'assets/sprites/enemy/estatua-sopro.webp';
 const S_ABRE = [[0, 0], [.2, 1], [.45, 2], [.7, 3]], S_LOOP0 = .9, S_TROCA = .15, S_VOLTAS = 4, S_FIM = S_LOOP0 + S_VOLTAS * 2 * S_TROCA + .3;
 const S_VOO = .85, S_G = 1100, S_DMG = 12, S_RAIO = 55, BOCA = [12, 150]; // BOCA: px da arte (do meio, de cima) de onde sai o fogo
-const estTopo = L => GROUND - 35 - ESTATUA.punho * ESTATUA.sc + (L.state === 'dead' ? L.sink * 480 : 0);
+// morte: estatua-morte.webp 4 quadros 561×609 (urra → cambaleia → cai de joelhos → tomba deitado), alinhados pelos pés, na
+// mesma escala (sc). Os pés ficam atrás do piso; a "linha dos pés" sobe um pouco a cada quadro (M_BASE, px abaixo do chão) para
+// o corpo deitado ainda aparecer por cima da borda. Depois de M_FICA s deitada, afunda atrás do piso (M_AFUNDA s)
+ESTATUA.morte = { img: new Image(), FW: 561, FH: 609, pe: 605, n: 4 }; ESTATUA.morte.img.src = 'assets/sprites/enemy/estatua-morte.webp';
+const M_QUADROS = [0, .5, 1, 1.5], M_BASE = [234, 210, 170, 110], M_FICA = 2.9, M_AFUNDA = 1.3;
+const E_SOBE = 1.4; // s que ela leva levantando de trás do piso (sem fade: sobe inteira)
+const sobe = L => { const k = Math.min(1, (L.aparece || 0) / E_SOBE); return (1 - (1 - Math.pow(1 - k, 3))) * 480; }; // px que ainda falta subir (desacelera no fim)
+const estTopo = L => GROUND - 35 - ESTATUA.punho * ESTATUA.sc + sobe(L) + (L.state === 'dead' ? L.sink * 480 : 0);
 const E_VIDA = 80, E_CD = [2, 3], E_SOCO_T = 1.35, E_SOCO = [[0, 0], [.12, 1], [.5, 2], [.72, 3], [.95, 4]], E_IMPACTO = .75, E_DMG = 16;
 export function makeEstatua(x) {
-  return { kind: 'gigante', estatua: true, nome: 'A estátua de ouro · o ídolo de Babilônia', x, home: x, face: -1, hp: E_VIDA, maxHp: E_VIDA, state: 'walk', t: 0, cd: 2.5, flash: 0,
+  return { kind: 'gigante', estatua: true, nome: 'Ídolo Babilônico · a estátua de ouro do rei', x, home: x, face: -1, hp: E_VIDA, maxHp: E_VIDA, state: 'walk', t: 0, cd: 2.5, flash: 0,
     hit: false, sink: 0, lies: [], li: 0, lie: null, lieIn: 0, vuln: false, lastVerse: null, lieFlash: 0, bolas: [], aparece: 0 };
 }
 function updateEstatuaBoss(L, h, dt) {
   L.aparece += dt;
+  if (L.aparece < E_SOBE) { // levantando de trás do piso: o chão treme e solta poeira; ainda não ataca
+    B.shake = Math.max(B.shake, .18);
+    if (Math.random() < dt * 30) B.shards.push({ x: L.x + (Math.random() - .5) * 320, y: GROUND - 45, vx: (Math.random() - .5) * 260, vy: -120 - Math.random() * 260, r: Math.random() * 6, t: .9, c: Math.random() < .5 ? '200,170,110' : '120,95,70', sz: .5 + Math.random() * .7 });
+    if (L.aparece - dt <= 0) stoneSfx('collapse');
+    return;
+  }
   if (L.state === 'walk') {
     if ((L.cd -= dt) <= 0 && h.deadAt == null) { L.state = (L.atks || 0) % 2 ? 'sopro' : 'atk'; L.t = 0; L.hit = false; L.tiros = 0; } // soco e sopro, alternando
   } else if (L.state === 'atk') {
@@ -78,7 +91,7 @@ function updateEstatuaBoss(L, h, dt) {
       L.hit = true; B.shake = .7; stoneSfx('crack', 1);
       const px = L.x - 75 * ESTATUA.sc; // o punho (a arte soca com o braço do lado esquerdo da tela)
       for (let k = 0; k < 26; k++) B.shards.push({ x: px + (Math.random() - .5) * 160, y: GROUND - 40 - Math.random() * 20, vx: (Math.random() - .5) * 520, vy: -150 - Math.random() * 380, r: Math.random() * 6, t: 1, c: Math.random() < .5 ? '255,200,90' : '110,90,70', sz: .6 + Math.random() * .8 });
-      if (!B.socoTold) { B.socoTold = true; B.notice = { lines: ['A estátua soca o chão!', 'Pule [W] na hora do soco — o escudo não segura o tremor'], t: 3.5, c: '#ffb46a' }; }
+      if (!B.socoTold) { B.socoTold = true; B.notice = { lines: ['O Ídolo Babilônico soca o chão!', 'Pule [W] na hora do soco — o escudo não segura o tremor'], t: 3.5, c: '#ffb46a' }; }
       if (h.ground && !(h.dash > 0) && !B.over) quake(h, E_DMG);
     }
     if (L.t >= E_SOCO_T) { L.state = 'walk'; L.t = 0; L.atks = (L.atks || 0) + 1; L.cd = E_CD[0] + Math.random() * (E_CD[1] - E_CD[0]); }
@@ -93,15 +106,31 @@ function cuspe(L, h) {
   L.bolas.push({ x, y, vx: (tx - x) / S_VOO, vy: (ty - y - .5 * S_G * S_VOO * S_VOO) / S_VOO, g: S_G, t: 0, dmg: S_DMG, chao: true, r: 22 });
   sfx('fire');
 }
-// desenhada antes do chão (fica atrás do piso); some afundando quando cai
+// morte: urra, cambaleia, cai de joelhos (tremor) e tomba (tremor forte, desabamento e poeira); deitada um tempo, afunda
+function morteEstatua(L, dt) {
+  const t = L.t, antes = t - dt, poeira = (n, f) => { for (let k = 0; k < n; k++) B.shards.push({ x: L.x + (Math.random() - .5) * 500, y: GROUND - Math.random() * 20, vx: (Math.random() - .5) * 420 * f, vy: -80 - Math.random() * 260 * f, r: Math.random() * 6, t: 1.1, c: Math.random() < .5 ? '255,200,90' : '120,100,80', sz: .6 + Math.random() * .9 }); };
+  if (antes < .05 && t >= .05) { B.shake = Math.max(B.shake, .3); stoneSfx('crack', .6); } // o urro: a pedra range
+  if (antes < M_QUADROS[2] && t >= M_QUADROS[2]) { B.shake = Math.max(B.shake, .5); stoneSfx('crack', 1); poeira(14, .7); } // de joelhos
+  if (antes < M_QUADROS[3] && t >= M_QUADROS[3]) { B.shake = Math.max(B.shake, .85); stoneSfx('collapse'); poeira(34, 1); } // tomba no chão
+  L.sink = Math.max(0, Math.min(1, (t - M_FICA) / M_AFUNDA));
+}
+// desenhada antes do chão (fica atrás do piso); quando cai, a animação de morte e depois afunda
 export function drawEstatua() {
   const L = B.boss; if (!L || !L.estatua) return;
+  const M = ESTATUA.morte;
+  if (L.state === 'dead' && M.img.naturalWidth) {
+    let q = 0; M_QUADROS.forEach((t0, i) => { if (L.t >= t0) q = i; });
+    const sc = ESTATUA.sc, pe = GROUND + M_BASE[q] + L.sink * 380; // a linha dos pés (atrás do piso)
+    ctx.save(); ctx.globalAlpha = 1 - L.sink * .5;
+    ctx.drawImage(M.img, q * M.FW, 0, M.FW, M.FH, L.x - M.FW / 2 * sc, pe - M.pe * sc, M.FW * sc, M.FH * sc);
+    ctx.restore(); return;
+  }
   const S = L.state === 'atk' ? ESTATUA.soco : L.state === 'sopro' && ESTATUA.sopro.img.naturalWidth ? ESTATUA.sopro : ESTATUA.idle; if (!S.img.naturalWidth) return;
   let fr = Math.floor(B.time * (S.fps || 3)) % S.n;
   if (L.state === 'atk') { fr = 0; E_SOCO.forEach(([t, q]) => { if (L.t >= t) fr = q; }); }
   else if (S === ESTATUA.sopro) { fr = 0; S_ABRE.forEach(([t, q]) => { if (L.t >= t) fr = q; }); if (L.t >= S_LOOP0) fr = 4 + Math.floor((L.t - S_LOOP0) / S_TROCA) % 2; } // os 2 últimos em loop
   const sc = ESTATUA.sc, topo = estTopo(L); // o punho chega à borda do piso
-  ctx.save(); ctx.globalAlpha = Math.min(1, L.aparece / .6) * (L.state === 'dead' ? 1 - L.sink * .5 : 1);
+  ctx.save(); ctx.globalAlpha = L.state === 'dead' ? 1 - L.sink * .5 : 1; // sem fade ao surgir: ela sobe (estTopo)
   if (L.flash > 0) ctx.filter = 'brightness(2.4) saturate(.3)';
   else if ((L.state === 'atk' && L.t < E_IMPACTO) || (L.state === 'sopro' && L.t < S_LOOP0)) ctx.filter = `drop-shadow(0 0 ${14 + 10 * Math.sin(L.t * 30)}px #ff5010)`; // armando o soco
   ctx.drawImage(S.img, fr * S.FW, 0, S.FW, S.FH, L.x - S.FW / 2 * sc, topo, S.FW * sc, S.FH * sc);
@@ -137,12 +166,13 @@ export function updateGiant(L, dt) {
     return;
   }
   if (L.rei || L.estatua) updateBolas(L, h, dt);
+  if (L.state === 'dead' && L.estatua) return morteEstatua(L, dt);
   if (L.state === 'dead') { // o rei: depois de afundar, a cena da estátua que desperta (uma vez)
     L.sink = Math.min(1, L.sink + dt / DIE_T);
     if (L.rei && !L.cenaVista && L.sink >= 1) { L.cenaVista = true; startPreCena(); } // na fase e no Bestiário: tremor e fala, depois a cena
     if (L.rei && L.cenaVista && !B.prec && !B.cena && B.boss === L) { // a cena acabou: a estátua de ouro é o próximo chefão (na mesma arena)
       B.boss = makeEstatua(L.home - 260); B.arena = { left: L.home - 740, right: L.home + 220, boss: true };
-      B.notice = { lines: ['A estátua de ouro se levanta contra você!'], t: 3, c: '#ffb46a' };
+      B.notice = { lines: ['O Ídolo Babilônico se levanta contra você!'], t: 3, c: '#ffb46a' };
     }
     return;
   }
@@ -294,7 +324,7 @@ export function giantDies(L) {
   L.bolas = [];
   if (L.rei) B.frogs.forEach(f => { if (f.bando === 'rei' && !f.dead) f.hp = 0, f.dead = true; }); // os soldados invocados caem com ele
   B.notice = L.rei ? { lines: ['Nabucodonosor caiu!'], t: 2.5, c: '#f2c84b' } // logo depois vem a cena da estátua
-    : { lines: [L.estatua ? 'A estátua de ouro caiu!' : 'Golias caiu!', 'Siga até a cruz no fim da jornada'], t: 4, c: '#f2c84b' };
+    : { lines: [L.estatua ? 'O Ídolo Babilônico caiu!' : 'Golias caiu!', 'Siga até a cruz no fim da jornada'], t: 4, c: '#f2c84b' };
   sfx('refute');
 }
 

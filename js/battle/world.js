@@ -2,9 +2,9 @@ import { heroDies, renderFires } from './combat.js';
 import { FIRE_MAX, GROUND, IDOL, cv } from './config.js';
 import { buildHotbar, toggleDeck, togglePeek } from './hud.js';
 import { B, setB } from './state.js';
-import { sfx, stoneSfx } from '../core/audio.js';
+import { celestial, sfx, stoneSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
-import { faseMax, found, markFound, shieldMax } from '../core/progress.js';
+import { found, markFound, shieldMax } from '../core/progress.js';
 import { $, D, byId, rand, reduced } from '../core/utils.js';
 import { makeBoss, makeGiant, nextGiantLie } from './boss.js';
 import { makeFrog } from './frog.js';
@@ -17,7 +17,7 @@ import { burst, sp } from '../ui/sparks.js';
 // os novos em pedras brilhantes pelo caminho. all = true (teste): começa já com todos os versículos.
 // faseObj (Bestiário, só dev): uma fase montada na hora em vez de D.fases[fi] (fi = -1).
 export const ROCK_HP = 3; // golpes para quebrar a pedra
-export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = opts.all, faseObj = null) {
+export function startBattle(fi = 0, all = opts.all, faseObj = null) {
   show('battle');
   const fase = faseObj || D.fases[fi];
   $('pauseBest').hidden = !fase.dev; // Bestiário: botão de trocar de monstro na pausa
@@ -47,7 +47,7 @@ export function startBattle(fi = Math.min(faseMax, D.fases.length - 1), all = op
       B.terrain.push({ x: e.x1 - 420, w: 420, top: -110 }); // no fim da caverna, a rampa de pedra até a saída
     }
     else if (e.tipo === 'ovelha') B.ovelhas.push(makeSheep(e)); // ovelha perdida: foge e cai no vão (js/battle/sheep.js)
-    else if (e.tipo === 'ra' || e.tipo === 'lobo' || e.tipo === 'soldado') B.frogs.push(makeFrog(e)); // bichos soltos pela fase: rã e lobo (js/battle/frog.js)
+    else if (['ra', 'lobo', 'soldado', 'piolhenta'].includes(e.tipo)) B.frogs.push(makeFrog(e)); // bichos soltos pela fase: rã, lobo, soldado, mulher dos piolhos (js/battle/frog.js)
     else if (e.tipo === 'terra') B.risers.push({ x: e.x, w: e.w, k: 0, up: false, solid: false });
   });
   const chefe = fase.eventos.find(e => e.tipo === 'chefe' || e.tipo === 'gigante'); // um chefão por fase (o Leviatã depois dos mares)
@@ -118,7 +118,7 @@ export function stepIdol(r, dt) {
 }
 // tocar no livro (ou passar por ele) adiciona o versículo ao HUD
 export function collectBook(b) {
-  b.got = true; sfx('hit');
+  b.got = true; celestial(); // som celestial (coro + sinos subindo)
   B.callout = { s: b.v.ref, t: 1.8, dur: 1.8, c: { cor: '#f2c84b', brilho: '#ffd34d' } };
   B.floats.push({ x: b.x, y: b.y - 40, t: 1.4, s: 'Novo versículo!', c: '#ffe08a' });
   markFound(b.v.id);
@@ -145,11 +145,12 @@ export function flyToCard(b, i) {
 }
 export function fallInHole(h) {
   const mar = B.holes.find(o => h.x > o.x - 20 && h.x < o.x + o.w + 20); // todo buraco agora tem água (mar ou mar com mãos)
-  if (mar) for (let k = 0; k < (reduced ? 6 : 16); k++) // espirro d'água onde ele afundou
+  const seco = B.fase.buracoSeco; // buraco sem água (As Pragas): sem espirro
+  if (mar && !seco) for (let k = 0; k < (reduced ? 6 : 16); k++) // espirro d'água onde ele afundou
     B.shards.push({ x: h.x + (Math.random() - .5) * 60, y: GROUND + 20, vx: (Math.random() - .5) * 260, vy: -150 - Math.random() * 300, r: Math.random() * 6, t: .8, c: '214,232,240', sz: .4 + Math.random() * .5 });
-  const sp = h.safe || { x: 200, y: 0 }; h.x = sp.x; h.y = sp.y; h.vy = 0; // volta ao último ponto firme
+  const sp = h.safe || { x: 200, y: 0 }; h.x = sp.x; h.y = sp.y; h.vy = 0; h.preso = null; // volta ao último ponto firme
   sfx('hurt'); if (!opts.god) B.hp = Math.max(0, B.hp - 10); h.hurt = .3;
-  B.floats.push({ x: h.x, y: GROUND - 250, t: 1, s: mar && mar.mar ? 'Caiu no mar! -10' : 'Caiu na água! -10', c: '#ff5a4a' });
+  B.floats.push({ x: h.x, y: GROUND - 250, t: 1, s: seco ? 'Caiu no buraco! -10' : mar && mar.mar ? 'Caiu no mar! -10' : 'Caiu na água! -10', c: '#ff5a4a' });
   if (B.hp <= 0) heroDies();
 }
 // Cada demônio carrega uma única mentira do seu tema até morrer; o próximo traz outra ainda não usada.

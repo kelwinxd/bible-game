@@ -28,7 +28,7 @@ function drawImageBg(F, img, off) {
 // no início mostra a borda esquerda e no fim a direita (sem repetir, sem emenda, sem perder qualidade)
 // quadros (opcional) = a imagem é uma tira de N quadros lado a lado (GIF animado), tocada a `qps` quadros por segundo
 function drawStretchedBg(F, img, cam, a = 0, b = B.fase.comprimento) { // a–b: trecho do mundo que a imagem atravessa
-  const n = F.quadros || 1, fw = img.naturalWidth / n, H = 540 * F.estica, W = fw * H / img.naturalHeight;
+  const n = F.quadros || 1, fw = img.naturalWidth / n, H = 540 * F.estica + (F.desce || 0), W = fw * H / img.naturalHeight; // desce: maior e presa no topo → o pé da arte desce
   const q = n > 1 ? Math.floor(B.time * (F.qps || 5)) % n : 0;
   const t = Math.max(0, Math.min(1, (cam - a) / Math.max(1, b - a - 960)));
   ctx.imageSmoothingQuality = 'high';
@@ -127,8 +127,9 @@ function groundKit(img, M = GSRC) {
   const bg2 = bc.createLinearGradient(0, 0, 0, ov); bg2.addColorStop(0, '#0000'); bg2.addColorStop(1, '#000');
   bc.globalCompositeOperation = 'destination-in'; bc.fillStyle = bg2; bc.fillRect(0, 0, P, bh);
   for (let y = b1 - ov; y < 420; y += bh - ov) tc.drawImage(bd, 0, y);
-  const dg = tc.createLinearGradient(0, 140, 0, 420); dg.addColorStop(0, 'rgba(20,10,5,0)'); dg.addColorStop(1, 'rgba(20,10,5,.75)');
-  tc.globalCompositeOperation = 'source-atop'; tc.fillStyle = dg; tc.fillRect(0, 140, P, 280);
+  const e0 = M.escurece || 140; // escurece (medidas): de que y (px da tela, do topo da laje) a faixa começa a escurecer — artes altas precisam começar mais embaixo
+  const dg = tc.createLinearGradient(0, e0, 0, 420); dg.addColorStop(0, 'rgba(20,10,5,0)'); dg.addColorStop(1, 'rgba(20,10,5,.75)');
+  tc.globalCompositeOperation = 'source-atop'; tc.fillStyle = dg; tc.fillRect(0, e0, P, 420 - e0);
   // pontas: o lado de dentro se dissolve no miolo (que continua por baixo delas)
   const capCv = (sx, inner, w) => {
     const cwi = w * s, [c, x] = mk(cwi, H); x.drawImage(img, sx, 0, w, img.height, 0, 0, cwi, H);
@@ -219,8 +220,8 @@ function drawGroundImg(k, cam) {
   B.holes.forEach(o => cut(o.x + 14, o.w - 28, Infinity)); // a laje avança um pouco sobre a borda do buraco, onde ainda dá pé
   // estrutura que substitui o chão (data.js → substitui: true): a arte dela é o piso ali; o chão normal termina numa ponta antes dela
   B.estruturas.forEach(e => { if (e.substitui) cut(e.x + (e.corte || 0), e.w * e.sc, Infinity); });
-  // fundo dos buracos: escuridão por trás das lajes (no mar: o mar agitado)
-  B.holes.forEach(o => { if (o.mar) return drawSea(o); if (drawSeaHands(o)) return; const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
+  // fundo dos buracos: escuridão por trás das lajes (no mar: o mar agitado; buracoSeco = só o vão escuro, sem água nem mãos)
+  B.holes.forEach(o => { if (o.mar && !B.fase.buracoSeco) return drawSea(o); if (!B.fase.buracoSeco && drawSeaHands(o)) return; const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
   // terra submersa subindo (ou já em cima): na frente do mar
   B.risers.forEach(r => { if (r.k > 0) slab(k, r.x, r.x + r.w, GROUND + riseOff(r), true, false); });
   // sem faixa (caverna): o terreno alto fica apoiado em cima do piso normal, que continua por baixo dele

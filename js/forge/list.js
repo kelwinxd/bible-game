@@ -1,5 +1,5 @@
 import { BASE_DMG } from '../battle/config.js';
-import { barsHTML, dashDmg, faseMax, found, powerDur, progOf, saveProg, shieldMax, spiritLvl, verseMult } from '../core/progress.js';
+import { barsHTML, dashDmg, found, venceu, powerDur, progOf, saveProg, shieldMax, spiritLvl, verseMult } from '../core/progress.js';
 import { $, D } from '../core/utils.js';
 import { show } from '../ui/screens.js';
 
@@ -52,7 +52,7 @@ function renderHeroStats(vs) {
     stat('🕊', 'Espírito', `${dashDmg()}`, 'dano do impulso [L]', spiritLvl, D.espirito.nivelMax, 'gold') +
     stat('⚔', 'Espada', `${BASE_DMG}`, 'dano do golpe sem versículo') +
     stat('📖', 'Palavra', `${vs.length}/${D.versiculos.length}`, vs.length ? `até ${n(best)} de dano · ${longest}s de poder` : 'nenhum versículo ainda') +
-    stat('🗺', 'Jornadas', `${Math.min(faseMax, D.fases.length)}/${D.fases.length}`, 'vencidas');
+    stat('🗺', 'Jornadas', `${D.fases.filter(f => venceu(f.id)).length}/${D.fases.length}`, 'vencidas');
 }
 export function forgeAll() { D.versiculos.filter(v => found.includes(v.id)).forEach(v => { const p = progOf(v.id); p.forja = Math.max(1, p.forja); }); saveProg(); renderList(); }
 
