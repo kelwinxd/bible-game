@@ -357,6 +357,11 @@ Obs.: a faixa colorida no card indica o tema, o que dá uma pista parcial (demô
 - **Já começa tocando** (não pausado): toca ao abrir o menu; se o navegador bloquear som antes de um clique, começa no primeiro clique ou tecla. ❚❚ pausa, 🔇 muta. Embaixo do nome da música fica "Sword of God" (é música do jogo); sem o ícone de rádio. **Nas jornadas não tem rádio**: ao começar uma jornada (ou o Treinamento/Bestiário) ele para; ao voltar para o menu, volta a tocar se estava tocando. As jornadas vão ter as músicas próprias de cada fase (ainda não feitas). Fica salvo no aparelho (`ef-radio`) a faixa, o volume e o mudo — não o "tocando".
 - É separado dos efeitos sonoros: a opção **Som** das configurações liga e desliga só os efeitos.
 
+## 10a2. Música das fases
+
+- Cada jornada pode ter a sua música (`data.js` → `fases[].musica`, o caminho do mp3; `js/core/musica.js`): toca **em loop do começo da jornada até sair dela** (o rádio dos menus para nas jornadas). **As Pragas**: *Magia Nostra Deficit* (`assets/audio/musics/Magia Nostra Deficit — versos repetidos.mp3`). As outras jornadas ainda não têm.
+- Nas **Configurações** (do menu e da **pausa**): **Música** (liga/desliga) e **Volume da música** (barra de 0 a 100%, de 5 em 5); valem na hora e ficam salvos no aparelho (`ef-musica`, `ef-musica-vol`). Separados de **Som** (os efeitos).
+
 ## 10b. Treinamento (menu inicial)
 
 - Botão **Treinamento** no menu inicial (acima do Bestiário): uma fase curta com o cenário do Exodus, **2 espantalhos** (`assets/sprites/enemy/espantalho.webp`; alvos parados que não atacam e **não morrem** — a vida volta cheia, e cada golpe mostra o dano), um terreno alto e uma laje alta para testar movimentos e pulos (`js/battle/treino.js`).

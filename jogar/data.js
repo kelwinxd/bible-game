@@ -443,6 +443,7 @@ window.DATA = {
     // arena com 2 cobras vermelhas (Idolatria → Êxodo 20:3; Mentira → Hebreus 4:12); no fim, a boca de uma CAVERNA igual à do
     // Vale da sombra: ele cai lá dentro e a jornada termina no fim da caverna (fim: true — por enquanto a caverna está vazia)
     id: "pragas", nome: "As Pragas", comprimento: 8450,
+    musica: "assets/audio/musics/Magia Nostra Deficit — versos repetidos.mp3", // a música da fase, em loop (js/core/musica.js)
     mapa: { x: 23, y: 53, icone: "pragas", img: "assets/img/simbolo-pragas.webp", cor: "#a96ad8" }, // img: o olho de Hórus, o mosquito e a caveira // Gósen, no delta do Nilo // medalhão roxo e amarelo: a nuvem de gafanhotos
     // fundo: uma rua do Egito ao pôr do sol (muralhas, tendas, palmeiras, estátuas de faraó e braseiros), parada e esticada pela fase;
     // véu de 45% (a arte é clara); desce = px a mais de altura (presa no topo, a praça de pedra do fundo desce para trás do chão)

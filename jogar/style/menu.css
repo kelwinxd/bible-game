@@ -27,3 +27,9 @@
 
 /* rádio (../musics/radio.js) no menu inicial */
 .menu-radio { margin-top:18px; }
+
+/* volume da música (menu e pausa): a barra ocupa a linha de baixo, dourada */
+.setting.setting-vol { flex-wrap:wrap; }
+.setting.setting-vol > span:first-child { flex:1; flex-direction:row; justify-content:space-between; align-items:baseline; gap:10px; }
+.setting.setting-vol input[type=range] { position:static; opacity:1; height:auto; flex:1 0 100%; width:100%; margin:8px 0 2px; accent-color:#f2c84b; cursor:pointer; }
+.setting.setting-vol input[type=range]:disabled { opacity:.4; cursor:default; }

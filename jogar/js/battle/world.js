@@ -9,6 +9,7 @@ import { $, D, byId, rand, reduced } from '../core/utils.js';
 import { makeBoss, makeGiant, nextGiantLie } from './boss.js';
 import { makeFrog } from './frog.js';
 import { criarMonstro } from './inimigos/index.js';
+import { tocarMusicaDaFase } from '../core/musica.js';
 import { makeSheep } from './sheep.js';
 import { bordaBuraco } from './draw/world.js';
 import { show } from '../ui/screens.js';
@@ -21,6 +22,7 @@ export const ROCK_HP = 3; // golpes para quebrar a pedra
 export function startBattle(fi = 0, all = opts.all, faseObj = null) {
   show('battle');
   const fase = faseObj || D.fases[fi];
+  tocarMusicaDaFase(fase.musica); // a música da fase (ou nenhuma)
   treino.on = !!fase.treino; $('treinoPainel').classList.toggle('on', treino.on); // Treinamento: poderes do painel (js/battle/treino.js)
   $('pauseBest').hidden = !fase.dev || !!fase.treino; // Bestiário: botão de trocar de monstro na pausa
   const prev = D.fases.slice(0, Math.max(0, fi)).flatMap(f => f.eventos.filter(e => e.tipo === 'pedra' && found.includes(e.verso)).map(e => byId[e.verso]));
