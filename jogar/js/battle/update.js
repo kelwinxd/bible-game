@@ -1,0 +1,235 @@
+import { cleanFrogs, frogsIn, hitFrog, makeFrog, updateFrogs } from './frog.js';
+import { updateSheep } from './sheep.js';
+import { updateCena, updatePreCena } from './cena.js';
+import { bossAlive, bossBlocksWin, bossBox, damageBoss, spitAcid, updateAcid, updateBoss } from './boss.js';
+import { attack, damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
+import { DASH_CD, DASH_SPEED, ESPR, GRAV, GROUND, HERO_QUEDA, SPIT_ANIM, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
+import { B, keys } from './state.js';
+import { ENEMY_GAP, stepIdol, collectBook, fallInHole, floorAt, hitRock, makeDemon, moveX, pickLie, restoreLie, rockBox, terrainTop } from './world.js';
+import { sfx } from '../core/audio.js';
+import { escudoAtual } from '../core/progress.js';
+import { $, D, reduced } from '../core/utils.js';
+import { setShield } from '../input/controls.js';
+import { sp } from '../ui/sparks.js';
+
+// passagem entre a superfície e a caverna: escurece (FADE s), troca de lugar no escuro, tela preta (PRETO s) e clareia (FADE s);
+// o jogo fica parado enquanto isso
+export const PASSAGEM = { FADE: .6, PRETO: 1 };
+export function passagemAlfa(P) {
+  const { FADE, PRETO } = PASSAGEM;
+  return P.t < FADE ? P.t / FADE : P.t < FADE + PRETO ? 1 : Math.max(0, 1 - (P.t - FADE - PRETO) / FADE);
+}
+export function updateBattle(rdt) {
+  if (updateCena(rdt)) return; // cena em tela cheia (a estátua desperta): o jogo fica parado
+  if (updatePreCena(rdt)) return; // antes dela: tremor, fala e câmera na estátua (o jogo fica parado)
+  if (B.passagem) { // escurecendo / tela preta / clareando
+    const P = B.passagem; P.t += rdt;
+    if (!P.feito && P.t >= PASSAGEM.FADE) { P.feito = true; P.acao(); }
+    if (P.t >= PASSAGEM.FADE * 2 + PASSAGEM.PRETO) B.passagem = null;
+    return;
+  }
+  const ts = B.fatal && !reduced ? .25 : 1, dt = rdt * ts;
+  B.time += dt;
+  const h = B.hero; h.at += dt; h.hurt = Math.max(0, h.hurt - dt);
+  for (const k in B.cd) B.cd[k] = Math.max(0, B.cd[k] - rdt);
+
+  if (B.fatal) { B.fatal.t -= rdt; if (B.fatal.t <= 0) endFatal(); }
+  if (B.trans > 0) B.trans -= dt;
+
+  updateBoss(dt); // Leviatã no mar
+  updateAcid(dt); // bolas de ácido (Leviatã e cobra verde)
+  updateFrogs(dt); // rãs soltas pela fase
+  updateSheep(dt); // ovelha perdida
+  // terra submersa: sobe da água depois que o chefão cai; quando chega em cima vira chão firme
+  B.risers.forEach(r => {
+    if (!r.up || r.solid) return;
+    r.k = Math.min(1, r.k + dt / 2.2);
+    if (r.k >= 1) { r.solid = true; B.terrain.unshift({ x: r.x, w: r.w, top: 0 }); } // na frente da lista: vale mais que o buraco do mar
+  });
+
+  // plataformas móveis: vão e voltam suavemente; quem está em pé em cima vai junto
+  B.platforms.forEach(pl => {
+    if (!pl.move) return;
+    if (pl.espera && (!B.boss || B.boss.state === 'hidden')) return; // espera o chefão surgir para começar a ir e voltar
+    pl.tm += dt;
+    const nx = pl.x0 + pl.move * (.5 - .5 * Math.cos(pl.tm * Math.PI * 2 / pl.periodo)), dx = nx - pl.x;
+    if (h.ground && Math.abs(h.y - pl.top) < 1 && h.x > pl.x - 10 && h.x < pl.x + pl.w + 10) h.x += dx;
+    pl.x = nx;
+  });
+
+  // herói
+  if (!B.over) {
+    const mx = (keys.KeyD || keys.ArrowRight ? 1 : 0) - (keys.KeyA || keys.ArrowLeft ? 1 : 0);
+    const sp = SPEED * (B.shield ? .35 : h.swing > 0 ? (h.ground ? 0 : .5) : 1); // golpeando no chão ele finca os pés (a arte do ataque é parada); no ar segue o pulo
+    const cav = B.zona === 'caverna' && B.caverna; // dentro da caverna: os limites são os dela
+    let lo = B.arena ? B.arena.left + 50 : cav ? cav.x0 + 50 : 50, hi = B.arena ? B.arena.right - 50 : cav ? cav.x1 - 50 : B.fase.comprimento - 50;
+    // pedra inteira bloqueia quem está na mesma altura dela (é alta demais para pular)
+    const rock = B.rocks.find(r => r.hp > 0 && r.x > h.x && h.y > r.base - 158 && h.y - 200 < r.base);
+    if (rock) hi = Math.min(hi, rock.x - 95);
+    if (h.dash > 0) { // impulso: dispara reto para frente, sem gravidade, deixando o rastro
+      h.dash -= dt;
+      h.x = moveX(h, Math.max(lo, Math.min(hi, h.x + h.face * DASH_SPEED * dt)));
+      h.vy = 0; dashHits(h);
+      B.ghosts.push({ x: h.x, y: h.y, face: h.face, t: .32 });
+      if (h.dash <= 0 && h.faceAfter) { h.face = h.faceAfter; h.faceAfter = 0; }
+    } else {
+      h.x = moveX(h, Math.max(lo, Math.min(hi, h.x + mx * sp * dt)));
+      if (mx && h.swing <= 0 && !B.shield) h.face = mx;
+    }
+    const floor = floorAt(h);
+    if (!(h.dash > 0)) h.vy += GRAV * dt;
+    h.y = Math.min(floor, h.y + h.vy * dt);
+    h.ground = h.y === floor; if (h.ground) { h.vy = 0; h.preso = null; }
+    // caiu num buraco: ao chegar à água fica preso ~1 s atrás das ondas (animação em loop) e só então afunda
+    if (h.preso == null && !B.fase.buracoSeco && !h.ground && h.y >= HERO_QUEDA.para && B.holes.some(o => h.x > o.x && h.x < o.x + o.w)) { h.preso = 0; h.presoX = h.x; }
+    if (h.preso != null && h.preso < HERO_QUEDA.preso) { h.preso += dt; h.y = HERO_QUEDA.para; h.vy = 0; h.x = h.presoX; h.dash = 0; }
+    if (h.ground && terrainTop(h.x - 45) !== Infinity && terrainTop(h.x + 45) !== Infinity) h.safe = { x: h.x, y: h.y };
+    const C = B.caverna;
+    if (C && !B.zona && h.x > C.x && h.x < C.x + C.w && h.y > 90) { // caiu na boca do vale: despenca dentro da caverna
+      sfx('hurt');
+      B.passagem = { t: 0, acao: () => { // no escuro: já está lá embaixo, caindo do teto da caverna
+        B.zona = 'caverna'; h.x = C.entrada; h.y = -300; h.vy = 0; h.safe = { x: C.entrada, y: 0 }; B.cam = C.x0;
+        B.notice = { lines: C.aviso || ['Você caiu na caverna escura!', 'Ache a Palavra aqui embaixo e a saída do outro lado'], t: 4, c: '#ffb46a' };
+      } };
+    } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && (B.groups.some(g => (g.apos || g.caverna) && !g.done) || B.demons.length || B.frogs.some(f => f.bando && !f.dead && f.x > C.x0))) {
+      // a saída só abre com a caverna limpa (as ondas também contam para o Golias aparecer depois)
+      h.x = C.x1 - 170; if (!B.notice) B.notice = { lines: ['Uma força te prende aqui embaixo…', 'Derrote os monstros da caverna para sair'], t: 2.5, c: '#ff8a6a' };
+    } else if (C && C.fim && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && !B.over && !bossBlocksWin()) { // caverna do fim da jornada (As Pragas): chegou ao fim dela = venceu
+      B.over = true; endScreen(true);
+    } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160) { // subiu a rampa do fim: sai logo depois do vale
+      h.vy = 0;
+      B.passagem = { t: 0, acao: () => {
+        B.zona = null; h.x = C.saida; h.y = 0; h.vy = 0; h.safe = { x: C.saida, y: 0 }; B.cam = Math.max(0, h.x - 360);
+        B.notice = { lines: ['Você saiu da caverna', 'Siga pelo vale'], t: 3, c: '#9fc3ff' };
+      } };
+    } else if (h.y > 420) fallInHole(h);
+    if (h.swing > 0) {
+      h.swing -= dt;
+      if (!h.hitDone && (h.swingT || SWING) - h.swing >= (h.swingHit || SWING_HIT)) { h.hitDone = true; swingHit(); }
+      if (h.swing <= 0) { h.swingEnd = B.time; if (h.comboQ) attack(); } // combo: o golpe guardado sai em seguida
+    }
+    const moving = mx !== 0 && h.ground;
+    const anim = h.dash > 0 ? 'dash' : h.swing > 0 ? 'attack' : moving ? 'run' : 'idle';
+    if (anim !== h.anim) { h.anim = anim; if (anim !== 'attack') h.at = 0; }
+    // câmera segue o herói; numa luta fica travada na arena
+    // (suave: ao destravar a arena a câmera desliza até o herói, sem salto)
+    const camT = B.arena ? B.arena.left : cav ? Math.max(cav.x0, Math.min(cav.x1 - 960, h.x - 360)) : Math.max(0, Math.min(B.fase.comprimento - 960, h.x - 360));
+    B.cam += (camT - B.cam) * Math.min(1, dt * 5);
+  }
+
+  // escudo: dura shieldMax segundos erguido; recarrega abaixado e, se esgotar, só volta com metade da carga
+  if (B.shield) {
+    B.shieldE -= dt;
+    if (B.shieldE <= 0) { B.shieldE = 0; B.shieldLock = true; setShield(false); sfx('wrong'); B.floats.push({ x: h.x, y: GROUND + h.y - 260, t: 1, s: 'Escudo esgotado', c: '#9fc3ff' }); }
+  } else {
+    B.shieldE = Math.min(escudoAtual(), B.shieldE + SHIELD_REGEN * dt);
+    if (B.shieldLock && B.shieldE >= escudoAtual() / 2) B.shieldLock = false;
+  }
+
+  // poder da espada
+  const P = B.power;
+  if (P) {
+    P.t -= dt;
+    if (P.t <= 0 || P.target.hp <= 0) { if (P.target.hp > 0) restoreLie(P.target); B.power = null; }
+  }
+
+  // monstros das arenas: cada um sabe se mover e atacar (js/battle/inimigos/monstros/)
+  B.demons.forEach(d => d.atualizar(h, dt));
+  // bolas de fogo
+  B.fireballs.forEach(f => {
+    f.x += f.vx * dt; f.y += f.vy * dt;
+    if (overlap([f.x - 12, f.y - 12, f.x + 12, f.y + 12], heroBox(h))) { f.dead = true; hitHero(f.dmg); }
+    if (f.x < B.cam - 40 || f.x > B.cam + 1000 || f.y > GROUND + 20) f.dead = true;
+  });
+  B.fireballs = B.fireballs.filter(f => !f.dead);
+
+  if (B.carga && (B.carga.t += dt) >= B.carga.dur) B.carga = null; // o martelo da carga sumiu
+  B.slashes.forEach(sl => {
+    sl.x += sl.vx * dt; sl.y += sl.vy * dt;
+    if (sl.martelo) { // o martelo gira para a frente e solta faíscas douradas atrás
+      sl.rot += sl.face * 16 * dt;
+      if (sl.volta) { // bumerangue: freia indo (~420 px), vira e volta atrás do herói; na volta acerta de novo; some perto dele
+        sl.t += dt;
+        // freia a 500 px/s² (sai a 650 px/s: vira a ~420 px)
+        if (!sl.voltando) { sl.vx -= sl.face * 500 * dt; if (Math.sign(sl.vx) !== sl.face) { sl.voltando = true; sl.hit = new Set(); } }
+        else {
+          const alvoY = GROUND + h.y - 110, dx = h.x - sl.x;
+          sl.vx = Math.sign(dx) * Math.min(650, Math.abs(sl.vx) + 1000 * dt); sl.vy = (alvoY - sl.y) * 6;
+          if (Math.abs(dx) < 45 || sl.t > 4) { sl.dead = true; B.fx.push({ burst: true, x: sl.x, y: sl.y, t: .25, c: sl.c }); }
+        }
+      }
+      if (!reduced && Math.random() < dt * 40) B.embers.push({ x: sl.x - sl.face * 20, y: sl.y + (Math.random() - .5) * 50, vx: -sl.face * (80 + Math.random() * 120), vy: (Math.random() - .5) * 120, t: .4 + Math.random() * .3, c: '255,214,80' });
+    }
+    const box = [sl.x - 30, sl.y - 45 * sl.sy, sl.x + 30, sl.y + 45 * sl.sy]; // do tamanho da lâmina desenhada (~45 px de meia altura)
+    B.demons.forEach(d => {
+      if (d.state === 'dead' || d.state === 'enter' || sl.hit.has(d) || !overlap(box, demonBox(d))) return;
+      sl.hit.add(d);
+      if (damageDemon(d)) B.fx.push({ burst: true, x: sl.x, y: sl.y, t: .25, c: sl.c });
+    });
+    B.rocks.forEach(r => { if (r.hp > 0 && !sl.hit.has(r) && overlap(box, rockBox(r))) { sl.hit.add(r); hitRock(r); } });
+    frogsIn(box, f => { if (!sl.hit.has(f)) { sl.hit.add(f); hitFrog(f, 8 * (B.power ? B.power.mult : 1), sl.c.claro); } });
+    if (bossAlive(B.boss) && !sl.hit.has(B.boss) && overlap(box, bossBox(B.boss))) { sl.hit.add(B.boss); damageBoss(8 * (B.power ? B.power.mult : 1), sl.c.claro); B.fx.push({ burst: true, x: sl.x, y: sl.y, t: .25, c: sl.c }); }
+    if (!sl.volta && (sl.x < B.cam - 80 || sl.x > B.cam + 1040 || sl.y < -80 || sl.y > GROUND + 40)) sl.dead = true; // o que volta só some perto do herói
+  });
+  B.slashes = B.slashes.filter(sl => !sl.dead);
+  cleanFrogs();
+  B.fx = B.fx.filter(f => (f.t -= rdt) > 0);
+  B.floats = B.floats.filter(f => (f.t -= rdt) > 0);
+  B.shards.forEach(s => { s.vy += 700 * rdt; s.x += s.vx * rdt; s.y += s.vy * rdt; s.r += rdt * 6; });
+  B.shards = B.shards.filter(s => (s.t -= rdt) > 0);
+  B.ghosts = B.ghosts.filter(g => (g.t -= rdt) > 0);
+  // mãos do buraco: sobem (0 → 1 em 0,5 s) quando o herói está perto, afunda quando ele se afasta
+  B.holes.forEach(o => { const near = Math.abs(B.hero.x - (o.x + o.w / 2)) < o.w / 2 + 280; o.hand = Math.max(0, Math.min(1, (o.hand || 0) + (near ? dt : -dt) / .5)); });
+  B.dashCd = Math.max(0, B.dashCd - dt); B.dashBack = Math.max(0, B.dashBack - dt);
+  if (B.dashQueued && !(B.hero.dash > 0)) { B.dashQueued = false; startDash(); }
+  B.embers.forEach(e => { e.vy += 600 * rdt; e.vx *= 1 - 2 * rdt; e.x += e.vx * rdt; e.y += e.vy * rdt; });
+  B.embers = B.embers.filter(e => (e.t -= rdt) > 0);
+  B.shake = Math.max(0, B.shake - rdt);
+  B.demons.forEach(d => { if (d.pop) d.pop = Math.max(0, d.pop - rdt); });
+
+  // livros dourados: saltam da pedra, flutuam; tocar (ou passar por eles) coleta
+  B.rocks.forEach(r => { r.flash = Math.max(0, r.flash - dt); if (r.pieces) stepIdol(r, dt); });
+  B.books.forEach(b => {
+    b.t += dt;
+    if (!b.rest) { b.vy += 1200 * dt; b.y += b.vy * dt; if (b.vy > 0 && b.y >= b.restY) { b.y = b.restY; b.rest = true; } }
+    if (b.t > .4 && (overlap(heroBox(h), [b.x - 24, b.y - 24, b.x + 24, b.y + 24]) || h.x > b.x + 40)) collectBook(b);
+  });
+  B.books = B.books.filter(b => !b.got);
+  // inimigos surgem quando o herói chega perto; a câmera trava (arena) até o grupo cair
+  if (!B.arena && !B.over) {
+    // apos: grupo em ondas (data.js) — não dispara por posição, e sim quando o bando anterior (grupo + lobos com esse
+    // bando) acabou, com o herói por perto; a arena é montada à frente dele (dentro da caverna, antes da rampa)
+    const pronto = b => B.groups.every(o => o.bando !== b || o.done) && !B.demons.length && !B.frogs.some(f => f.bando === b && !f.dead);
+    const gr = B.groups.find(g => !g.done && !g.apos && h.x >= g.x - 600 && h.x < g.x + 400) // perto dele (a caverna fica longe, depois do fim) // trava cedo: o herói fica à esquerda e sobra espaço para os inimigos espaçados
+      || B.groups.find(g => !g.done && g.apos && Math.abs(h.x - g.x) < 1500 && pronto(g.apos) && (g.pausa = (g.pausa ?? 3) - dt) <= 0); // 3 s de folga entre uma onda e outra
+    if (gr && gr.apos) {
+      const C = B.zona === 'caverna' && B.caverna, a = C ? C.x0 + 740 : 740, z = C ? C.x1 - 900 : B.fase.comprimento - 220; // na caverna: a arena acaba antes da ovelha e da rampa
+      gr.x = Math.max(a, Math.min(z, h.x + 480));
+    }
+    if (gr) { gr.done = true; B.arena = { left: gr.x - 740, right: gr.x + 220, gr }; // a câmera desliza até a arena; os que voam ficam nas vagas da direita; os de chão (que perseguem) mais perto do herói
+      const order = gr.inimigos.map((t, i) => i).sort((a, b) => !!D.inimigos[gr.inimigos[a]].chao - !!D.inimigos[gr.inimigos[b]].chao);
+      B.demons = gr.inimigos.map((t, i) => { const d = Object.assign(makeDemon(t, order.indexOf(i), gr.vida || 1, gr.inimigos.length, Array.isArray(gr.aparencia) ? gr.aparencia[i] : gr.aparencia), { frase: gr.frases && gr.frases[i] }); pickLie(d); d.lieFlash = 0; return d; });
+      // lobos / soldados: N bichos chegam junto com o monstro (contam no bando do grupo): entram andando pela direita, de fora
+      // da tela, um atrás do outro, e patrulham na metade direita da arena
+      const reforco = (tipo, n) => { for (let k = 0; k < n; k++) { const w = makeFrog({ tipo, x: B.arena.right + 200 + k * 160, bando: gr.bando }); w.home = B.arena.right - 160 - k * 220; w.face = -1; B.frogs.push(w); } };
+      if (gr.lobos) { reforco('lobo', gr.lobos); B.notice = { lines: ['Mais lobos na escuridão!'], t: 2.5, c: '#ffb46a' }; }
+      if (gr.soldados) reforco('soldado', gr.soldados);
+    } // já entram com a mentira sobre a cabeça
+  }
+  if (!B.over && !B.fase.dev && !B.zona && !B.arena && !B.demons.length && !bossBlocksWin() && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done || g.apos || g.caverna)) { B.over = true; endScreen(true); }
+
+  // HUD DOM
+  if (B.callout && (B.callout.t -= rdt) <= 0) B.callout = null;
+  if (B.notice && (B.notice.t -= rdt) <= 0) B.notice = null;
+  const lock = Math.max(0, ...B.deck.map((_, i) => B.cd[i] || 0));
+  $('deckBtn')?.classList.toggle('locked', lock > 0); if ($('deckLock')) $('deckLock').style.width = (lock / 2.5 * 100) + '%';
+  $('dashLock').style.width = (B.dashCd / DASH_CD * 100) + '%'; $('dashBtn').classList.toggle('go', h.dash > 0);
+  B.deck.forEach((v, i) => {
+    const c = $('card' + i); if (!c) return;
+    $('cd' + i).style.width = ((B.cd[i] || 0) / 2.5 * 100) + '%';
+    $('use' + i).disabled = (B.cd[i] || 0) > 0;
+    const act = B.power && B.power.v;
+    c.classList.toggle('active', !!act && v === act);
+    c.classList.toggle('dim', !!act && v !== act);
+  });
+}

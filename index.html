@@ -1,306 +1,109 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
-<title>Sword of God — protótipo</title>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style/global.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sword of God — forje a Palavra, refute as mentiras</title>
+<meta name="description" content="Sword of God é um jogo de plataforma bíblico: forje versículos na sua espada, refute as mentiras dos monstros e atravesse o Egito, o vale da sombra e a Babilônia. Grátis, no navegador.">
+<meta name="theme-color" content="#0d0907">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site/style.css">
 </head>
 <body>
-
-<!-- MENU -->
-<section id="menu" class="screen on">
-  <div class="menu-art" aria-hidden="true"></div>
-  <div class="menu-panel">
-    <h1>Sword of God</h1>
-    <p class="menu-tag">Forje versículos na lâmina e refute as mentiras.</p>
-    <!-- principal -->
-    <nav class="menu-list" id="menuMain">
-      <button class="primary" onclick="show('mapa')">Jogar</button>
-      <button onclick="habView('hub')">Habilidades<small>Versículos, fé e armadura</small></button>
-      <button onclick="showMenuView('settings')">Configurações</button>
-      <button onclick="startTreino()">Treinamento<small>Todos os poderes no máximo (ajustáveis) e espantalhos para testar ataques e movimentos</small></button>
-      <button class="menu-dev" onclick="openBestiary()">🛠 Bestiário<small>Teste de desenvolvedor: lute com um monstro só</small></button>
-    </nav>
-    <!-- Configurações -->
-    <div class="menu-sub" id="menuSettings" hidden>
-      <h2>Configurações</h2>
-      <label class="setting"><span><b>Som</b><span class="muted">Efeitos sonoros do jogo</span></span>
-        <input type="checkbox" id="optSound" checked><span class="switch"></span></label>
-      <h3 class="setting-sec">Desenvolvedor</h3>
-      <label class="setting"><span><b>Imortalidade</b><span class="muted">Ligada: a vida não cai. Desligada: o jogo de verdade (dá para morrer)</span></span>
-        <input type="checkbox" id="optGod" checked><span class="switch"></span></label>
-      <details class="menu-test">
-        <summary>Opções de teste do protótipo</summary>
-        <label class="setting"><span><b>Faixa da forja</b><span class="muted">Velocidade das palavras ao martelar</span></span>
-          <select id="optForge"><option value="normal">Normal</option><option value="calma">Calma</option><option value="sempressa">Parada</option></select></label>
-        <label class="setting"><span><b>Tudo liberado</b><span class="muted">Todos os versículos, 3 fogos e todas as jornadas</span></span>
-          <input type="checkbox" id="optAll"><span class="switch"></span></label>
-      </details>
-      <button class="menu-back" onclick="showMenuView('main')">← Voltar</button>
-    </div>
-  </div>
-</section>
-
-<!-- BESTIÁRIO (só dev): escolhe um monstro ou chefão e luta só com ele; eles são imortais (js/battle/bestiary.js) -->
-<section id="bestiario" class="screen">
-  <div class="best-head">
-    <button class="menu-back" onclick="show('menu')">← Voltar</button>
-    <h2>Bestiário <small>teste de desenvolvedor</small></h2>
-  </div>
-  <p class="best-tip">Um monstro por vez, imortal (a vida volta cheia ao zerar). Todos os versículos liberados. Na pausa [P]: trocar de monstro.</p>
-  <div class="best-grid" id="bestGrid"></div>
-</section>
-
-<!-- MAPA DAS JORNADAS (Jogar): um ponto por jornada, ligados pela trilha -->
-<section id="mapa" class="screen">
-  <div class="map-head">
-    <button class="menu-back" onclick="show('menu')">← Voltar</button>
-    <h2>Mapa da jornada</h2>
-  </div>
-  <div class="map-stage" id="mapStage"></div>
-</section>
-
-<!-- LISTA DA FORJA -->
-<section id="forgeList" class="screen" data-view="hub">
-  <!-- Habilidades: o templário no centro e 3 entradas na frente dele (como uma tela de personagem).
-       Cada entrada isola uma vista: Forjar versículos · Exercitar a fé · Armadura (data-view, ver js/forge/list.js) -->
-  <header class="hab-top">
-    <button onclick="habBack()" id="habBack">← Menu</button>
-    <h1 class="hab-title" id="habTitle">Habilidades</h1>
-    <button class="primary" onclick="show('mapa')">Ir para a jornada ⚔</button>
-  </header>
-  <div class="hab-body">
-    <!-- Forjar versículos -->
-    <div class="hab-panel hab-versos">
-      <h2><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h13v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M4 19a2 2 0 0 1 2-2h13"/><path d="M11.5 6.5v7M9 9h5"/></svg>Forjar versículos</h2>
-      <p class="muted">Os versículos você <b>encontra na jornada</b>. Aqui você os forja (mais dano) e afia (poder dura mais).</p>
-      <div class="vtools" id="vtools">
-        <input type="search" id="vSearch" placeholder="Buscar versículo ou palavra…" aria-label="Buscar versículo ou palavra" autocomplete="off">
-        <select id="vTema" aria-label="Filtrar por tema"></select>
-      </div>
-      <div class="vlist vscroll" id="vlist"></div>
-      <p class="muted vhidden" id="vhidden"></p>
-      <div class="row"><button onclick="forgeAll()">Forjar tudo (teste)</button></div>
-    </div>
-    <!-- Exercitar a fé -->
-    <div class="hab-panel hab-fe">
-      <h2><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M12 7.5v9M8.5 11h7"/></svg>Exercitar a fé</h2>
-      <p class="muted">Quizzes sobre a Palavra. Passe para fortalecer o escudo e o Impulso do Espírito.</p>
-      <div class="vlist">
-        <div class="vitem" tabindex="0" onclick="openFaith()">
-          <div><b>Heróis da fé</b> <span class="tag">Hebreus 11 · quiz</span><div class="muted" style="margin-top:4px">Acerte ao menos 4 de 5 para fortalecer o escudo (+1s).</div></div>
-          <div id="shieldInfo"></div>
-        </div>
-        <div class="vitem" tabindex="0" onclick="openFaith('espirito')">
-          <div><b>Espírito Santo</b> <span class="tag">Atos 1:8 · quiz</span><div class="muted" style="margin-top:4px">Acerte ao menos 4 de 5 para fortalecer o Impulso do Espírito (+dano).</div></div>
-          <div id="spiritInfo"></div>
-        </div>
-      </div>
-    </div>
-    <!-- Armadura de Deus (Efésios 6): uma peça por card, dos dois lados do templário -->
-    <div class="arm-col arm-l" id="armL"></div>
-    <div class="arm-col arm-r" id="armR"></div>
-    <blockquote class="hab-quote">“Revesti-vos de toda a armadura de Deus, para que possais estar firmes contra as astutas ciladas do diabo.”<cite>Efésios 6:11</cite></blockquote>
-    <!-- o templário parado no chão de areia -->
-    <div class="hero-stage" aria-hidden="true"><div class="hero-idle"></div><div class="hero-shadow"></div><div class="hero-ground"></div></div>
-    <aside class="hero-stats" id="heroStats" aria-label="Habilidades do herói"></aside>
-    <!-- as 3 entradas, na frente do templário -->
-    <nav class="hab-menu" aria-label="Habilidades">
-      <button class="hab-btn" onclick="habView('versos')"><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h13v18H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M4 19a2 2 0 0 1 2-2h13"/><path d="M11.5 6.5v7M9 9h5"/></svg><b>Forjar versículos</b><small id="hbVersos"></small></button>
-      <button class="hab-btn" onclick="habView('fe')"><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5c0 5-3.5 8.5-7 10-3.5-1.5-7-5-7-10V6z"/><path d="M12 7.5v9M8.5 11h7"/></svg><b>Exercitar a fé</b><small id="hbFe"></small></button>
-      <button class="hab-btn" onclick="habView('armadura')"><svg class="h-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20v-8a7 7 0 0 1 14 0v8z"/><path d="M5 14h14M12 5v15M9 17h6"/></svg><b>Armadura</b><small id="hbArm"></small></button>
+<!-- Landing page do jogo (o jogo fica em jogar/). Escura, fonte clássica: Cinzel nos títulos, Cormorant Garamond no texto -->
+<header class="topo">
+  <div class="topo-in"> <!-- mesma largura e padding lateral do conteúdo -->
+    <a class="marca" href="#inicio" aria-label="Sword of God — início">Sword <span>of</span> God</a>
+    <nav class="menu" aria-label="Menu principal">
+      <a href="#inicio">Início</a>
+      <a href="#sobre">Sobre</a>
+      <a class="menu-jogar" href="jogar/">Jogar</a>
     </nav>
   </div>
-</section>
+</header>
 
-<!-- EXERCITAR A FÉ -->
-<section id="faith" class="screen">
-  <div class="row" style="margin-bottom:10px">
-    <button onclick="show('menu')">☰ Menu</button>
-    <button onclick="habView('fe')">← Exercitar a fé</button>
-    <span class="muted" id="faithShield"></span>
-  </div>
-  <div id="faithBody"></div>
-</section>
-
-<!-- FORJA -->
-<section id="verse" class="screen">
-  <div class="row" style="margin-bottom:10px">
-    <button onclick="show('menu')">☰ Menu</button>
-    <button onclick="habView('versos')">← Lista de versículos</button>
-  </div>
-  <div id="verseBody"></div>
-</section>
-
-<!-- AFIAÇÃO -->
-<section id="sharpen" class="screen">
-  <div class="row" style="margin-bottom:10px">
-    <button onclick="show('menu')">☰ Menu</button>
-    <button onclick="backToVerse()">← Versículo</button>
-    <span id="sharpTitle"></span>
-  </div>
-  <div class="scroll" id="sharpQ"></div>
-  <div class="sharp-opts" id="sharpOpts"></div>
-  <div class="strip sharp" id="sharpStrip"><div class="mira" id="sharpMira"></div><div class="stain" id="stain"></div></div>
-  <div class="smith" aria-hidden="true">
-    <svg class="anvil" viewBox="0 0 120 34"><path d="M8 2 H112 L104 12 H80 L74 22 H92 V32 H28 V22 H46 L40 12 H16 Z" fill="#3a3a40" stroke="#1a1a1e" stroke-width="2"/><rect x="10" y="2" width="100" height="3" fill="#6a6a74"/></svg>
-    <svg class="hammer" id="hammerS" viewBox="0 0 120 60">
-      <rect x="40" y="27" width="76" height="8" rx="4" fill="#8a5a2a" stroke="#4a2e14" stroke-width="2"/>
-      <rect x="104" y="26" width="12" height="10" rx="3" fill="#5a3a1c"/>
-      <rect x="14" y="10" width="30" height="42" rx="4" fill="#7a7a84" stroke="#2a2a30" stroke-width="2"/>
-      <rect x="17" y="13" width="6" height="36" rx="2" fill="#b8b8c4"/>
-      <rect x="10" y="44" width="38" height="9" rx="3" fill="#5a5a64" stroke="#2a2a30" stroke-width="2"/>
-    </svg>
-  </div>
-  <div id="sharpInfo" class="muted"></div>
-  <div id="sharpDone" style="margin-top:12px"></div>
-</section>
-
-<section id="forge" class="screen">
-  <div class="row" style="margin-bottom:10px">
-    <button onclick="show('menu')">☰ Menu</button>
-    <button onclick="backToVerse()">← Versículo</button>
-    <span id="forgeTitle"></span>
-  </div>
-  <!-- esquerda: versículo e o botão; direita: o forjador na bigorna e a faixa de palavras passando embaixo dele -->
-  <div class="forge-grid">
-    <div class="forge-left">
-      <div class="scroll" id="scroll"></div>
-      <div class="anvil">
-        <button class="hammer primary" id="hammerBtn">🔨 Martelar <kbd class="hk">K</kbd></button>
-        <span id="forgeInfo" class="muted"></span>
+<main>
+  <!-- INÍCIO -->
+  <section class="hero" id="inicio">
+    <div class="hero-texto">
+      <p class="selo">Um jogo bíblico de plataforma</p>
+      <h1>Forje a Palavra.<br><em>Refute as mentiras.</em></h1>
+      <p class="lead">Forje versículos na sua espada e cale as mentiras dos monstros pelas terras da Bíblia.</p>
+      <div class="acoes">
+        <a class="botao" href="jogar/">Jogar agora <span aria-hidden="true">⚔</span></a>
+        <a class="botao botao-sec" href="#sobre">Conheça o jogo</a>
       </div>
+      <p class="nota">Grátis, direto no navegador. Seu progresso fica salvo no aparelho.</p>
     </div>
-    <div class="forge-right">
-      <div class="smith-box" aria-hidden="true"></div>
-      <div class="smith-sprite idle" id="smithF" aria-hidden="true"></div>
-      <div class="smith-say" id="smithSay" aria-live="polite"></div>
-      <div class="smith-hp" id="smithHp"></div>
-      <div class="strip" id="strip"><div class="zone" id="zone"></div></div>
-    </div>
-  </div>
-  <div id="forgeDone" style="margin-top:14px"></div>
-</section>
+    <figure class="hero-arte">
+      <img src="site/img/heroi-serpente.webp" width="1100" height="820" alt="O templário, de escudo erguido, enfrenta uma serpente vermelha gigante">
+    </figure>
+  </section>
 
-<!-- BATALHA -->
-<section id="battle" class="screen">
-  <canvas id="arena" width="960" height="540"></canvas>
-  <!-- Treinamento: o painel de ajustar os poderes (js/battle/treino.js) -->
-  <div class="treino-painel" id="treinoPainel" aria-label="Ajustes do treinamento"></div>
-  <div class="peek" id="peek" onclick="closePeek()"></div>
-  <div class="controls">
-    <button id="pauseBtn" title="Pausar (P)" onclick="setPause(true)">⏸</button>
-    <!-- escudo: o medalhão azul com o escudo e a cruz; segurar = segurar o J (acende enquanto erguido) -->
-    <button id="shieldBtn" title="Escudo (J)" aria-label="Escudo (J)"><img src="assets/img/btn-escudo.webp" alt="" draggable="false"></button>
-    <!-- Impulso do Espírito: o medalhão das pombas; os 3 fogos ficam por cima dele (absolute) -->
-    <button id="dashBtn" title="Impulso do Espírito (L)" aria-label="Impulso do Espírito (L)" onclick="startDash()"><img src="assets/img/btn-espirito.webp" alt="" draggable="false"><span class="fires" id="dashFires"><i><svg viewBox="0 0 12 16"><path d="M6 0 C7 4 11 6 11 10.5 A5 5 0 0 1 1 10.5 C1 7.5 3 6 4 3.5 C5 5.5 5.5 6.5 6.5 7 C7 4.5 6.5 2 6 0 Z"/></svg></i><i><svg viewBox="0 0 12 16"><path d="M6 0 C7 4 11 6 11 10.5 A5 5 0 0 1 1 10.5 C1 7.5 3 6 4 3.5 C5 5.5 5.5 6.5 6.5 7 C7 4.5 6.5 2 6 0 Z"/></svg></i><i><svg viewBox="0 0 12 16"><path d="M6 0 C7 4 11 6 11 10.5 A5 5 0 0 1 1 10.5 C1 7.5 3 6 4 3.5 C5 5.5 5.5 6.5 6.5 7 C7 4.5 6.5 2 6 0 Z"/></svg></i></span><span class="lockbar" id="dashLock"></span></button>
-    <div class="hotbar closed" id="hotbar"></div>
-    <!-- ataque: o medalhão da espada sobre a Bíblia; tocar/clicar = apertar K -->
-    <button id="atkBtn" title="Atacar (K)" aria-label="Atacar (K)"><img src="assets/img/btn-ataque.webp" alt="" draggable="false"></button>
-  </div>
-</section>
+  <!-- SOBRE -->
+  <section class="sobre" id="sobre">
+    <header class="sec-cab">
+      <p class="selo">Sobre o jogo</p>
+      <h2>A espada é a Palavra de Deus</h2>
+      <p>Cada monstro carrega uma mentira — “Deus te abandonou”, “a Bíblia é só um livro antigo”, “curve-se ao bezerro de ouro”. A espada sozinha não basta: escolha o versículo certo para refutar a mentira e a lâmina se acende com o poder da Palavra.</p>
+    </header>
 
-<div class="overlay" id="pauseOverlay"><div class="box">
-  <div class="pause-head">
-    <button id="pauseBack" onclick="showPauseView('main')" style="display:none">← Voltar</button>
-    <h2 id="pauseTitle">Pausado</h2>
-  </div>
-  <div class="pause-body">
-    <div class="pause-menu" id="pauseMain">
-      <button class="primary" onclick="setPause(false)">▶ Continuar</button>
-      <button onclick="showPauseView('list')">📜 Ataques (versículos)</button>
-      <button onclick="showPauseView('controls')">⌨&#xFE0E; Controles</button>
-      <button onclick="showPauseView('settings')">⚙ Configurações</button>
-      <button id="pauseBest" onclick="openBestiary()" hidden>🐍 Trocar de monstro</button>
-      <button onclick="show('menu')">☰ Sair ao menu</button>
+    <div class="recursos">
+      <article class="recurso">
+        <span class="ico" aria-hidden="true">📜</span>
+        <h3>Forje versículos</h3>
+        <p>Encontre os livros dourados escondidos nos ídolos e complete as palavras que faltam na forja. Quanto mais você forja, mais forte fica o golpe.</p>
+      </article>
+      <article class="recurso">
+        <span class="ico" aria-hidden="true">⚔</span>
+        <h3>Refute as mentiras</h3>
+        <p>O versículo certo acende a espada com a cor do tema. Os Dez Mandamentos viram um martelo dourado que voa girando.</p>
+      </article>
+      <article class="recurso">
+        <span class="ico" aria-hidden="true">🛡</span>
+        <h3>Escudo da fé e o Espírito</h3>
+        <p>Erga o escudo contra o fogo e as mordidas, e avance com o impulso do Espírito atravessando os inimigos.</p>
+      </article>
+      <article class="recurso">
+        <span class="ico" aria-hidden="true">🐑</span>
+        <h3>Ovelhas perdidas</h3>
+        <p>Cada jornada esconde uma ovelha fora do caminho. Ache-as, ganhe experiência e suba de nível para ter mais vida.</p>
+      </article>
     </div>
-    <div id="pauseList" style="display:none">
-      <div class="pause-list" id="pauseVerses"></div>
-    </div>
-    <div id="pauseControls" style="display:none">
-      <div class="ctl-grid">
-        <div class="ctl">
-          <div class="ctl-keys wasd">
-            <span class="key k-jump" style="grid-area:w">W</span>
-            <span class="key k-move" style="grid-area:a">A</span>
-            <span class="key k-shield" style="grid-area:s">S</span>
-            <span class="key k-move" style="grid-area:d">D</span>
-          </div>
-          <div class="ctl-txt"><b>Mover</b><span><i class="dot k-move"></i>A / D — andar</span><span><i class="dot k-jump"></i>W — pular</span><span><i class="dot k-shield"></i>S — escudo (segurar)</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key key-wide k-jump">Espaço</span></div>
-          <div class="ctl-txt"><b>Pular</b><span>Também pula (igual ao W). Pule para alcançar o demônio que voa.</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key k-attack">K</span><span class="muted">ou</span><svg class="mouse" viewBox="0 0 64 96" aria-hidden="true">
-            <rect x="4" y="4" width="56" height="88" rx="28" fill="#2a1f18" stroke="#6b4a32" stroke-width="2"/>
-            <path d="M32 4 A28 28 0 0 0 4 32 L4 40 L32 40 Z" fill="#ff7a1a"/>
-            <path d="M32 4 A28 28 0 0 1 60 32 L60 40 L32 40 Z" fill="#3a2a20"/>
-            <line x1="32" y1="4" x2="32" y2="40" stroke="#6b4a32" stroke-width="2"/>
-            <line x1="4" y1="40" x2="60" y2="40" stroke="#6b4a32" stroke-width="2"/>
-            <rect x="29" y="14" width="6" height="14" rx="3" fill="#6b4a32"/>
-          </svg></div>
-          <div class="ctl-txt"><b>Atacar — K ou clique esquerdo</b><span>Golpeia para onde o herói está virado. Com o poder do versículo, solta um rasgo de luz reto à distância (no ar, sai na altura do pulo).</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key k-shield">J</span><span class="muted">ou</span><svg class="mouse" viewBox="0 0 64 96" aria-hidden="true">
-            <rect x="4" y="4" width="56" height="88" rx="28" fill="#2a1f18" stroke="#6b4a32" stroke-width="2"/>
-            <path d="M32 4 A28 28 0 0 0 4 32 L4 40 L32 40 Z" fill="#3a2a20"/>
-            <path d="M32 4 A28 28 0 0 1 60 32 L60 40 L32 40 Z" fill="#5d8fd8"/>
-            <line x1="32" y1="4" x2="32" y2="40" stroke="#6b4a32" stroke-width="2"/>
-            <line x1="4" y1="40" x2="60" y2="40" stroke="#6b4a32" stroke-width="2"/>
-            <rect x="29" y="14" width="6" height="14" rx="3" fill="#6b4a32"/>
-          </svg></div>
-          <div class="ctl-txt"><b>Escudo — J ou botão direito (segurar)</b><span>Bloqueia golpes e bolas de fogo. Dura pouco: veja a barra azul no topo.</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key k-attack">K</span><span class="muted">+</span><span class="key k-attack">K</span></div>
-          <div class="ctl-txt"><b>Combo: golpe duplo — K + K</b><span>K dá um corte lateral. Aperte K de novo durante ele (ou logo depois) e o templário emenda o 2º golpe: um corte de cima para baixo. Continuando a apertar, alterna os dois sem parar.</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key k-spirit">L</span><span class="muted">ou</span><span class="key key-wide k-spirit">Espírito</span></div>
-          <div class="ctl-txt"><b>Impulso do Espírito — L</b><span>Dispara para frente atravessando os inimigos, intocável enquanto avança. Precisa de ao menos 1 fogo do Espírito (derrote inimigos para acender). Recarga de 3s.</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key k-spirit">L</span><span class="muted">+</span><span class="key k-spirit">L</span></div>
-          <div class="ctl-txt"><b>Combo: Impulso duplo — L + L</b><span>Com os 3 fogos do Espírito acesos, aperte L de novo em até 1s: o herói volta pelo mesmo caminho e fere de novo quem atravessar, sem esperar a recarga.</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key">1</span><span class="key">2</span><span class="key">3</span><span class="key key-wide">… 9</span></div>
-          <div class="ctl-txt"><b>Versículos</b><span>Escolha o que refuta a mentira do demônio. Errar trava todos por 2,5s.</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key">👁</span></div>
-          <div class="ctl-txt"><b>Ler versículo</b><span>Clique no olho do card para ler o texto (o jogo pausa).</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key">P</span><span class="key key-wide">Esc</span></div>
-          <div class="ctl-txt"><b>Pausar / voltar</b><span>P abre e fecha este menu. Esc fecha.</span></div>
-        </div>
-        <div class="ctl">
-          <div class="ctl-keys"><span class="key">↑</span><span class="key">↓</span><span class="key">←</span><span class="key">→</span><span class="key key-wide">Enter</span></div>
-          <div class="ctl-txt"><b>Menus</b><span>Setas escolhem a opção, Enter confirma — em todas as telas fora da luta (inclusive esta pausa).</span></div>
-        </div>
+
+    <!-- quem fez -->
+    <aside class="autor" aria-label="Sobre o criador">
+      <div class="autor-selo" aria-hidden="true">KE</div>
+      <div>
+        <p class="selo">Quem criou</p>
+        <h3>Kelwin Esechiel</h3>
+        <p>Brasileiro, cristão, desenvolvedor e apaixonado pela Bíblia. Sword of God nasceu da vontade de juntar duas coisas que ele ama — programar jogos e a Palavra de Deus — num jeito divertido de guardar versículos no coração e aprender a usá-los quando a mentira aparece.</p>
       </div>
-    </div>
-    <div id="pauseSettings" style="display:none">
-      <label class="setting"><span><b>Som</b><span class="muted">Efeitos sonoros do jogo</span></span>
-        <input type="checkbox" id="pauseSound" checked><span class="switch"></span></label>
-      <label class="setting"><span><b>Imortalidade</b><span class="muted">Desenvolvedor · a vida não cai (vale na hora)</span></span>
-        <input type="checkbox" id="pauseGod" checked><span class="switch"></span></label>
-    </div>
-  </div>
-</div></div>
-<div class="overlay" id="endOverlay"><div class="box">
-  <h2 id="endTitle"></h2><p id="endText" class="muted"></p>
-  <div class="row" id="endBtns" style="justify-content:center"></div>
-</div></div>
-<canvas id="sparks"></canvas>
+    </aside>
 
-<script src="data.js"></script>
-<script type="module" src="script.js"></script>
+    <blockquote class="versiculo">
+      “Porque a palavra de Deus é viva e eficaz, e mais penetrante do que qualquer espada de dois gumes.”
+      <cite>Hebreus 4:12</cite>
+    </blockquote>
+  </section>
+
+  <!-- JOGAR -->
+  <section class="cta" id="jogar">
+    <h2>Pegue a espada</h2>
+    <p>A primeira jornada começa no Egito. Forje o seu primeiro versículo e enfrente a primeira mentira.</p>
+    <a class="botao botao-grande" href="jogar/">Jogar no navegador <span aria-hidden="true">⚔</span></a>
+    <p class="nota">Teclado (A/D andar, W pular, K atacar, J escudo, L Espírito) ou toque na tela.</p>
+  </section>
+</main>
+
+<!-- rádio: a playlist do jogo em loop (musics/radio.js); já começa tocando (ou no 1º clique, se o navegador bloquear) -->
+<div class="radio-site" data-radio aria-label="Rádio"></div>
+
+<footer class="rodape">
+  <p>Sword of God · um jogo sobre a Palavra que vence a mentira</p>
+</footer>
+<script src="musics/radio.js"></script>
 </body>
 </html>

@@ -1,0 +1,91 @@
+/* Landing page do Sword of God: escura, dourada, fonte clássica (Cinzel + Cormorant Garamond) */
+:root {
+  --fundo: #0d0907; --fundo2: #160f0b; --cartao: #1c130e; --borda: #3d2c20;
+  --ouro: #f2c84b; --ouro2: #d4a038; --texto: #e8dcc6; --suave: #b3a38a; --vermelho: #b3261e;
+  --titulo: 'Cinzel', Georgia, serif; --corpo: 'Cormorant Garamond', Georgia, serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+body { margin: 0; background: var(--fundo); color: var(--texto); font-family: var(--corpo); font-size: 20px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+img { max-width: 100%; height: auto; display: block; }
+a { color: inherit; }
+h1, h2, h3, h4 { font-family: var(--titulo); font-weight: 700; line-height: 1.15; margin: 0; letter-spacing: .02em; }
+
+/* topo fixo com os 3 menus */
+.topo { position: fixed; inset: 0 0 auto; z-index: 10; padding: 14px 0; background: linear-gradient(#0d0907f2, #0d0907cc); backdrop-filter: blur(6px); border-bottom: 1px solid #2a1d15; }
+.topo-in { display: flex; align-items: center; justify-content: space-between; gap: 16px; max-width: 1400px; margin: 0 auto; padding: 0 clamp(16px, 5vw, 72px); }
+.marca { font-family: var(--titulo); font-weight: 900; font-size: clamp(18px, 2.2vw, 24px); color: var(--ouro); text-decoration: none; letter-spacing: .06em; text-transform: uppercase; }
+.marca span { font-size: .7em; color: #d6463a; } /* o "of" em vermelho, como a cruz do templário */
+.menu { display: flex; align-items: center; gap: clamp(12px, 2.5vw, 32px); font-family: var(--titulo); font-size: 15px; letter-spacing: .12em; text-transform: uppercase; }
+.menu a { text-decoration: none; color: var(--texto); padding: 6px 2px; border-bottom: 2px solid transparent; transition: color .2s, border-color .2s; }
+.menu a:hover, .menu a:focus-visible { color: var(--ouro); border-color: var(--ouro2); outline: none; }
+.menu .menu-jogar { padding: 8px 18px; border: 1px solid var(--ouro2); border-radius: 4px; color: var(--ouro); }
+.menu .menu-jogar:hover, .menu .menu-jogar:focus-visible { background: var(--ouro); color: #1a120c; }
+
+/* hero */
+.hero { position: relative; min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.35fr); align-items: center; gap: clamp(16px, 3vw, 40px);
+  padding: 110px clamp(16px, 5vw, 72px) 60px; max-width: 1400px; margin: 0 auto; }
+.hero::before { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse 50% 60% at 72% 48%, #7a1a1240 0%, transparent 70%), radial-gradient(ellipse 40% 50% at 20% 40%, #d4a03814 0%, transparent 70%); }
+.selo { margin: 0 0 14px; font-family: var(--titulo); font-size: 14px; letter-spacing: .3em; text-transform: uppercase; color: var(--ouro2); }
+.hero h1 { font-size: clamp(30px, 3.4vw, 50px); color: #f6ead2; text-shadow: 0 2px 0 #000; }
+.hero h1 em { font-style: normal; color: var(--ouro); }
+.lead { margin: 18px 0 28px; font-size: clamp(20px, 1.6vw, 24px); line-height: 1.3; color: var(--texto); max-width: 26em; }
+.acoes { display: flex; flex-wrap: wrap; gap: 14px; }
+.botao { display: inline-flex; align-items: center; gap: 10px; padding: 15px 30px; border-radius: 4px; text-decoration: none; font-family: var(--titulo); font-weight: 700; font-size: 17px; letter-spacing: .12em; text-transform: uppercase;
+  color: #1a120c; background: linear-gradient(#f6d873, #d4a038); border: 1px solid #f6d873; box-shadow: 0 6px 24px #d4a03840, inset 0 1px 0 #fff6; transition: transform .15s, box-shadow .2s; }
+.botao:hover, .botao:focus-visible { transform: translateY(-2px); box-shadow: 0 10px 30px #d4a03866, inset 0 1px 0 #fff6; outline: none; }
+.botao-sec { background: transparent; color: var(--ouro); border-color: var(--borda); box-shadow: none; }
+.botao-sec:hover, .botao-sec:focus-visible { border-color: var(--ouro2); box-shadow: none; }
+.nota { margin: 18px 0 0; font-size: 17px; color: var(--suave); font-style: italic; }
+.hero-arte { margin: 0 -2vw 0 0; transform: scale(1.08); transform-origin: center; filter: drop-shadow(0 30px 40px #000c) drop-shadow(0 0 60px #b3261e33); }
+
+/* seções */
+.sobre, .cta { padding: clamp(64px, 9vw, 120px) clamp(16px, 5vw, 72px); max-width: 1240px; margin: 0 auto; }
+.sobre { border-top: 1px solid #2a1d15; }
+.sec-cab { text-align: center; max-width: 760px; margin: 0 auto 48px; }
+.sec-cab h2 { font-size: clamp(30px, 3.6vw, 48px); color: #f6ead2; }
+.sec-cab p:last-child { margin: 18px 0 0; color: var(--texto); }
+.recursos { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr)); gap: 18px; }
+.recurso { padding: 26px 24px; background: linear-gradient(var(--cartao), var(--fundo2)); border: 1px solid var(--borda); border-radius: 8px; }
+.recurso .ico { display: block; font-size: 30px; margin-bottom: 12px; }
+.recurso h3 { font-size: 19px; color: var(--ouro); margin-bottom: 8px; }
+.recurso p { margin: 0; font-size: 18px; color: var(--suave); }
+.autor { display: flex; align-items: center; gap: clamp(16px, 3vw, 32px); max-width: 860px; margin: 80px auto 0; padding: clamp(20px, 3vw, 32px);
+  background: linear-gradient(var(--cartao), var(--fundo2)); border: 1px solid var(--borda); border-radius: 10px; }
+.autor-selo { flex: none; display: grid; place-items: center; width: clamp(72px, 9vw, 96px); aspect-ratio: 1; border-radius: 50%; border: 2px solid var(--ouro2);
+  background: radial-gradient(circle, #3a2618, #1a110c); font-family: var(--titulo); font-weight: 900; font-size: clamp(24px, 3vw, 32px); color: var(--ouro); }
+.autor .selo { margin-bottom: 6px; }
+.autor h3 { font-size: clamp(22px, 2.4vw, 28px); color: #f6ead2; }
+.autor p:last-child { margin: 10px 0 0; color: var(--texto); }
+@media (max-width: 560px) { .autor { flex-direction: column; text-align: center; } }
+.versiculo { margin: 80px auto 0; max-width: 760px; text-align: center; font-size: clamp(22px, 2.2vw, 30px); font-style: italic; color: #e9d9b6; }
+.versiculo cite { display: block; margin-top: 14px; font-family: var(--titulo); font-style: normal; font-size: 15px; letter-spacing: .2em; color: var(--ouro2); }
+
+/* cta final */
+.cta { text-align: center; }
+.cta h2 { font-size: clamp(34px, 4.4vw, 58px); color: var(--ouro); text-shadow: 0 0 40px #d4a03840; }
+.cta > p:first-of-type { max-width: 600px; margin: 18px auto 32px; }
+.botao-grande { padding: 18px 40px; font-size: 19px; }
+.rodape { padding: 28px 16px; text-align: center; border-top: 1px solid #2a1d15; color: var(--suave); font-size: 16px; }
+.rodape p { margin: 0; }
+
+/* rádio fixo no canto de baixo */
+.radio-site { position: fixed; left: clamp(12px, 2vw, 24px); bottom: clamp(12px, 2vw, 24px); z-index: 20; }
+.rodape { padding-bottom: 84px; }
+
+/* celular */
+@media (max-width: 860px) {
+  .hero { grid-template-columns: minmax(0, 1fr); text-align: center; padding-top: 96px; }
+  .hero-arte { order: -1; max-width: 640px; margin: 0 auto; transform: none; }
+  .lead { margin-left: auto; margin-right: auto; }
+  .acoes { justify-content: center; }
+}
+@media (max-width: 480px) {
+  body { font-size: 18px; }
+  .marca { font-size: 15px; letter-spacing: .03em; white-space: nowrap; }
+  .menu { gap: 12px; font-size: 13px; letter-spacing: .08em; }
+  .menu .menu-jogar { padding: 6px 12px; }
+  .botao { padding: 14px 22px; font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } .botao { transition: none; } }
