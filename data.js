@@ -6,7 +6,7 @@ window.DATA = {
   //    `afiacao[1]` contexto histórico, `afiacao[2]` contexto da passagem.
   versiculos: [
     {
-      id: "ex20-3", ref: "Êxodo 20:3", tema: "idolatria", autor: "moises",
+      id: "ex20-3", ref: "Êxodo 20:3", tema: "idolatria", autor: "moises", mandamento: true,
       texto: "Não terás outros deuses diante de mim.",
       lacunas: [
         { certa: "deuses", distratores: ["amigos", "caminhos", "senhores"] },
@@ -32,7 +32,7 @@ window.DATA = {
     },
     {
       // As Pragas (jornada 2): o 2º mandamento — as pragas julgaram os deuses do Egito: do céu (o sol), da terra e das águas (o Nilo)
-      id: "ex20-4", ref: "Êxodo 20:4", tema: "idolatria", autor: "moises",
+      id: "ex20-4", ref: "Êxodo 20:4", tema: "idolatria", autor: "moises", mandamento: true,
       texto: "Não farás para ti imagem de escultura, nem alguma semelhança do que há em cima nos céus, nem em baixo na terra, nem nas águas debaixo da terra.",
       lacunas: [
         { certa: "escultura", distratores: ["madeira", "ouro", "pedra"] },
@@ -53,6 +53,32 @@ window.DATA = {
         [
           { p: "Logo depois (Êxodo 20:5), o que Deus diz para não fazer diante das imagens?", certa: "Encurvar-se a elas nem servi-las", erradas: ["Tocá-las com as mãos", "Vendê-las no mercado", "Guardá-las em casa"] },
           { p: "Qual mandamento vem logo antes (Êxodo 20:3)?", certa: "Não ter outros deuses diante de Deus", erradas: ["Honrar pai e mãe", "Guardar o sábado", "Não furtar"] }
+        ]
+      ]
+    },
+    {
+      // As Pragas: o 3º mandamento — o faraó zombou do nome do Senhor ("Quem é o Senhor, cuja voz eu ouvirei?", Êxodo 5:2)
+      id: "ex20-7", ref: "Êxodo 20:7", tema: "mentira", autor: "moises", mandamento: true,
+      texto: "Não tomarás o nome do Senhor, teu Deus, em vão; porque o Senhor não terá por inocente o que tomar o seu nome em vão.",
+      lacunas: [
+        { certa: "nome", distratores: ["pão", "ouro", "dia"] },
+        { certa: "inocente", distratores: ["forte", "sábio", "rico"] }
+      ],
+      lacunas2: [
+        { certa: "tomarás", distratores: ["venderás", "cantarás", "guardarás"] },
+        { certa: "Senhor", distratores: ["faraó", "rei", "povo"] }
+      ],
+      afiacao: [
+        [
+          { p: "Em que livro estão os Dez Mandamentos de Êxodo 20?", certa: "Êxodo", erradas: ["Gênesis", "Levítico", "Josué"] }
+        ],
+        [
+          { p: "Qual mandamento é \"Não tomarás o nome do Senhor em vão\"?", certa: "O terceiro", erradas: ["O primeiro", "O quinto", "O décimo"] },
+          { p: "Quem perguntou \"Quem é o Senhor, cuja voz eu ouvirei?\"", certa: "O faraó", erradas: ["Moisés", "Arão", "Josué"] }
+        ],
+        [
+          { p: "Em que monte Deus deu os Dez Mandamentos a Moisés?", certa: "Sinai", erradas: ["Carmelo", "Sião", "Hermom"] },
+          { p: "Em que os mandamentos foram escritos?", certa: "Em tábuas de pedra", erradas: ["Em rolos de papiro", "Em placas de ouro", "Em tábuas de madeira"] }
         ]
       ]
     },
@@ -289,12 +315,17 @@ window.DATA = {
     { texto: "Palavras velhas e mortas. Isso não muda ninguém.", tipo: "mentira", ideal: ["hb4-12"] },
     { texto: "Isso é coisa do passado, não tem poder nenhum.", tipo: "mentira", ideal: ["hb4-12"] },
     { texto: "Pragas são só azar. Deus não fala com ninguém.", tipo: "mentira", ideal: ["hb4-12"] },
+    { texto: "Quem é o Senhor para que eu ouça a sua voz?", tipo: "mentira", ideal: ["ex20-7", "hb4-12"] },
     // demônio da Idolatria: puxa para outros deuses (o bezerro de ouro está logo ali)
     { texto: "Curve-se ao bezerro de ouro. Esse deus você pode ver.", tipo: "idolatria", ideal: ["ex20-3"] },
     { texto: "Tenha quantos deuses quiser. Todos levam ao mesmo lugar.", tipo: "idolatria", ideal: ["ex20-3"] },
     { texto: "Ponha outra coisa em primeiro lugar. Deus entende.", tipo: "idolatria", ideal: ["ex20-3"] },
     // As Pragas: os deuses do Egito (Êxodo 12:12) e a Palavra desacreditada
     { texto: "Os deuses do Egito são mais fortes que o seu Deus.", tipo: "idolatria", ideal: ["ex20-4", "ex20-3"] },
+    // o Faraó (chefão das Pragas): refutado pelos mandamentos
+    { texto: "Quem é o Senhor, para que eu ouça a sua voz?", tipo: "farao", ideal: ["ex20-7"] },
+    { texto: "Eu sou o deus do Egito. Curve-se diante de mim!", tipo: "farao", ideal: ["ex20-3"] },
+    { texto: "Meus deuses de ouro e pedra vão te esmagar!", tipo: "farao", ideal: ["ex20-4"] },
     { texto: "Adore o Nilo e o sol. São eles que te dão a vida.", tipo: "idolatria", ideal: ["ex20-4", "ex20-3"] },
     // Babilônia (Daniel 3): a estátua de ouro do rei
     { texto: "Curve-se à estátua de ouro do rei. Todos se curvam!", tipo: "idolatria", ideal: ["ex20-3"] },
@@ -315,6 +346,12 @@ window.DATA = {
     idolatria: { nome: "Idolatria", cor: "#c88cff", claro: "#f0e0ff", brilho: "#b06aff" }, // violeta
     orgulho:  { nome: "Orgulho",  cor: "#4fd1b8", claro: "#d8fff6", brilho: "#2fe0c0" }  // verde-água (humildade contra o orgulho)
   },
+  // versículos dos Dez Mandamentos (mandamento: true): o poder é amarelo-ouro (no lugar da cor do tema) e o golpe vira o martelo
+  // dourado que voa girando (assets/img/martelo.webp). O tema (e a mentira que refuta) continua o do versículo
+  corMandamento: { cor: "#ffd23f", claro: "#fff6c8", brilho: "#ffc21a" },
+  // mandamento upado (forja nesse nível ou mais: 2 = Forjado): o martelo vai e VOLTA girando (bumerangue), acertando também na volta,
+  // e some ao chegar perto do herói
+  marteloVolta: 2,
   inimigos: {
     // chao: anda no chão e ataca corpo a corpo (passo = px/s); sem chao: flutua e cospe fogo;
     // mergulho: ave que paira no alto e mergulha no herói (sprite assets/sprites/enemy/ave-*.png)
@@ -351,10 +388,14 @@ window.DATA = {
   //   icone = desenho do ponto (js/ui/map.js → ICONES: piramide, vale; sem ele, ruínas); cor = brilho da região em volta
   // protótipo: true = todas as jornadas abertas no menu, sem precisar vencer a anterior (false = trava até vencer)
   jornadasLiberadas: false,
+  // XP (salvo no navegador, ef-xp): pequeno = bichos (rãs, lobos, soldados, mulher dos piolhos); grande = monstros com mentira e
+  // chefões; ovelha = achar uma ovelha perdida. niveis = XP total para chegar a cada nível (1 a 10); cada nível dá +vidaPorNivel
+  // de vida máxima (100 no nível 0). No Bestiário não conta
+  xp: { pequeno: 2, grande: 10, ovelha: 10, vidaPorNivel: 10, niveis: [50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600] },
   fases: [{
     // Jornada 1: só 2 versículos (Êxodo 20:3, depois Hebreus 4:12), bem separados. Cada um vem antes de 2 serpentes (uma por vez) que ele refuta.
-    id: "exodus", nome: "Exodus", comprimento: 10100,
-    mapa: { x: 19, y: 63, icone: "piramide", cor: "#e0782c" }, // Egito, perto das pirâmides
+    id: "exodus", nome: "Exodus", comprimento: 11200,
+    mapa: { x: 10, y: 71, icone: "piramide", img: "assets/img/simbolo-exodus.webp", cor: "#e0782c" }, // img: o símbolo (faraó, pirâmides, sol e palmeira) no lugar do desenho // Egito, perto das pirâmides (posição na pintura assets/img/mapa.webp)
     // fundo (opcional): imagem que rola devagar (parallax) e se repete espelhada, emendando sem corte; escuro = véu por cima
     fundo: { img: "assets/img/fundo-exodus.webp", parallax: 0.35, escuro: 0.35 },
     chao: "assets/img/chao-exodus.webp", // laje de terra e pedras (miolo repetido + pontas nas bordas)
@@ -385,10 +426,15 @@ window.DATA = {
       { tipo: "inimigos", x: 7200, inimigos: ["mentira"], vida: 0.6, frases: ["A Bíblia é só um livro antigo. Não serve pra nada hoje."], aparencia: { sprite: "verde", acido: true, tell: 0.7, cadencia: 2, passo: 80 }, ras: 2 }, // ras: N → N rãs caem do céu quando a arena acaba
       { tipo: "inimigos", x: 8500, inimigos: ["mentira"], vida: 0.75, frases: ["Palavras velhas e mortas. Isso não muda ninguém."], ras: 10 }, // a praga antes da chefona
       // 3) chegada: um mar largo, atravessado numa laje que vai e volta — e nele mora a chefona, a Naja (o Leviatã com a arte da naja verde; mente como o Golias)
-      { tipo: "mar", x: 8800, w: 1300 }, // ~80% da tela de água aberta; o resto até o fim é a terra submersa
-      { tipo: "terra", x: 9570, w: 530 }, // o chão do fim: fica embaixo d'água até o Leviatã cair, depois sobe
-      { tipo: "plataforma", x: 8820, w: 340, altura: 30, move: 400, periodo: 10, espera: true, img: "assets/img/jangada.webp" }, // bem larga: dá para lutar em cima; parada até a Naja surgir (ela surge quando o herói pisa na laje)
-      { tipo: "chefe", x: 9185, vida: 50, pele: "naja" }
+      // ovelha perdida (opcional): depois da chuva de rãs, antes da Naja — um degrau e uma plataforma alta (do chão o pulo não
+      // alcança a plataforma, só do degrau). Ao ver o herói ela foge pulando: chão → degrau → plataforma, e lá em cima fica calma
+      { tipo: "ovelha", x: 8950, sobe: [[9260, -90], [9580, -200]] },
+      { tipo: "terreno", x: 9100, w: 320, altura: 90 },
+      { tipo: "plataforma", x: 9480, w: 200, altura: 200 },
+      { tipo: "mar", x: 9900, w: 1300 }, // ~80% da tela de água aberta; o resto até o fim é a terra submersa
+      { tipo: "terra", x: 10670, w: 530 }, // o chão do fim: fica embaixo d'água até o Leviatã cair, depois sobe
+      { tipo: "plataforma", x: 9920, w: 340, altura: 30, move: 400, periodo: 10, espera: true, img: "assets/img/jangada.webp" }, // bem larga: dá para lutar em cima; parada até a Naja surgir (ela surge quando o herói pisa na laje)
+      { tipo: "chefe", x: 10285, vida: 50, pele: "naja" }
     ]
   }, {
     // Jornada 2: As Pragas (Êxodo 7–11). O mesmo cenário do Exodus. Sem versículo novo: o herói usa os do Exodus.
@@ -396,7 +442,7 @@ window.DATA = {
     // arena com 2 cobras vermelhas (Idolatria → Êxodo 20:3; Mentira → Hebreus 4:12); no fim, a boca de uma CAVERNA igual à do
     // Vale da sombra: ele cai lá dentro e a jornada termina no fim da caverna (fim: true — por enquanto a caverna está vazia)
     id: "pragas", nome: "As Pragas", comprimento: 8450,
-    mapa: { x: 26, y: 51, icone: "pragas", cor: "#a96ad8" }, // medalhão roxo e amarelo: a nuvem de gafanhotos
+    mapa: { x: 23, y: 53, icone: "pragas", img: "assets/img/simbolo-pragas.webp", cor: "#a96ad8" }, // img: o olho de Hórus, o mosquito e a caveira // Gósen, no delta do Nilo // medalhão roxo e amarelo: a nuvem de gafanhotos
     // fundo: uma rua do Egito ao pôr do sol (muralhas, tendas, palmeiras, estátuas de faraó e braseiros), parada e esticada pela fase;
     // véu de 45% (a arte é clara); desce = px a mais de altura (presa no topo, a praça de pedra do fundo desce para trás do chão)
     fundo: { img: "assets/img/fundo-pragas.webp", estica: 1.05, desce: 130, escuro: 0.45 },
@@ -415,13 +461,18 @@ window.DATA = {
       // 1) a 1ª mulher dos piolhos, sozinha
       { tipo: "piolhenta", x: 1500 },
       { tipo: "terreno", x: 2000, w: 650, altura: 90 }, // largo: cabem as duas pontas da arte
+      { tipo: "pedra", x: 2380, verso: "ex20-7" }, // em cima do terreno alto: o bezerro de ouro com o 3º mandamento (Êxodo 20:7)
       { tipo: "estrutura", x: 2780, img: "assets/img/boi-morto-1.webp", w: 340, h: 140, sc: .45, base: -4.5, degraus: [] },
       { tipo: "ra", x: 3050 },
       // 2) duas juntas
-      { tipo: "piolhenta", x: 3350 },
-      { tipo: "estrutura", x: 3480, img: "assets/img/boi-morto-4.webp", w: 400, h: 162, sc: .45, base: 0.9, degraus: [] },
-      { tipo: "piolhenta", x: 3650 },
+      { tipo: "piolhenta", x: 3150 },
+      // ovelha perdida: um boi morto pisável (o lombo é um degrau de ~37 px) leva a um terraço a 150 px — do chão o pulo não alcança
+      { tipo: "estrutura", x: 3400, img: "assets/img/boi-morto-2.webp", w: 400, h: 230, sc: .45, base: 36, degraus: [[170, 340, 68]] },
+      { tipo: "plataforma", x: 3600, w: 150, altura: 150 },
+      { tipo: "ovelha", x: 3680, y: -150, calma: true },
+      { tipo: "piolhenta", x: 3880 },
       { tipo: "buraco", x: 4000, w: 200 },
+      { tipo: "boi", x: 4500 }, // boi morto (a praga nos animais): só corre — investe, gira e investe de novo
       // 3) o mandamento da fase: o ídolo com o livro de Êxodo 20:4 (o herói pode chegar aqui sem nenhum versículo do Exodus)
       { tipo: "pedra", x: 4800, verso: "ex20-4" },
       //    → os monstros, UM POR VEZ: 2 cobras vermelhas da Idolatria, cada uma refutada pelo Êxodo 20:4 (ou o 20:3, se já tiver)
@@ -429,18 +480,24 @@ window.DATA = {
       { tipo: "estrutura", x: 6050, img: "assets/img/boi-morto-3.webp", w: 400, h: 150, sc: .45, base: -4.5, degraus: [] },
       { tipo: "inimigos", x: 6800, inimigos: ["idolatria"], vida: 0.7, frases: ["Adore o Nilo e o sol. São eles que te dão a vida."] },
       { tipo: "estrutura", x: 7100, img: "assets/img/boi-morto-2.webp", w: 400, h: 230, sc: .45, base: 36, degraus: [] },
+      { tipo: "boi", x: 7300 }, // outro boi, entre a última cobra e a caverna
       // 4) a boca da caverna (como no Vale da sombra): o vão é largo demais para pular — ele cai lá dentro
       { tipo: "caverna", x: 7600, w: 560, x0: 8900, x1: 10700, entrada: 9120, saida: 8250, fim: true,
         aviso: ["Você caiu numa caverna!", "Siga até o fim dela"],
         // fundo próprio: uma tumba egípcia escavada na rocha (Anúbis, ankh, escaravelho alado, colunas, braseiro e um facho de luz)
         fundo: { img: "assets/img/fundo-caverna-egito.webp", estica: 1, escuro: 0.3 },
-        chao: { img: "assets/img/chao-caverna.webp", medidas: { cap: 330, capR: 310, capFade: 60, capOut: 50, surf: 240, band: [280, 345], fade: 160, s: 0.5, semFaixa: true } } }
+        chao: { img: "assets/img/chao-caverna.webp", medidas: { cap: 330, capR: 310, capFade: 60, capOut: 50, surf: 240, band: [280, 345], fade: 160, s: 0.5, semFaixa: true } } },
+      // no fim da tumba: o chefão, o Faraó (a arena trava a câmera; vencido ele, siga até o fim da caverna)
+      { tipo: "gigante", pele: "farao", x: 10120, vida: 60, caverna: true }
     ]
   }, {
     // Jornada 3: a Dúvida ataca do alto. 2 versículos contra o medo (Isaías 41:10, Salmos 23:4), 4 inimigos e o chefão Golias.
     id: "vale", abre: ["exodus", "pragas"], // abre quando o herói vence o Exodus OU As Pragas
     nome: "O vale da sombra", comprimento: 11500,
-    mapa: { x: 36, y: 29, icone: "vale", cor: "#5d7fb8" }, // Canaã (o vale de Elá)
+    // sul de Canaã, a oeste do Mar Morto (o deserto da Judeia, onde Davi pastoreava). via: a trilha chega por terra, pela rota do
+    // Êxodo — de Gósen pelo Deserto de Sur, atravessando o Sinai perto do Monte Sinai, e subindo pelo Neguebe (o Exodus entra nela)
+    mapa: { x: 53, y: 48, icone: "vale", cor: "#5d7fb8",
+      via: { pragas: [[31, 57], [40, 62], [45, 68], [48.5, 71.5], [52, 62]], exodus: [[17, 63], [31, 57], [40, 62], [45, 68], [48.5, 71.5], [52, 62]] } },
     // chão: grama de um campo de batalha (elmos, flechas, estandarte, corvo) — as 2 artes enviadas emendadas numa laje só.
     // Sem tingir (é verde); medidas próprias: superfície em y=145, faixa de pedras em y 250–390. Pontas largas que terminam em
     // grama limpa (esq. 440 px: estandarte + elmo; dir. 581 px: elmo + flecha), dissolvendo só nos últimos 50 px — sem objeto cortado
@@ -464,19 +521,36 @@ window.DATA = {
       // próprio). Lá embaixo: lobos, monstros e o ídolo de Salmos 23:4 ("ainda que eu andasse pelo vale da sombra da morte");
       // no fim, uma rampa de pedra leva à saída, que devolve o herói logo depois do vale (x saida)
       { tipo: "ovelha", x: 4540 }, // ovelha perdida: com o herói perto ela foge e cai na boca da caverna
-      { tipo: "caverna", x: 4900, w: 560, x0: 12400, x1: 15000, entrada: 12620, saida: 5560,
+      // 2 lajes sobre a boca da caverna: dá para atravessar pulando (e seguir pelo vale) ou cair nela de propósito
+      { tipo: "plataforma", x: 4990, w: 130, altura: 40 },
+      { tipo: "plataforma", x: 5290, w: 140, altura: 40 }, // vão de 170 px entre as duas (ainda dá no pulo, ~187 px)
+      // na 2ª laje: a placa "Lucas 15:3-7" com a seta para baixo — a parábola da ovelha perdida (a que fugiu caiu aí dentro)
+      { tipo: "estrutura", x: 5298, img: "assets/img/placa-lucas15.webp", w: 330, h: 307, sc: .38, base: -35, degraus: [] },
+      { tipo: "caverna", x: 4900, w: 560, x0: 12400, x1: 17900, entrada: 12620, saida: 5560,
         fundo: { img: "assets/img/fundo-caverna.webp", estica: 1, escuro: 0.25 },
         // chão de pedra da caverna: as 2 variações enviadas emendadas numa faixa só (o miolo alterna entre elas ao repetir)
         chao: { img: "assets/img/chao-caverna.webp", medidas: { cap: 330, capR: 310, capFade: 60, capOut: 50, surf: 240, band: [280, 345], fade: 160, s: 0.5, semFaixa: true } } },
-      // em ondas (bando/apos): o ídolo logo na queda; 2 lobos esperando; mortos eles, vem a ave com mais 2 lobos;
-      // mortos todos, a cobra vermelha com mais 2 lobos (cada onda só começa quando a anterior acabou inteira)
+      // a caverna (x 12 400–17 900), da esquerda para a direita, com relevos e lajes entre as lutas — cada onda numa ARENA FIXA no
+      // caminho (caverna: true; não surge mais à frente do herói onde ele estiver), e a ovelha sozinha no fim, depois da última:
+      // 1) a queda e o ídolo de Salmos 23:4, e um degrau de pedra
       { tipo: "pedra", x: 12820, verso: "sl23-4" },
-      { tipo: "lobo", x: 13550, bando: "cav1" }, // fora da 1ª tela: esperando mais adiante
-      { tipo: "lobo", x: 13800, bando: "cav1" },
-      { tipo: "inimigos", x: 13800, apos: "cav1", bando: "cav2", lobos: 2, inimigos: ["duvida"], vida: 0.7, frases: ["Você está sozinho no escuro."] },
-      { tipo: "ovelha", x: 14450, calma: true }, // no fim da caverna, antes da rampa: a ovelha perdida (a que fugiu e caiu); tocar nela dá vida
-      { tipo: "inimigos", x: 13800, apos: "cav2", bando: "cav3", lobos: 2, inimigos: ["duvida"], vida: 0.7, frases: ["Aqui embaixo ninguém te acha."],
+      { tipo: "terreno", x: 13080, w: 320, altura: 80 },
+      // 2) 2 lobos esperando no chão plano
+      { tipo: "lobo", x: 13850, bando: "cav1" },
+      { tipo: "lobo", x: 14100, bando: "cav1" },
+      // relevos: uma laje baixa e um degrau alto
+      { tipo: "plataforma", x: 14420, w: 140, altura: 70 },
+      { tipo: "terreno", x: 14650, w: 300, altura: 120 },
+      // 3) arena: a ave da Dúvida com mais 2 lobos
+      { tipo: "inimigos", x: 15700, caverna: true, bando: "cav2", lobos: 2, inimigos: ["duvida"], vida: 0.7, frases: ["Você está sozinho no escuro."] },
+      // relevos: duas lajes em escada
+      { tipo: "plataforma", x: 15990, w: 140, altura: 80 },
+      { tipo: "plataforma", x: 16210, w: 140, altura: 160 },
+      // 4) arena: a cobra vermelha com mais 2 lobos
+      { tipo: "inimigos", x: 17000, caverna: true, bando: "cav3", lobos: 2, inimigos: ["duvida"], vida: 0.7, frases: ["Aqui embaixo ninguém te acha."],
         aparencia: { sprite: "serpente", chao: true, mergulho: false, passo: 70, tell: 0.6, cadencia: 1.8 } },
+      // 5) no fim, antes da rampa da saída: a ovelha perdida (a que fugiu e caiu), sozinha; tocar nela dá vida
+      { tipo: "ovelha", x: 17470, calma: true },
       { tipo: "inimigos", x: 6400, inimigos: ["duvida"], vida: 0.8, frases: ["Deus te abandonou."] },
       // 3) buraco largo com lajes e penhasco (sem versículo: no máximo 2 por fase)
       { tipo: "lobo", x: 7300 },
@@ -494,9 +568,10 @@ window.DATA = {
   }, {
     // Jornada 4: Babilônia, a cidade dos ídolos e do orgulho (Daniel 3–4). 2 versículos de humildade e dependência do Senhor
     // (1 Pedro 5:6, Provérbios 3:5) e 4 inimigos — só leões e harpias.
-    id: "babilonia", abre: ["vale"],
+    id: "babilonia", abre: ["vale"], nivelMin: 2, // abre vencendo o Vale E com o herói no nível 2 ou mais (sistema de XP)
     nome: "Babilônia", comprimento: 9900,
-    mapa: { x: 78, y: 58, icone: "zigurate", cor: "#d9a441" },
+    // Babilônia, no Eufrates. via: a rota do cativeiro de Judá (2 Reis 25) — sobe por Canaã, passa pela Síria e desce o Eufrates
+    mapa: { x: 86, y: 22, icone: "zigurate", cor: "#d9a441", via: { vale: [[56, 32], [62, 16], [72, 13], [80, 18]] } },
     // fundo: a cidade com o zigurate, a estátua e fumaça, esticada pela fase (parallax lento)
     fundo: { img: "assets/img/fundo-babilonia.webp", estica: 1.05, escuro: 0.5, final: "assets/img/fundo-babilonia-final.webp", foco: [0.28, 0.3] }, // foco: onde está a estátua na arte (fração x, y) — a câmera vai até ela antes da cena // imagem larga (1920×819, parada): já passa da tela, anda ~380 px pela fase; véu de 50%: a arte é bem clara
     // chão: o altar de pedra dourada com panos, cálices e vinho derramado. Pontas: esq. 560 px (pano vermelho e cálice
@@ -524,6 +599,9 @@ window.DATA = {
       //    (20, 47, 110 e 146 px acima do chão); no degrau mais alto, o ídolo → Provérbios 3:5 (dependência do Senhor)
       { tipo: "estrutura", x: 5200, img: "assets/img/escadaria-babilonia.webp", w: 1994, h: 630, sc: .45, base: 45,
         degraus: [[0, 500, 485], [500, 800, 425], [800, 1340, 285], [1340, 1994, 205]] },
+      // ovelha perdida: um terraço que sai do topo da escadaria para a direita (a 250 px; só dá para pular para ele do degrau de cima)
+      { tipo: "plataforma", x: 6140, w: 170, altura: 250 },
+      { tipo: "ovelha", x: 6225, y: -250, calma: true },
       { tipo: "pedra", x: 5950, verso: "pv3-5" },
       //    → a harpia, com um soldado chegando junto
       { tipo: "inimigos", x: 7000, inimigos: ["duvida"], vida: 0.8, frases: ["Confie no seu braço. Só os fracos pedem ajuda."], soldados: 1 },

@@ -19,6 +19,10 @@ export function setShield(on) {
 export const sb = $('shieldBtn');
 sb.addEventListener('pointerdown', e => { e.preventDefault(); sb.setPointerCapture(e.pointerId); setShield(true); });
 ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(ev => sb.addEventListener(ev, () => setShield(false)));
+// botão de ataque do HUD (o medalhão): o mesmo que apertar K
+const ab = $('atkBtn');
+ab.addEventListener('pointerdown', e => { e.preventDefault(); if (B && !B.paused) attack(); ab.classList.add('hit'); });
+['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => ab.addEventListener(ev, () => ab.classList.remove('hit')));
 export const GAME_KEYS = ['Space', 'KeyW', 'KeyA', 'KeyS', 'KeyD', 'KeyJ', 'KeyK', 'KeyL', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'ArrowDown'];
 addEventListener('keydown', e => {
   if (B && GAME_KEYS.includes(e.code)) e.preventDefault();
@@ -33,7 +37,7 @@ addEventListener('keydown', e => {
     if (B.paused) return;
     if (['Space', 'KeyW', 'ArrowUp'].includes(e.code) && B.hero.ground && !B.over && B.peek < 0) { B.hero.vy = -JUMP; B.hero.ground = false; }
     if (e.code === 'KeyS' || e.code === 'ArrowDown' || e.code === 'KeyJ') setShield(true);
-    if (e.code === 'KeyK') attack();
+    if (e.code === 'KeyK') { attack(); ab.classList.add('hit'); } // o medalhão acende enquanto o K está apertado
     if (e.code === 'KeyL') startDash();
     const n = parseInt(e.key); if (n >= 1 && n <= 9) useVerse(n - 1);
   }
@@ -42,8 +46,9 @@ addEventListener('keyup', e => {
   keys[e.code] = false;
   if (B && GAME_KEYS.includes(e.code)) e.preventDefault();
   if (B && (e.code === 'KeyS' || e.code === 'ArrowDown' || e.code === 'KeyJ')) setShield(false);
+  if (e.code === 'KeyK') ab.classList.remove('hit');
 });
-addEventListener('blur', () => { for (const k in keys) keys[k] = false; setShield(false); });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; setShield(false); ab.classList.remove('hit'); });
 cv.addEventListener('pointerdown', e => {
   if (!B) return; e.preventDefault();
   if (e.button === 2) setShield(true); else attack();

@@ -20,6 +20,7 @@
       <button class="primary" onclick="show('mapa')">Jogar</button>
       <button onclick="habView('hub')">Habilidades<small>Versículos, fé e armadura</small></button>
       <button onclick="showMenuView('settings')">Configurações</button>
+      <button onclick="startTreino()">Treinamento<small>Todos os poderes no máximo (ajustáveis) e espantalhos para testar ataques e movimentos</small></button>
       <button class="menu-dev" onclick="openBestiary()">🛠 Bestiário<small>Teste de desenvolvedor: lute com um monstro só</small></button>
     </nav>
     <!-- Configurações -->
@@ -186,13 +187,18 @@
 <!-- BATALHA -->
 <section id="battle" class="screen">
   <canvas id="arena" width="960" height="540"></canvas>
+  <!-- Treinamento: o painel de ajustar os poderes (js/battle/treino.js) -->
+  <div class="treino-painel" id="treinoPainel" aria-label="Ajustes do treinamento"></div>
   <div class="peek" id="peek" onclick="closePeek()"></div>
   <div class="controls">
     <button id="pauseBtn" title="Pausar (P)" onclick="setPause(true)">⏸</button>
-    <button id="shieldBtn">🛡 Escudo</button>
-    <button id="dashBtn" title="Impulso do Espírito (L)" onclick="startDash()"><svg class="dove" viewBox="0 0 48 24" aria-hidden="true"><path d="M3 15 H16"/><path d="M20 15 C25 15 28 12 30 9 C31 6 34 5 37 6 L40.5 6.5 L37.5 8.5 C38 12 35 16 29 17 C25 18 22 17 20 15 Z M28 11 C26 6 23 3 19 2 C21 6 23 9 28 11 Z" fill="currentColor" stroke="none"/></svg>Espírito<span class="fires" id="dashFires"><i><svg viewBox="0 0 12 16"><path d="M6 0 C7 4 11 6 11 10.5 A5 5 0 0 1 1 10.5 C1 7.5 3 6 4 3.5 C5 5.5 5.5 6.5 6.5 7 C7 4.5 6.5 2 6 0 Z"/></svg></i><i><svg viewBox="0 0 12 16"><path d="M6 0 C7 4 11 6 11 10.5 A5 5 0 0 1 1 10.5 C1 7.5 3 6 4 3.5 C5 5.5 5.5 6.5 6.5 7 C7 4.5 6.5 2 6 0 Z"/></svg></i><i><svg viewBox="0 0 12 16"><path d="M6 0 C7 4 11 6 11 10.5 A5 5 0 0 1 1 10.5 C1 7.5 3 6 4 3.5 C5 5.5 5.5 6.5 6.5 7 C7 4.5 6.5 2 6 0 Z"/></svg></i></span><span class="lockbar" id="dashLock"></span></button>
+    <!-- escudo: o medalhão azul com o escudo e a cruz; segurar = segurar o J (acende enquanto erguido) -->
+    <button id="shieldBtn" title="Escudo (J)" aria-label="Escudo (J)"><img src="assets/img/btn-escudo.webp" alt="" draggable="false"></button>
+    <!-- Impulso do Espírito: o medalhão das pombas; os 3 fogos ficam por cima dele (absolute) -->
+    <button id="dashBtn" title="Impulso do Espírito (L)" aria-label="Impulso do Espírito (L)" onclick="startDash()"><img src="assets/img/btn-espirito.webp" alt="" draggable="false"><span class="fires" id="dashFires"><i><svg viewBox="0 0 12 16"><path d="M6 0 C7 4 11 6 11 10.5 A5 5 0 0 1 1 10.5 C1 7.5 3 6 4 3.5 C5 5.5 5.5 6.5 6.5 7 C7 4.5 6.5 2 6 0 Z"/></svg></i><i><svg viewBox="0 0 12 16"><path d="M6 0 C7 4 11 6 11 10.5 A5 5 0 0 1 1 10.5 C1 7.5 3 6 4 3.5 C5 5.5 5.5 6.5 6.5 7 C7 4.5 6.5 2 6 0 Z"/></svg></i><i><svg viewBox="0 0 12 16"><path d="M6 0 C7 4 11 6 11 10.5 A5 5 0 0 1 1 10.5 C1 7.5 3 6 4 3.5 C5 5.5 5.5 6.5 6.5 7 C7 4.5 6.5 2 6 0 Z"/></svg></i></span><span class="lockbar" id="dashLock"></span></button>
     <div class="hotbar closed" id="hotbar"></div>
-    <button id="deckBtn" title="Versículos (abrir/fechar) — teclas 1–9 funcionam sempre" onclick="toggleDeck()"><span class="ico">⚔📖</span><span class="state" id="deckState">◂ abrir</span><span class="lockbar" id="deckLock"></span></button>
+    <!-- ataque: o medalhão da espada sobre a Bíblia; tocar/clicar = apertar K -->
+    <button id="atkBtn" title="Atacar (K)" aria-label="Atacar (K)"><img src="assets/img/btn-ataque.webp" alt="" draggable="false"></button>
   </div>
 </section>
 

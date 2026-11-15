@@ -5,10 +5,10 @@ import { bossAlive, giantLieY } from './boss.js';
 import { flyToCard, restoreLie } from './world.js';
 import { acertoSfx, sfx } from '../core/audio.js';
 import { gradeIdx, powerDur, runeHTML, verseMult } from '../core/progress.js';
-import { $, D } from '../core/utils.js';
+import { $, D, ICONE_MARTELO } from '../core/utils.js';
 import { setShield } from '../input/controls.js';
 
-export const tema = v => D.temas[v.tema]; // cores do tema do versículo
+export const tema = v => v.mandamento ? { ...D.temas[v.tema], ...D.corMandamento } : D.temas[v.tema]; // cores do tema do versículo (mandamentos: amarelo-ouro)
 // "1 Coríntios 10:13" → "1Co 10:13" (livro sem abreviação cadastrada: 2 primeiras letras)
 export const abrevRef = ref => { const m = ref.match(/^(.+) (\d+:\d+.*)$/); return m ? `${D.abrev[m[1]] || m[1].slice(0, 2)} ${m[2]}` : ref; };
 export function buildHotbar() {
@@ -16,7 +16,7 @@ export function buildHotbar() {
     <div class="card" id="card${i}" style="--tc:${tema(v).cor}" title="${v.ref}">
       <button class="use" id="use${i}" onclick="useVerse(${i})">
         <span class="k">${i + 1}</span>
-        <span class="r">${runeHTML(gradeIdx(v.id))}<span class="full">${v.ref}</span><span class="ab">${abrevRef(v.ref)}</span></span>
+        <span class="r">${runeHTML(gradeIdx(v.id))}${v.mandamento ? ICONE_MARTELO : ''}<span class="full">${v.ref}</span><span class="ab">${abrevRef(v.ref)}</span></span>
         <span class="cd" id="cd${i}"></span>
       </button>
       <button class="eye" id="eye${i}" title="Ler o versículo" onclick="togglePeek(${i})">👁</button>
@@ -58,12 +58,12 @@ export function togglePeek(i, reveal = false) {
     </div>`;
   if (!v && B.pendingFly) { const f = B.pendingFly; B.pendingFly = null; flyToCard(f.b, f.i); }
 }
-// a barra de versículos fica recolhida no botão ⚔📖; as teclas 1–9 funcionam com ela aberta ou fechada
+// a barra de versículos (compacta ou aberta); o antigo botão ⚔📖 virou o botão de ataque, então ela fica compacta; as teclas 1–9 funcionam sempre
 export function closePeek() { if (B && B.peek >= 0) togglePeek(B.peek); }
 export function toggleDeck(open) {
   const h = $('hotbar'), on = open ?? h.classList.contains('closed');
-  h.classList.toggle('closed', !on); $('deckBtn').classList.toggle('open', on);
-  $('deckState').textContent = on ? '▸ fechar' : '◂ abrir'; // cards abrem para a esquerda do botão
+  h.classList.toggle('closed', !on); $('deckBtn')?.classList.toggle('open', on);
+  if ($('deckState')) $('deckState').textContent = on ? '▸ fechar' : '◂ abrir';
 }
 export function useVerse(i) {
   if (!B || B.over || B.fatal || B.trans > 0 || B.paused) return;
@@ -71,6 +71,12 @@ export function useVerse(i) {
   const v = B.deck[i]; if (!v || (B.cd[i] || 0) > 0) return;
   const G = B.boss && bossAlive(B.boss) && B.boss.lie && B.boss.lie.ideal.includes(v.id) ? B.boss : null; // chefões também mentem (Golias, Naja)
   const target = B.demons.find(d => d.lie && d.lie.ideal.includes(v.id)) || G; // pode refutar já na entrada
+  if (!target && B.fase.treino) { // Treinamento: qualquer versículo carrega o poder (sem mentira para refutar); o alvo é de mentira
+    B.callout = { s: v.ref, t: CALLOUT_T, dur: CALLOUT_T, c: tema(v) }; if (!acertoSfx()) sfx('refute');
+    B.power = { t: powerDur(v.id), dur: powerDur(v.id), target: { hp: 1, treino: true }, v, mult: verseMult(v.id) };
+    if (v.mandamento) B.carga = { t: 0, dur: 1.1, c: tema(v) };
+    return;
+  }
   // versículo errado: não revela o nome, só "Versículo errado" em vermelho, e trava TODOS os cards por 2,5s
   if (!target) { sfx('wrong'); B.deck.forEach((_, k) => B.cd[k] = 2.5); B.callout = { s: 'Versículo errado', t: WRONG_T, dur: WRONG_T, c: WRONG_COLOR }; addFire(-1); return; }
   if (B.tut) B.tut.refuted = true;
@@ -81,4 +87,5 @@ export function useVerse(i) {
   target.vuln = true; target.lastVerse = v;
   if (B.power && B.power.target !== target && B.power.target.hp > 0) restoreLie(B.power.target);
   B.power = { t: powerDur(v.id), dur: powerDur(v.id), target, v, mult: verseMult(v.id) };
+  if (v.mandamento) B.carga = { t: 0, dur: 1.1, c: tema(v) }; // mandamento: o martelo aparece sobre o herói e some (carregou o poder)
 }

@@ -4,7 +4,7 @@ import { buildHotbar, toggleDeck, togglePeek } from './hud.js';
 import { B, setB } from './state.js';
 import { celestial, sfx, stoneSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
-import { found, markFound, shieldMax } from '../core/progress.js';
+import { abertaBase, achouOvelha, escudoAtual, found, markFound, treino, vidaMax } from '../core/progress.js';
 import { $, D, byId, rand, reduced } from '../core/utils.js';
 import { makeBoss, makeGiant, nextGiantLie } from './boss.js';
 import { makeFrog } from './frog.js';
@@ -20,14 +20,15 @@ export const ROCK_HP = 3; // golpes para quebrar a pedra
 export function startBattle(fi = 0, all = opts.all, faseObj = null) {
   show('battle');
   const fase = faseObj || D.fases[fi];
-  $('pauseBest').hidden = !fase.dev; // Bestiário: botão de trocar de monstro na pausa
+  treino.on = !!fase.treino; $('treinoPainel').classList.toggle('on', treino.on); // Treinamento: poderes do painel (js/battle/treino.js)
+  $('pauseBest').hidden = !fase.dev || !!fase.treino; // Bestiário: botão de trocar de monstro na pausa
   const prev = D.fases.slice(0, Math.max(0, fi)).flatMap(f => f.eventos.filter(e => e.tipo === 'pedra' && found.includes(e.verso)).map(e => byId[e.verso]));
   setB({
     fase, faseIdx: fi,
-    hp: 100, demons: [], fireballs: [], slashes: [], fx: [], floats: [], shards: [], embers: [], shake: 0,
-    shield: false, power: null, deck: all ? D.versiculos.slice() : prev, cd: {}, peek: -1, usedLies: [], shieldE: shieldMax, shieldLock: false, dashCd: 0, dashBack: 0, dashQueued: false, ghosts: [], fire: all ? FIRE_MAX : 0, notice: fase.dica && !all ? { lines: fase.dica, t: 7, c: '#9fc3ff' } : null,
+    hp: vidaMax(), hpMax: vidaMax(), abertasAntes: D.fases.filter(abertaBase), demons: [], fireballs: [], slashes: [], fx: [], floats: [], shards: [], embers: [], shake: 0,
+    shield: false, power: null, deck: all ? D.versiculos.slice() : prev, cd: {}, peek: -1, usedLies: [], shieldE: escudoAtual(), shieldLock: false, dashCd: 0, dashBack: 0, dashQueued: false, ghosts: [], fire: all ? FIRE_MAX : 0, notice: fase.dica && !all ? { lines: fase.dica, t: 7, c: '#9fc3ff' } : null,
     tut: all || fi > 0 ? null : { refuted: false, attacked: false, shielded: false, killed: false, done: false }, // tutorial só na 1ª jornada normal
-    hero: { x: 200, y: 0, vy: 0, face: 1, anim: 'idle', at: 0, hurt: 0, swing: 0, hitDone: true, ground: true, safe: null, dash: 0, dashHit: null },
+    hero: { x: fase.inicio || 200, y: 0, vy: 0, face: 1, anim: 'idle', at: 0, hurt: 0, swing: 0, hitDone: true, ground: true, safe: null, dash: 0, dashHit: null },
     time: 0, trans: 0, fatal: null, over: false,
     cam: 0, arena: null, caverna: null, zona: null, frogs: [], ovelhas: [], estruturas: [], holes: [], terrain: [], platforms: [], rocks: [], books: [], groups: [], risers: [], acid: []
   });
@@ -46,8 +47,8 @@ export function startBattle(fi = 0, all = opts.all, faseObj = null) {
       B.caverna = e; B.terrain.push({ x: e.x, w: e.w, top: 600 });
       B.terrain.push({ x: e.x1 - 420, w: 420, top: -110 }); // no fim da caverna, a rampa de pedra até a saída
     }
-    else if (e.tipo === 'ovelha') B.ovelhas.push(makeSheep(e)); // ovelha perdida: foge e cai no vão (js/battle/sheep.js)
-    else if (['ra', 'lobo', 'soldado', 'piolhenta'].includes(e.tipo)) B.frogs.push(makeFrog(e)); // bichos soltos pela fase: rã, lobo, soldado, mulher dos piolhos (js/battle/frog.js)
+    else if (e.tipo === 'ovelha') { if (!((e.calma || e.sobe) && !fase.dev && achouOvelha(fase.id))) B.ovelhas.push(makeSheep(e)); } // ovelha perdida (js/battle/sheep.js); a que se acha (calma ou sobe) some se já foi achada nesta jornada
+    else if (['ra', 'lobo', 'soldado', 'piolhenta', 'boi', 'espantalho'].includes(e.tipo)) B.frogs.push(makeFrog(e)); // bichos soltos pela fase: rã, lobo, soldado, mulher dos piolhos, boi morto (js/battle/frog.js)
     else if (e.tipo === 'terra') B.risers.push({ x: e.x, w: e.w, k: 0, up: false, solid: false });
   });
   const chefe = fase.eventos.find(e => e.tipo === 'chefe' || e.tipo === 'gigante'); // um chefão por fase (o Leviatã depois dos mares)

@@ -46,7 +46,18 @@
 .hab-versos .vscroll > .muted { grid-column:1 / -1; }
 
 /* métricas do herói */
-.hero-stats { grid-area:stats; align-self:center; width:100%; max-width:380px; gap:6px; padding:14px; box-sizing:border-box; border-radius:14px; background:linear-gradient(#1f1713e6, #160f0ce6); border:1px solid #3d2c20; }
+.hero-stats { grid-area:stats; align-self:center; width:100%; max-width:380px; gap:10px; box-sizing:border-box; }
+.hs-box { display:grid; gap:6px; padding:14px; border-radius:14px; background:linear-gradient(#1f1713e6, #160f0ce6); border:1px solid #3d2c20; }
+/* XP: card à parte, em cima das métricas — gauge azul */
+.xp-card { display:grid; grid-template-columns:120px 1fr; align-items:center; gap:12px; padding:10px 14px; border-radius:14px; background:linear-gradient(#141c2be6, #0e1420e6); border:1px solid #2c4468; box-shadow:0 0 18px #3a8bff22; }
+.xp-card svg { width:100%; display:block; }
+.xp-trilho, .xp-arco { fill:none; stroke-width:16; stroke-linecap:round; }
+.xp-trilho { stroke:#22314a; }
+.xp-arco { stroke:#4fa3ff; filter:drop-shadow(0 0 4px #4fa3ffaa); transition:stroke-dashoffset .6s; }
+.xp-nv { text-anchor:middle; font-family:Cinzel, serif; font-weight:800; font-size:44px; fill:#e6f1ff; }
+.xp-rot { text-anchor:middle; font-family:Cinzel, serif; font-size:13px; letter-spacing:2px; fill:#7fb6ff; }
+.xp-info b { display:block; font-family:Cinzel, serif; font-size:18px; color:#cfe4ff; }
+.xp-info small { display:block; font-size:12px; color:#8ea6c6; margin-top:2px; }
 :is([data-view=versos], [data-view=fe]) .hero-stats { max-width:none; }
 .hero-stats h3 { margin:0 0 4px; text-align:center; font-family:Cinzel, serif; color:var(--gold); font-size:20px; letter-spacing:1px; }
 .hstat { display:grid; grid-template-columns:28px 1fr auto; align-items:center; gap:10px; padding:7px 10px; border-radius:9px; background:#2a1f18cc; border:1px solid #3d2c20; }

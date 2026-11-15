@@ -1,6 +1,6 @@
 import { BASE_DMG } from '../battle/config.js';
-import { barsHTML, dashDmg, found, venceu, powerDur, progOf, saveProg, shieldMax, spiritLvl, verseMult } from '../core/progress.js';
-import { $, D } from '../core/utils.js';
+import { barsHTML, dashDmg, found, venceu, xp, nivel, proxNivel, vidaMax, powerDur, progOf, saveProg, shieldMax, spiritLvl, verseMult } from '../core/progress.js';
+import { $, D, ICONE_MARTELO } from '../core/utils.js';
 import { show } from '../ui/screens.js';
 
 // cadeado em traço dourado (mesmo estilo dos ícones dos títulos)
@@ -31,7 +31,7 @@ function renderVerses(vs = D.versiculos.filter(v => found.includes(v.id))) {
     : !shown.length ? '<p class="muted">Nenhum versículo com essa busca.</p>'
     : shown.map(v => `
     <div class="vitem" tabindex="0" onclick="openVerse(byId['${v.id}'])">
-      <div><b>${v.ref}</b> <span class="tag">${D.temas[v.tema].nome}</span></div>
+      <div><b>${v.ref}</b> ${v.mandamento ? ICONE_MARTELO : ''}<span class="tag">${D.temas[v.tema].nome}</span></div>
       <div class="vbars"><span>Forja ${barsHTML(progOf(v.id).forja, 'gold')}</span><span>Afiação ${barsHTML(progOf(v.id).afia, 'silver')}</span></div>
     </div>`).join('');
   list.scrollTop = 0;
@@ -47,12 +47,21 @@ function renderHeroStats(vs) {
     <div class="hstat"><span class="hico" aria-hidden="true">${ico}</span>
       <div><b>${nome}</b><small>${detalhe}</small></div>
       <div class="hval">${valor}${max ? barsHTML(nivel, cls, max) : ''}</div></div>`;
-  $('heroStats').innerHTML = '<h3>Templário</h3>' +
+  // XP: um card à parte, em cima das métricas — um gauge azul (meio círculo) com o nível no meio; o arco enche do marco do
+  // nível atual até o do próximo
+  const nv = nivel(), de = nv ? D.xp.niveis[nv - 1] : 0, ate = proxNivel(), frac = ate ? (xp - de) / (ate - de) : 1;
+  const ARCO = Math.PI * 80; // comprimento do meio círculo de raio 80
+  const gauge = `<div class="xp-card" role="img" aria-label="Nível ${nv}, ${xp} xp${ate ? `, próximo nível com ${ate}` : ''}">
+      <svg viewBox="0 0 200 116" aria-hidden="true"><path class="xp-trilho" d="M20 100a80 80 0 0 1 160 0"/>
+        <path class="xp-arco" d="M20 100a80 80 0 0 1 160 0" stroke-dasharray="${ARCO}" stroke-dashoffset="${ARCO * (1 - Math.max(0, Math.min(1, frac)))}"/>
+        <text x="100" y="78" class="xp-nv">${nv}</text><text x="100" y="98" class="xp-rot">NÍVEL</text></svg>
+      <div class="xp-info"><b>${xp}${ate ? ` / ${ate}` : ''} xp</b><small>${ate ? `faltam ${ate - xp} xp para o nível ${nv + 1}` : 'nível máximo'} · vida ${vidaMax()}</small></div></div>`;
+  $('heroStats').innerHTML = gauge + '<div class="hs-box"><h3>Templário</h3>' +
     stat('🛡', 'Fé', `${shieldMax}s`, 'escudo erguido', feLvl, feMax, 'gold') +
     stat('🕊', 'Espírito', `${dashDmg()}`, 'dano do impulso [L]', spiritLvl, D.espirito.nivelMax, 'gold') +
     stat('⚔', 'Espada', `${BASE_DMG}`, 'dano do golpe sem versículo') +
     stat('📖', 'Palavra', `${vs.length}/${D.versiculos.length}`, vs.length ? `até ${n(best)} de dano · ${longest}s de poder` : 'nenhum versículo ainda') +
-    stat('🗺', 'Jornadas', `${D.fases.filter(f => venceu(f.id)).length}/${D.fases.length}`, 'vencidas');
+    stat('🗺', 'Jornadas', `${D.fases.filter(f => venceu(f.id)).length}/${D.fases.length}`, 'vencidas') + '</div>';
 }
 export function forgeAll() { D.versiculos.filter(v => found.includes(v.id)).forEach(v => { const p = progOf(v.id); p.forja = Math.max(1, p.forja); }); saveProg(); renderList(); }
 

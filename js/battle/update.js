@@ -8,7 +8,7 @@ import { DASH_CD, DASH_SPEED, ESPR, GRAV, GROUND, HERO_QUEDA, SPIT_ANIM, SHIELD_
 import { B, keys } from './state.js';
 import { ENEMY_GAP, stepIdol, collectBook, fallInHole, floorAt, hitRock, makeDemon, moveX, pickLie, restoreLie, rockBox, terrainTop } from './world.js';
 import { sfx } from '../core/audio.js';
-import { shieldMax } from '../core/progress.js';
+import { escudoAtual } from '../core/progress.js';
 import { $, D, reduced } from '../core/utils.js';
 import { setShield } from '../input/controls.js';
 import { sp } from '../ui/sparks.js';
@@ -92,10 +92,10 @@ export function updateBattle(rdt) {
         B.zona = 'caverna'; h.x = C.entrada; h.y = -300; h.vy = 0; h.safe = { x: C.entrada, y: 0 }; B.cam = C.x0;
         B.notice = { lines: C.aviso || ['Você caiu na caverna escura!', 'Ache a Palavra aqui embaixo e a saída do outro lado'], t: 4, c: '#ffb46a' };
       } };
-    } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && (B.groups.some(g => g.apos && !g.done) || B.demons.length || B.frogs.some(f => f.bando && !f.dead && f.x > C.x0))) {
+    } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && (B.groups.some(g => (g.apos || g.caverna) && !g.done) || B.demons.length || B.frogs.some(f => f.bando && !f.dead && f.x > C.x0))) {
       // a saída só abre com a caverna limpa (as ondas também contam para o Golias aparecer depois)
       h.x = C.x1 - 170; if (!B.notice) B.notice = { lines: ['Uma força te prende aqui embaixo…', 'Derrote os monstros da caverna para sair'], t: 2.5, c: '#ff8a6a' };
-    } else if (C && C.fim && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && !B.over) { // caverna do fim da jornada (As Pragas): chegou ao fim dela = venceu
+    } else if (C && C.fim && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && !B.over && !bossBlocksWin()) { // caverna do fim da jornada (As Pragas): chegou ao fim dela = venceu
       B.over = true; endScreen(true);
     } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160) { // subiu a rampa do fim: sai logo depois do vale
       h.vy = 0;
@@ -123,8 +123,8 @@ export function updateBattle(rdt) {
     B.shieldE -= dt;
     if (B.shieldE <= 0) { B.shieldE = 0; B.shieldLock = true; setShield(false); sfx('wrong'); B.floats.push({ x: h.x, y: GROUND + h.y - 260, t: 1, s: 'Escudo esgotado', c: '#9fc3ff' }); }
   } else {
-    B.shieldE = Math.min(shieldMax, B.shieldE + SHIELD_REGEN * dt);
-    if (B.shieldLock && B.shieldE >= shieldMax / 2) B.shieldLock = false;
+    B.shieldE = Math.min(escudoAtual(), B.shieldE + SHIELD_REGEN * dt);
+    if (B.shieldLock && B.shieldE >= escudoAtual() / 2) B.shieldLock = false;
   }
 
   // poder da espada
@@ -194,8 +194,23 @@ export function updateBattle(rdt) {
   });
   B.fireballs = B.fireballs.filter(f => !f.dead);
 
+  if (B.carga && (B.carga.t += dt) >= B.carga.dur) B.carga = null; // o martelo da carga sumiu
   B.slashes.forEach(sl => {
     sl.x += sl.vx * dt; sl.y += sl.vy * dt;
+    if (sl.martelo) { // o martelo gira para a frente e solta faíscas douradas atrás
+      sl.rot += sl.face * 16 * dt;
+      if (sl.volta) { // bumerangue: freia indo (~420 px), vira e volta atrás do herói; na volta acerta de novo; some perto dele
+        sl.t += dt;
+        // freia a 500 px/s² (sai a 650 px/s: vira a ~420 px)
+        if (!sl.voltando) { sl.vx -= sl.face * 500 * dt; if (Math.sign(sl.vx) !== sl.face) { sl.voltando = true; sl.hit = new Set(); } }
+        else {
+          const alvoY = GROUND + h.y - 110, dx = h.x - sl.x;
+          sl.vx = Math.sign(dx) * Math.min(650, Math.abs(sl.vx) + 1000 * dt); sl.vy = (alvoY - sl.y) * 6;
+          if (Math.abs(dx) < 45 || sl.t > 4) { sl.dead = true; B.fx.push({ burst: true, x: sl.x, y: sl.y, t: .25, c: sl.c }); }
+        }
+      }
+      if (!reduced && Math.random() < dt * 40) B.embers.push({ x: sl.x - sl.face * 20, y: sl.y + (Math.random() - .5) * 50, vx: -sl.face * (80 + Math.random() * 120), vy: (Math.random() - .5) * 120, t: .4 + Math.random() * .3, c: '255,214,80' });
+    }
     const box = [sl.x - 30, sl.y - 45 * sl.sy, sl.x + 30, sl.y + 45 * sl.sy]; // do tamanho da lâmina desenhada (~45 px de meia altura)
     B.demons.forEach(d => {
       if (d.state === 'dead' || d.state === 'enter' || sl.hit.has(d) || !overlap(box, demonBox(d))) return;
@@ -205,7 +220,7 @@ export function updateBattle(rdt) {
     B.rocks.forEach(r => { if (r.hp > 0 && !sl.hit.has(r) && overlap(box, rockBox(r))) { sl.hit.add(r); hitRock(r); } });
     frogsIn(box, f => { if (!sl.hit.has(f)) { sl.hit.add(f); hitFrog(f, 8 * (B.power ? B.power.mult : 1), sl.c.claro); } });
     if (bossAlive(B.boss) && !sl.hit.has(B.boss) && overlap(box, bossBox(B.boss))) { sl.hit.add(B.boss); damageBoss(8 * (B.power ? B.power.mult : 1), sl.c.claro); B.fx.push({ burst: true, x: sl.x, y: sl.y, t: .25, c: sl.c }); }
-    if (sl.x < B.cam - 80 || sl.x > B.cam + 1040 || sl.y < -80 || sl.y > GROUND + 40) sl.dead = true;
+    if (!sl.volta && (sl.x < B.cam - 80 || sl.x > B.cam + 1040 || sl.y < -80 || sl.y > GROUND + 40)) sl.dead = true; // o que volta só some perto do herói
   });
   B.slashes = B.slashes.filter(sl => !sl.dead);
   cleanFrogs();
@@ -252,13 +267,13 @@ export function updateBattle(rdt) {
       if (gr.soldados) reforco('soldado', gr.soldados);
     } // já entram com a mentira sobre a cabeça
   }
-  if (!B.over && !B.fase.dev && !B.zona && !B.arena && !B.demons.length && !bossBlocksWin() && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done)) { B.over = true; endScreen(true); }
+  if (!B.over && !B.fase.dev && !B.zona && !B.arena && !B.demons.length && !bossBlocksWin() && h.x >= B.fase.comprimento - 200 && B.groups.every(g => g.done || g.apos || g.caverna)) { B.over = true; endScreen(true); }
 
   // HUD DOM
   if (B.callout && (B.callout.t -= rdt) <= 0) B.callout = null;
   if (B.notice && (B.notice.t -= rdt) <= 0) B.notice = null;
   const lock = Math.max(0, ...B.deck.map((_, i) => B.cd[i] || 0));
-  $('deckBtn').classList.toggle('locked', lock > 0); $('deckLock').style.width = (lock / 2.5 * 100) + '%';
+  $('deckBtn')?.classList.toggle('locked', lock > 0); if ($('deckLock')) $('deckLock').style.width = (lock / 2.5 * 100) + '%';
   $('dashLock').style.width = (B.dashCd / DASH_CD * 100) + '%'; $('dashBtn').classList.toggle('go', h.dash > 0);
   B.deck.forEach((v, i) => {
     const c = $('card' + i); if (!c) return;

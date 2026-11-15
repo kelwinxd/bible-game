@@ -5,6 +5,7 @@ import { drawShadow, relevo } from './draw/world.js';
 import { heroBox, hitHero, overlap } from './combat.js';
 import { B } from './state.js';
 import { terrainTop } from './world.js';
+import { darXp } from './xp.js';
 
 // ---------- Rã (Êxodo 8, a praga das rãs) ----------
 // Bicho solto pela fase (data.js → { tipo: "ra", x }), fora das arenas: não ataca nem mente, mas **encostar nela fere**.
@@ -50,8 +51,21 @@ const BICHO = {
   piolhenta: { vida: 30, dano: 7, anda: 50, corre: 120, perto: 420, ronda: 170, coleira: 380, arma: .6, golpe: .75, salto: 0, cd: 2.2, ataca: 330, colado: 240,
     run: { img: new Image(), FW: 132, FH: 187, ax: 70, n: 6 }, atk: { img: new Image(), FW: 214, FH: 196, ax: 57, n: 6 }, idle: { img: new Image(), FW: 108, FH: 198, ax: 43, n: 6, fps: 6 }, nArma: 6, arcoAt: [0, 0, 0, 0, 0, 0],
     volta: true, cospe: { boca: [65, 148], n: 16, solta: .3, vel: [330, 470], abre: .2, vida: 1.5 },
-    caixa: (f, y) => [f.x - 27, y - 145, f.x + 27, y], sombra: 70, som: 'whoosh', cores: ['200,180,140', '110,70,30'] }
+    caixa: (f, y) => [f.x - 27, y - 145, f.x + 27, y], sombra: 70, som: 'whoosh', cores: ['200,180,140', '110,70,30'] },
+  // boi morto (As Pragas, Êxodo 9:3, a praga nos animais): SÓ CORRE (investe) — sem golpe próprio; encostar fere (o escudo bloqueia).
+  // Corre direto; quando passa do herói (passa px), chega ao fim da coleira ou a um buraco/parede, só VIRA para o outro lado (na hora,
+  // sem animação de giro) e continua correndo. Ronda larga (coleira) para não ficar indo e voltando no mesmo lugar. Longe do herói, trota indo e voltando. Sprite (olha para a direita, alinhado pelos cascos):
+  // boi-run.webp 6 quadros 181×143 (a tira enviada, reduzida a 50%)
+  boi: { vida: 40, dano: 9, anda: 75, corre: 190, fps: [8, 5], // fps: quadros por segundo da corrida [investindo, trotando]
+    perto: 620, passa: 380, coleira: 560, toque: 1, investe: true,
+    run: { img: new Image(), FW: 181, FH: 143, ax: 97, n: 6 }, atk: { img: new Image(), FW: 181, FH: 143, ax: 97, n: 6 }, nArma: 0, arcoAt: [0, 0, 0, 0, 0, 0],
+    caixa: (f, y) => [f.x - 62, y - 100, f.x + 62, y], sombra: 130, som: 'slash', cores: ['220,200,160', '140,30,25'] }
 };
+BICHO.boi.run.img.src = 'assets/sprites/enemy/boi-run.webp';
+// espantalho (Treinamento): alvo parado, não ataca; imortal (a fase é de teste: a vida volta cheia) e mostra o dano de cada golpe
+BICHO.espantalho = { vida: 200, dano: 0, parado: true, run: { img: new Image(), FW: 165, FH: 219, ax: 82, n: 1 }, atk: { img: new Image(), FW: 165, FH: 219, ax: 82, n: 1 },
+  nArma: 0, arcoAt: [0], caixa: (f, y) => [f.x - 40, y - 200, f.x + 40, y], sombra: 90, cores: ['210,170,90', '150,50,30'] };
+BICHO.espantalho.run.img.src = 'assets/sprites/enemy/espantalho.webp';
 BICHO.soldado.run.img.src = 'assets/sprites/enemy/soldado-run.webp'; BICHO.soldado.atk.img.src = 'assets/sprites/enemy/soldado-attack.webp';
 BICHO.piolhenta.idle.img.src = 'assets/sprites/enemy/piolhenta-idle.webp'; // parada: agachada, puxando os cabelos (alinhada pelos pés)
 BICHO.piolhenta.run.img.src = 'assets/sprites/enemy/piolhenta-run.webp'; BICHO.piolhenta.atk.img.src = 'assets/sprites/enemy/piolhenta-attack.webp';
@@ -65,7 +79,21 @@ const wolfFrame = f => {
   if (P.volta) return f.state === 'arm' ? Math.min(n - 1, Math.floor(f.t / P.arma * n)) : f.state === 'leap' ? Math.max(0, n - 1 - Math.floor(Math.max(0, f.t - .2) / (P.golpe - .2) * n)) : -1;
   const nG = n - P.nArma; return f.state === 'arm' ? Math.min(P.nArma - 1, Math.floor(f.t / P.arma * P.nArma)) : f.state === 'leap' ? P.nArma + Math.min(nG - 1, Math.floor(f.t / P.golpe * nG)) : -1; };
 const wolfBox = f => { const fr = wolfFrame(f), y = GROUND + terrainTop(f.x) - (fr >= 0 ? f.P.arcoAt[fr] : 0); return f.P.caixa(f, y); };
+// boi: investe sem parar (ver BICHO.boi); passou do herói / fim da coleira / buraco → vira para o outro lado e continua correndo
+function investida(f, h, dt) {
+  const P = f.P, ok = x => terrainTop(x) !== Infinity && terrainTop(x) >= terrainTop(f.x) - 30;
+  f.t += dt; f.moving = false;
+  const perto = Math.abs(h.x - f.x) < P.perto && Math.abs(h.y - terrainTop(f.x)) < 120 && h.deadAt == null;
+  const nx = f.x + f.face * (perto ? P.corre : P.anda) * dt;
+  const passou = perto && (h.x - f.x) * f.face < -P.passa; // já passou do herói: freia e volta
+  const frente = perto && (h.x - f.x) * f.face > 0;        // indo na direção dele: a coleira estica um pouco
+  if (passou || Math.abs(nx - f.home) > P.coleira + (frente ? 120 : 0) || !ok(nx + f.face * 60)) { f.face = -f.face; return; } // vira na hora
+  f.x = nx; f.moving = true;
+  if (f.cd <= 0 && overlap(wolfBox(f), heroBox(h))) { f.cd = P.toque; hitHero(P.dano); } // encostou: fere (o escudo bloqueia)
+}
 function updateWolf(f, h, dt) {
+  if (f.P.parado) { f.face = 1; return; } // espantalho: fica onde está
+  if (f.P.investe) return investida(f, h, dt);
   const P = f.P, dx = h.x - f.x, perto = Math.abs(dx) < P.perto && Math.abs(h.y - terrainTop(f.x)) < 90 && h.deadAt == null;
   const ok = x => terrainTop(x) !== Infinity && terrainTop(x) >= terrainTop(f.x) - 30; // sem buraco nem parede
   f.moving = false; f.t += dt;
@@ -98,7 +126,7 @@ function updateWolf(f, h, dt) {
 function drawWolf(f) {
   const P = f.P, fr = wolfFrame(f), parada = fr < 0 && !f.moving && P.idle && P.idle.img.naturalWidth; // parada: a animação idle (se tiver)
   const S = fr >= 0 ? P.atk : parada ? P.idle : P.run; if (!S.img.naturalWidth) return;
-  const q = fr >= 0 ? fr : parada ? Math.floor(f.ph * P.idle.fps) % S.n : f.moving ? Math.floor(f.ph * (f.cd > 0 || Math.abs(B.hero.x - f.x) < P.perto ? 12 : 7)) % S.n : 0;
+  const q = fr >= 0 ? fr : parada ? Math.floor(f.ph * P.idle.fps) % S.n : f.moving ? Math.floor(f.ph * (f.cd > 0 || Math.abs(B.hero.x - f.x) < P.perto ? (P.fps ? P.fps[0] : 12) : (P.fps ? P.fps[1] : 7))) % S.n : 0;
   drawShadow(f.x + f.face * 4, GROUND + terrainTop(f.x) + relevo(f.x), P.sombra, fr >= 0 ? P.arcoAt[fr] : 0);
   ctx.save(); ctx.translate(f.x, GROUND + terrainTop(f.x) + relevo(f.x)); ctx.scale(f.face, 1);
   if (f.flash > 0) ctx.filter = 'brightness(3) saturate(0)';
@@ -213,7 +241,7 @@ export function hitFrog(f, dmg, cor = '#bbb') {
   B.floats.push({ x: f.x, y: b[1] - 14, t: .7, s: dmg.toFixed(dmg % 1 ? 1 : 0), c: cor });
   if (f.hp > 0) return;
   if (B.fase && B.fase.dev) { f.hp = f.maxHp; return; } // Bestiário: imortal (a vida volta cheia)
-  f.dead = true; sfx('slash');
+  f.dead = true; sfx('slash'); darXp('pequeno', f.x, b[1]);
   for (let k = 0; k < (reduced ? 6 : 16); k++)
     B.shards.push({ x: f.x + (Math.random() - .5) * 50, y: b[1] + 30, vx: (Math.random() - .5) * 300, vy: -100 - Math.random() * 260, r: Math.random() * 6, t: .7, c: f.P && f.P.cores ? f.P.cores[Math.random() < .5 ? 0 : 1] : f.kind === 'soldado' ? (Math.random() < .5 ? '200,170,120' : '170,40,30') : f.kind === 'lobo' ? (Math.random() < .5 ? '70,60,58' : '150,40,30') : Math.random() < .5 ? '120,160,50' : '200,170,80', sz: .4 + Math.random() * .5 });
 }

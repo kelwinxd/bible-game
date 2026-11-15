@@ -4,6 +4,7 @@ import { GROUND, ctx } from './config.js';
 import { hitHero, overlap } from './combat.js';
 import { B } from './state.js';
 import { rainOnPlatform } from './frog.js';
+import { darXp } from './xp.js';
 import { drawGiant, drawGiantLie, giantBox, giantDies, giantLieY, makeGiant, nextGiantLie, updateGiant } from './giant.js';
 export { drawGiant, drawGiantLie, giantLieY, makeGiant, nextGiantLie };
 // B.boss é um chefão só por fase: o Leviatã (kind 'leviata', no mar) ou Golias (kind 'gigante', em terra, js/battle/giant.js)
@@ -185,11 +186,11 @@ export function damageBoss(dmg, cor = '#bbb') {
     while ((L.rasK || 0) < k) { L.rasK = (L.rasK || 0) + 1; if (L.hp > 0) { L.fila = (L.fila || 0) + L.pele.ras; if (!(L.rasT > 0)) L.rasT = 0; L.rasAviso = true; } } // entram na fila: caem uma a uma
   }
   B.floats.push({ x: L.x, y: bossBox(L)[1] - 10, t: .8, s: dmg.toFixed(dmg % 1 ? 1 : 0), c: cor });
-  if (B.fase.dev && L.hp <= 0 && !L.rei && !L.estatua) { // Bestiário: imortais (menos o rei e a estátua, para ver a cena e a queda)
+  if (B.fase.dev && L.hp <= 0 && !L.rei && !L.estatua && !L.farao) { // Bestiário: imortais (menos o rei e a estátua, para ver a cena e a queda)
     L.hp = L.maxHp; B.floats.push({ x: L.x, y: bossBox(L)[1] - 45, t: 1, s: 'imortal · vida cheia', c: '#9fe4ff' }); return; } // Bestiário
   if (L.hp <= 0 && L.kind === 'gigante') { L.hp = 0; return giantDies(L); }
   if (L.hp <= 0) { // afunda de vez
-    L.hp = 0; L.state = 'dead'; L.t = 0; B.shake = .5; B.acid = [];
+    L.hp = 0; L.state = 'dead'; L.t = 0; B.shake = .5; B.acid = []; darXp('grande', L.x, bossBox(L)[1]);
     B.risers.forEach(r => { r.up = true; }); // a terra do fim sobe da água
     B.notice = { lines: [L.pele.morte, 'O mar se acalma e a terra aparece… siga até a cruz'], t: 4, c: '#f2c84b' };
     splash(L, 30); sfx('refute');

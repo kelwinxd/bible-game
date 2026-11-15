@@ -97,11 +97,7 @@ export function drawBattle() {
   if (img.naturalWidth && !caindo) ctx.drawImage(img, fr * dim.FW, 0, dim.FW, dim.FH, -dim.ax, 2 - dim.FH, dim.FW, dim.FH); // caindo: já foi desenhado atrás do chão
   ctx.restore();
   B.holes.forEach(drawHoleFire); // mãos na frente do herói: quem cai é engolido por elas
-  if (B.shield) { // escudo erguido
-    const sc = D.temas.duvida; // escudo usa o azul do tema Dúvida
-    ctx.save(); ctx.strokeStyle = sc.cor; ctx.lineWidth = 6; ctx.shadowColor = sc.brilho; ctx.shadowBlur = 20; ctx.globalAlpha = .85;
-    ctx.beginPath(); ctx.arc(h.x + 10 * h.face, GROUND + h.y - 120, 110, h.face > 0 ? -1.1 : Math.PI - 1.1, h.face > 0 ? 1.1 : Math.PI + 1.1); ctx.stroke(); ctx.restore();
-  }
+  if (B.carga) drawCarga(h); // mandamento escolhido: o martelo carregando o poder sobre o herói
 
   // sombras leves no chão embaixo dos monstros (antes deles, para ficarem por baixo)
   B.demons.forEach(d => {
@@ -114,6 +110,11 @@ export function drawBattle() {
   // demônios
   B.demons.forEach(d => { if (d.state === 'dead' && !(d.pop > 0)) return; d.s.mergulho ? drawBird(d) : d.s.sprite ? drawSpriteDemon(d) : d.s.chao ? drawTentacao(d) : drawDuvida(d); }); // morto: só o clarão antes de estourar
   drawGiant(); // Golias (chefão da Jornada 2)
+  if (B.shield) { // escudo erguido: desenhado depois dos monstros e do Golias, para nunca sumir atrás de quem chega perto
+    const sc = D.temas.duvida; // escudo usa o azul do tema Dúvida
+    ctx.save(); ctx.strokeStyle = sc.cor; ctx.lineWidth = 6; ctx.shadowColor = sc.brilho; ctx.shadowBlur = 20; ctx.globalAlpha = .85;
+    ctx.beginPath(); ctx.arc(h.x + 10 * h.face, GROUND + h.y - 120, 110, h.face > 0 ? -1.1 : Math.PI - 1.1, h.face > 0 ? 1.1 : Math.PI + 1.1); ctx.stroke(); ctx.restore();
+  }
   B.demons.forEach(d => { if (d.state !== 'dead') drawHpBar(d); });
   // dica/aviso no alto da tela: desenhada antes dos balões, para a mentira do inimigo ficar na frente dela
   if (!B.fatal && !(B.trans > 0)) { ctx.save(); ctx.setTransform(screen); drawTip(); ctx.restore(); }
@@ -139,6 +140,7 @@ export function drawBattle() {
     ctx.restore();
   });
   B.slashes.forEach(sl => {
+    if (sl.martelo) return drawMartelo(sl); // mandamento: o martelo dourado girando
     drawCrescent(sl.x, sl.y, sl.ang, 1, 1, sl.c, sl.sy); // um corte só voando (sem cópias atrás)
   });
   drawAcid(); // ácido do Leviatã voando
@@ -163,11 +165,39 @@ export function drawBattle() {
   drawHUD();
   if (B.trans > 0 && !B.fatal && B.peek < 0) {
     ctx.fillStyle = '#000a'; ctx.fillRect(0, 230, W, 70);
-    ctx.fillStyle = '#f2c84b'; ctx.font = '800 36px Cinzel, serif'; ctx.fillText(B.fase.dev ? `Bestiário · ${B.fase.nome}` : `Jornada ${B.faseIdx + 1} · ${B.fase.nome}`, W / 2, 278);
+    ctx.fillStyle = '#f2c84b'; ctx.font = '800 36px Cinzel, serif'; ctx.fillText(B.fase.treino ? 'Treinamento' : B.fase.dev ? `Bestiário · ${B.fase.nome}` : `Jornada ${B.faseIdx + 1} · ${B.fase.nome}`, W / 2, 278);
   }
   if (B.fatal) drawFatal();
   if (halted()) { ctx.fillStyle = '#000a'; ctx.fillRect(0, 0, W, H); }
   drawCena(); // a estátua desperta (por cima de tudo)
   if (B.passagem) { ctx.save(); ctx.globalAlpha = passagemAlfa(B.passagem); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H); ctx.restore(); } // entrar/sair da caverna
+}
+// o martelo dos mandamentos: gira em volta do meio, com brilho dourado, um halo e 3 cópias apagadas atrás (o rastro do giro)
+const MARTELO = new Image(); MARTELO.src = 'assets/img/martelo.webp';
+function drawMartelo(sl) {
+  const H = 80 * (sl.sy || 1), W = H * 188 / 246; // a arte nova tem as chamas em volta: um pouco mais alta para o martelo ficar do mesmo tamanho
+  ctx.save();
+  const halo = ctx.createRadialGradient(sl.x, sl.y, 4, sl.x, sl.y, H * .75); halo.addColorStop(0, 'rgba(255,240,170,.55)'); halo.addColorStop(1, 'rgba(255,200,40,0)');
+  ctx.fillStyle = halo; ctx.beginPath(); ctx.arc(sl.x, sl.y, H * .75, 0, 7); ctx.fill();
+  if (MARTELO.naturalWidth) {
+    ctx.globalCompositeOperation = 'lighter';
+    for (let k = 3; k >= 1; k--) { // rastro: onde ele estava um instante antes, mais apagado
+      ctx.save(); ctx.globalAlpha = .16 * (4 - k); ctx.translate(sl.x - sl.face * k * 22, sl.y); ctx.rotate(sl.rot - sl.face * k * .45);
+      ctx.drawImage(MARTELO, -W / 2, -H / 2, W, H); ctx.restore();
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.shadowColor = sl.c.brilho; ctx.shadowBlur = 24;
+    ctx.translate(sl.x, sl.y); ctx.rotate(sl.rot); ctx.drawImage(MARTELO, -W / 2, -H / 2, W, H);
+  } else drawCrescent(sl.x, sl.y, sl.ang, 1, 1, sl.c, sl.sy);
+  ctx.restore();
+}
+// carga do mandamento (B.carga, 1,1 s): o martelo só aparece parado sobre a cabeça do herói e some (entra e sai em fade, sem
+// escala, giro nem outros efeitos)
+function drawCarga(h) {
+  const C = B.carga, k = C.t / C.dur; if (!MARTELO.naturalWidth) return;
+  const H = 66, W = H * 188 / 246, y = GROUND + h.y - 190;
+  ctx.save(); ctx.globalAlpha = Math.min(1, k / .18, (1 - k) / .3);
+  ctx.drawImage(MARTELO, h.x - W / 2, y - H / 2, W, H);
+  ctx.restore();
 }
 // céu muda ao longo da jornada (noite → aurora dourada perto do fim) e tem 3 camadas de parallax

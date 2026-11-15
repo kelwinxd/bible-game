@@ -7,7 +7,8 @@ import { frogsIn, hitFrog } from './frog.js';
 import { hitRock, rockBox } from './world.js';
 import { fatalSound, poderSfx, sfx, swordSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
-import { abertaBase, dashDmg, marcarVitoria, venceu } from '../core/progress.js';
+import { abertaBase, dashDmg, forjaDe, marcarVitoria, venceu } from '../core/progress.js';
+import { darXp } from './xp.js';
 import { $, D, reduced, rgbOf } from '../core/utils.js';
 import { rainFrogs } from './frog.js';
 
@@ -97,7 +98,9 @@ export function damageDemon(d, impulso = false) {
 // na altura em que ele está — no chão ou no ar durante o pulo. Sem diagonais por enquanto.
 export function launchSlash() {
   const h = B.hero, k = HERO_ATK[h.combo || 0].corte, x = h.x + h.face * 50, y = GROUND + h.y - k.y; // altura e tamanho seguem o golpe
-  B.slashes.push({ x, y, sy: k.sy, vx: h.face * 900, vy: 0, ang: h.face > 0 ? 0 : Math.PI, hit: new Set(), c: tema(B.power.v) });
+  const mart = !!B.power.v.mandamento; // o martelo voa mais devagar que o rasgo de luz (650 × 900 px/s)
+  B.slashes.push({ x, y, sy: k.sy, vx: h.face * (mart ? 650 : 900), vy: 0, ang: h.face > 0 ? 0 : Math.PI, hit: new Set(), c: tema(B.power.v), martelo: !!B.power.v.mandamento, rot: 0, face: h.face,
+    volta: !!B.power.v.mandamento && forjaDe(B.power.v.id) >= (D.marteloVolta || 2), t: 0 }); // mandamento: o martelo; upado: vai e volta
 }
 export function swingHit() {
   const h = B.hero;
@@ -139,7 +142,7 @@ export function startFatal(d, v, espirito = false) {
   // o balão da mentira estoura em lascas de papel (se estava à vista: a ave esconde a frase no mergulho)
   const shown = d.lie && d.balao && !(d.s.mergulho && (d.state === 'dive' || d.state === 'rise'));
   if (shown) B.shards.push(...d.rachas.lascas(d.balao.x, d.balao.y, d.balao.w, d.balao.h, 3));
-  d.state = 'dead'; d.lie = null; fatalSound(); explodeDemon(d);
+  d.state = 'dead'; d.lie = null; fatalSound(); explodeDemon(d); darXp('grande', d.x, demonBox(d)[1]);
   addFire(1); if (B.tut) B.tut.killed = true;
   const t = espirito ? FATAL_SPIRIT_T : FATAL_T;
   B.fatal = { t, dur: t, d, v, espirito }; // espirito: morto pelo Impulso → frase azul
@@ -148,7 +151,7 @@ export function endFatal() {
   B.demons = B.demons.filter(d => d !== B.fatal.d); B.fatal = null;
   if (!B.demons.length && B.arena) {
     const gr = B.arena.gr; if (gr && gr.ras) rainFrogs(gr.ras, B.arena); // data.js ras: N → rãs caem do céu quando a arena acaba
-    B.arena = null; B.hp = Math.min(100, B.hp + 20);
+    B.arena = null; B.hp = Math.min(B.hpMax, B.hp + 20);
     B.floats.push({ x: B.hero.x, y: GROUND - 250, t: 1.2, s: '+20', c: '#7dff8a' });
   }
 }
@@ -160,7 +163,7 @@ export function endScreen(win) {
     return $('endOverlay').classList.add('on');
   }
   // vitória: marca a jornada; as que essa vitória abriu (data.js → abre) aparecem no texto, e a 1ª delas vira o botão principal
-  const fi = B.faseIdx, antes = D.fases.filter(abertaBase);
+  const fi = B.faseIdx, antes = B.abertasAntes || D.fases.filter(abertaBase);
   if (win) marcarVitoria(B.fase.id);
   const novas = win ? D.fases.filter(f => abertaBase(f) && !antes.includes(f)) : [];
   const prox = win && (novas[0] || D.fases.find(f => abertaBase(f) && !venceu(f.id))), pi = prox ? D.fases.indexOf(prox) : -1;

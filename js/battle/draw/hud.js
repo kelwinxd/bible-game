@@ -4,7 +4,7 @@ import { ctx } from '../config.js';
 import { Rachaduras } from './cracks.js';
 import { tema } from '../hud.js';
 import { B } from '../state.js';
-import { shieldMax } from '../../core/progress.js';
+import { escudoAtual, nivelAtual } from '../../core/progress.js';
 import { D, reduced } from '../../core/utils.js';
 
 export function tutTip() {
@@ -56,12 +56,49 @@ export function drawTip() {
 export function drawHUD() {
   const W = 960;
   ctx.fillStyle = '#000a'; ctx.fillRect(0, 0, W, 52);
-  bar(16, 14, 210, 22, B.hp / 100, '#c62828', `Vida ${Math.ceil(B.hp)}`);
-  bar(490, 14, 200, 22, B.shieldE / shieldMax, B.shieldLock ? '#4a5a72' : '#5d8fd8', B.shieldLock ? 'Escudo recarregando…' : `Escudo ${B.shieldE.toFixed(1)}s / ${shieldMax}s`);
+  bar(16, 14, 210, 22, B.hp / B.hpMax, '#c62828', `Vida ${Math.ceil(B.hp)}/${B.hpMax} · Nv ${nivelAtual()}`);
+  const cs = B.shieldLock ? '#4a5a72' : '#5d8fd8';
+  shieldIcon(500, 25, cs); // o símbolo do escudo ao lado da barra
+  bar(516, 14, 190, 22, B.shieldE / escudoAtual(), cs, B.shieldLock ? 'Escudo recarregando…' : `Escudo ${B.shieldE.toFixed(1)}s / ${escudoAtual()}s`);
   const P = B.power;
-  bar(240, 14, 236, 22, P ? P.t / P.dur : 0, !P ? '#f2c84b' : B.shield ? '#6a6a6a' : tema(P.v).cor, P ? (B.shield ? 'Poder (pausado — escudo)' : `Poder · ${P.v.ref}`) : 'Espada inerte — refute');
+  swordBar(238, 25, 238, P ? P.t / P.dur : 0, !P ? '#f2c84b' : B.shield ? '#6a6a6a' : tema(P.v).cor);
   drawBossBar(bar);
-  ctx.fillStyle = '#f3e7d3'; ctx.font = '700 20px Cinzel, serif'; ctx.textAlign = 'right'; ctx.fillText(B.fase.dev ? 'Bestiário' : B.zona === 'caverna' ? 'Caverna' : `Jornada ${Math.min(100, Math.round(B.hero.x / B.fase.comprimento * 100))}%`, W - 16, 33); ctx.textAlign = 'center';
+  // canto direito: só o nome do lugar especial (sem a porcentagem da jornada)
+  const lugar = B.fase.treino ? 'Treinamento' : B.fase.dev ? 'Bestiário' : B.zona === 'caverna' ? 'Caverna' : '';
+  if (lugar) { ctx.fillStyle = '#f3e7d3'; ctx.font = '700 20px Cinzel, serif'; ctx.textAlign = 'right'; ctx.fillText(lugar, W - 16, 33); ctx.textAlign = 'center'; }
+}
+// barra do poder em forma de espada (pomo, punho, guarda e lâmina com ponta): a lâmina enche com a cor do versículo ativo
+// conforme o tempo de poder que resta; sem poder, fica de aço escuro. Rótulo fixo "Poder da Palavra"
+function swordBar(x, cy, w, p, c) {
+  const gx = x + 30, b0 = gx + 7, tip = x + w, hh = 9; // guarda em gx; a lâmina vai de b0 até a ponta
+  ctx.save();
+  // pomo e punho
+  ctx.fillStyle = '#c9a45c'; ctx.beginPath(); ctx.arc(x + 6, cy, 5.5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#5a3a24'; ctx.fillRect(x + 10, cy - 4, gx - x - 10, 8);
+  ctx.strokeStyle = '#3a2416'; ctx.lineWidth = 1; for (let k = x + 14; k < gx; k += 5) { ctx.beginPath(); ctx.moveTo(k, cy - 4); ctx.lineTo(k + 3, cy + 4); ctx.stroke(); }
+  // lâmina
+  const lam = () => { ctx.beginPath(); ctx.moveTo(b0, cy - hh); ctx.lineTo(tip - 22, cy - hh); ctx.lineTo(tip, cy); ctx.lineTo(tip - 22, cy + hh); ctx.lineTo(b0, cy + hh); ctx.closePath(); };
+  lam(); ctx.fillStyle = '#262a31'; ctx.fill();
+  ctx.save(); lam(); ctx.clip();
+  if (p > 0) { ctx.fillStyle = c; ctx.fillRect(b0, cy - hh, (tip - b0) * Math.min(1, p), hh * 2); }
+  ctx.fillStyle = '#ffffff22'; ctx.fillRect(b0, cy - hh, tip - b0, hh * .7); // brilho do fio
+  ctx.strokeStyle = '#00000055'; ctx.beginPath(); ctx.moveTo(b0, cy); ctx.lineTo(tip - 6, cy); ctx.stroke(); // o sulco do meio
+  ctx.restore();
+  lam(); ctx.strokeStyle = '#d9c9a8'; ctx.lineWidth = 1.5; ctx.stroke();
+  // guarda (por cima da base da lâmina)
+  ctx.fillStyle = '#c9a45c'; ctx.fillRect(gx, cy - 15, 7, 30); ctx.strokeStyle = '#6b4a24'; ctx.lineWidth = 1; ctx.strokeRect(gx, cy - 15, 7, 30);
+  // rótulo
+  ctx.font = '700 13px Cinzel, serif'; ctx.textAlign = 'left'; ctx.fillStyle = '#000a'; ctx.fillText('Poder da Palavra', b0 + 11, cy + 5);
+  ctx.fillStyle = '#fff'; ctx.fillText('Poder da Palavra', b0 + 10, cy + 4);
+  ctx.restore(); ctx.textAlign = 'center';
+}
+// símbolo de escudo (de cavaleiro, com a cruz), centrado em (cx, cy)
+function shieldIcon(cx, cy, c) {
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.beginPath(); ctx.moveTo(-9, -11); ctx.lineTo(9, -11); ctx.lineTo(9, -1); ctx.quadraticCurveTo(8, 8, 0, 13); ctx.quadraticCurveTo(-8, 8, -9, -1); ctx.closePath();
+  ctx.fillStyle = c; ctx.fill(); ctx.strokeStyle = '#dbe8ff'; ctx.lineWidth = 1.5; ctx.stroke();
+  ctx.fillStyle = '#eef4ff'; ctx.fillRect(-1.5, -8, 3, 17); ctx.fillRect(-6, -3.5, 12, 3);
+  ctx.restore();
 }
 export function bar(x, y, w, hh, p, c, label) {
   ctx.fillStyle = '#2a1d16'; ctx.fillRect(x, y, w, hh);

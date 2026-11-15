@@ -1,5 +1,5 @@
 import { opts } from '../core/options.js';
-import { abertaBase, venceu } from '../core/progress.js';
+import { abertaBase, caminhoAberto, nivelOk, venceu } from '../core/progress.js';
 import { $, D } from '../core/utils.js';
 import { show } from './screens.js';
 
@@ -79,8 +79,8 @@ export const ICONES = {
 const ESCUDO = `<svg viewBox="0 0 24 28" aria-hidden="true"><path d="M2 2 H22 V12 C22 20 16 25 12 27 C8 25 2 20 2 12Z" fill="#f3e7d3" stroke="#3a2a20" stroke-width="1.5"/><path d="M12 5 V23 M5.5 11.5 H18.5" stroke="#b3261e" stroke-width="3.2"/></svg>`;
 
 const portrait = () => matchMedia('(orientation: portrait)').matches;
-// posição de uma jornada em % do mapa (girada em tela em pé)
-const pos = f => portrait() ? [f.mapa.y, f.mapa.x] : [f.mapa.x, f.mapa.y];
+// posição de uma jornada em % do mapa (em tela em pé a pintura gira 90° no sentido horário: x' = 100 − y, y' = x)
+const pos = f => portrait() ? [100 - f.mapa.y, f.mapa.x] : [f.mapa.x, f.mapa.y];
 
 // trilha suave passando pelos pontos (Catmull-Rom → Bézier), nas unidades do viewBox
 function trail(pts) {
@@ -91,52 +91,7 @@ function trail(pts) {
   });
 }
 
-// Fundo geográfico (unidades do mapa deitado: 160×90, oeste à esquerda, norte em cima): pergaminho com textura, o Mar
-// Grande, o Nilo e o delta, o Sinai entre os braços do Mar Vermelho, o Jordão e o Mar Morto em Canaã, o Eufrates e o Tigre
-// até o golfo. Em pé, o mapa é transposto (x ↔ y), como as posições das jornadas.
-const GEO = `
-  <defs>
-    <filter id="geoPapel" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency="1.6" numOctaves="2" seed="7" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="0 0 0 0 .78  0 0 0 0 .62  0 0 0 0 .38  0 0 0 .22 0"/>
-      <feComposite in2="SourceGraphic" operator="in"/>
-    </filter>
-    <filter id="geoManchas" x="0" y="0" width="100%" height="100%">
-      <feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="3"/>
-      <feColorMatrix type="matrix" values="0 0 0 0 .1  0 0 0 0 .06  0 0 0 0 .03  0 0 0 1.4 -.55"/>
-    </filter>
-    <linearGradient id="geoMar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c2c35"/><stop offset="1" stop-color="#24394a"/></linearGradient>
-  </defs>
-  <rect width="160" height="90" fill="#4a3522"/>
-  <rect width="160" height="90" fill="#6a4c2e" filter="url(#geoPapel)"/>
-  <path d="M0 0 H62 Q60 6 57 10 Q54 15 52 22 Q50 29 46 34 Q40 37 34 37 Q30 39 27 37 Q20 35 12 37 Q6 38 0 37Z" fill="url(#geoMar)"/>
-  <path d="M46 49 Q48 57 51 62 L58 74 L63 90 H76 L70 79 Q64 70 61 64 Q59 58 58 50 Q56 55 55 59 Q51 55 48 48Z" fill="url(#geoMar)"/>
-  <path d="M141 90 Q146 82 151 79 Q156 77 160 76 V90Z" fill="url(#geoMar)"/>
-  <g fill="none" stroke-linecap="round">
-    <path d="M58 37 Q56 52 59 62" stroke="#c9a45c55" stroke-width=".5" stroke-dasharray="1 1.4"/>
-    <path d="M22 90 Q26 78 27 68 Q29 56 30 47 Q30 43 29 40 M30 47 Q33 43 35 39 M30 47 Q27 43 24 39 M30 47 Q30 42 30 38" stroke="#4f7488" stroke-width=".6"/>
-    <path d="M57 14 Q58 20 57 26 Q57 29 57 31" stroke="#4f7488" stroke-width=".4"/>
-    <path d="M78 6 Q86 14 96 26 Q106 40 116 52 Q126 63 138 72 Q144 76 146 80" stroke="#4f7488" stroke-width=".7"/>
-    <path d="M100 4 Q106 18 112 30 Q120 44 128 56 Q134 66 140 72" stroke="#4f7488" stroke-width=".55"/>
-  </g>
-  <ellipse cx="57" cy="33" rx=".9" ry="2.4" fill="#2c4352"/>
-  <g fill="#7a5a36" opacity=".55">
-    <path d="M24 64 l2 -3 l2 3Z M27 66 l1.4 -2 l1.4 2Z"/>
-    <path d="M60 18 q2 -3 4 0 q2 -3 4 0 M64 26 q2 -3 4 0 M70 20 q2 -3 4 0" fill="none" stroke="#7a5a36" stroke-width=".5"/>
-    <path d="M48 66 q2 -2.6 4 0 q2 -2.6 4 0 M50 72 q2 -2.6 4 0" fill="none" stroke="#7a5a36" stroke-width=".5"/>
-  </g>
-  <g fill="none" stroke="#8a6a3a55" stroke-width=".25" stroke-dasharray=".8 1.6">
-    <path d="M40 90 Q41 70 44 56 Q46 46 50 40"/>
-    <path d="M66 0 Q68 30 70 50 Q74 70 78 90"/>
-  </g>
-  <rect width="160" height="90" filter="url(#geoManchas)"/>
-`;
-// nomes das regiões (posição em % do mapa deitado; em pé, transpostos como tudo) — escritos à parte para não espelhar
-const REGIOES = [
-  { t: 'Mar Grande', x: 16, y: 18, mar: true }, { t: 'Egito', x: 13, y: 78 }, { t: 'Gósen', x: 31, y: 58, peq: true },
-  { t: 'Sinai', x: 33, y: 74, peq: true }, { t: 'Mar Vermelho', x: 41, y: 90, mar: true, peq: true }, { t: 'Canaã', x: 41, y: 16 },
-  { t: 'Deserto da Arábia', x: 57, y: 64 }, { t: 'Eufrates', x: 63, y: 30, rio: true, peq: true }, { t: 'Babilônia', x: 82, y: 72 }
-];
+// fundo: a pintura do mapa (assets/img/mapa.webp, 1672×941, já com os nomes das regiões), escurecida por um véu (style/map.css)
 const fasePorId = id => D.fases.find(f => f.id === id);
 
 export function renderMap() {
@@ -144,10 +99,15 @@ export function renderMap() {
   const fases = D.fases.filter(f => f.mapa);
   const aberta = f => abertaBase(f) || opts.all || D.jornadasLiberadas;
   const cur = fases.find(f => aberta(f) && !venceu(f.id)) || fases[fases.length - 1]; // o escudo: a próxima a jogar
-  const pt = f => { const [x, y] = pos(f); return [x * VW / 100, y * VH / 100]; };
+  const ptXY = (x, y) => { const [a, b] = P ? [100 - y, x] : [x, y]; return [a * VW / 100, b * VH / 100]; }; // % da pintura → viewBox (girado em pé)
+  const pt = f => ptXY(f.mapa.x, f.mapa.y);
   // trilhas: de cada jornada até as que ela abre (data.js → abre); dourada se já vencida. Depois da última, segue e some na névoa
-  const arestas = fases.flatMap(f => (f.abre || []).map(id => fasePorId(id)).filter(Boolean).map(o => ({ a: o, b: f })));
-  const L = fases[fases.length - 1], Lp = pt(L), Pv = (arestas.find(e => e.b === L) || {}).a, Pp = Pv ? pt(Pv) : [Lp[0] - 20, Lp[1]];
+  // mapa.via (data.js) = pontos de passagem da trilha que CHEGA nesta jornada, por jornada de origem ({ pragas: [[x, y], …] }, em % da
+  // pintura): a trilha vai por terra (rota do Êxodo pelo Sinai; rota do cativeiro pela Síria) em vez de cortar o mar em linha reta
+  const arestas = fases.flatMap(f => (f.abre || []).map(id => fasePorId(id)).filter(Boolean).map(o => ({ a: o, b: f,
+    pts: [pt(o), ...((f.mapa.via || {})[o.id] || []).map(([x, y]) => ptXY(x, y)), pt(f)] })));
+  const Le = arestas.find(e => e.b === fases[fases.length - 1]);
+  const L = fases[fases.length - 1], Lp = pt(L), Pp = Le ? Le.pts[Le.pts.length - 2] : [Lp[0] - 20, Lp[1]];
   const d = Math.hypot(Lp[0] - Pp[0], Lp[1] - Pp[1]) || 1, ext = [Lp[0] + (Lp[0] - Pp[0]) / d * 30, Lp[1] + (Lp[1] - Pp[1]) / d * 30];
   // as duas do Egito (começo) ficam ligadas por uma trilha curta
   const inicio = fases.filter(f => !f.abre), laco = inicio.length > 1 ? trail(inicio.map(pt)) : [];
@@ -155,19 +115,21 @@ export function renderMap() {
   const svg = `<svg class="map-trail" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" aria-hidden="true">
     <defs><linearGradient id="fadeTrail" gradientUnits="userSpaceOnUse" x1="${Lp[0]}" y1="${Lp[1]}" x2="${ext[0]}" y2="${ext[1]}"><stop offset="0" stop-color="#c9a45c"/><stop offset="1" stop-color="#c9a45c00"/></linearGradient></defs>
     ${laco.map(s => `<path d="${s}" class="${inicio.every(f => venceu(f.id)) ? 'done' : ''}"/>`).join('')}
-    ${arestas.map(e => `<path d="${curva(pt(e.a), pt(e.b))}" class="${venceu(e.a.id) ? 'done' : ''}"/>`).join('')}
+    ${arestas.flatMap(e => (e.pts.length > 2 ? trail(e.pts) : [curva(e.pts[0], e.pts[1])]).map(d => `<path d="${d}" class="${venceu(e.a.id) ? 'done' : ''}"/>`)).join('')}
     <path d="M${Lp} L${ext}" class="fog"/>
   </svg>`;
-  const geo = `<svg class="map-geo" viewBox="0 0 ${VW} ${VH}" preserveAspectRatio="none" aria-hidden="true"><g${P ? ' transform="matrix(0 1 1 0 0 0)"' : ''}>${GEO}</g></svg>`;
-  const nomes = REGIOES.map(r => { const [x, y] = P ? [r.y, r.x] : [r.x, r.y]; return `<span class="map-reg${r.mar ? ' mar' : ''}${r.rio ? ' rio' : ''}${r.peq ? ' peq' : ''}" style="left:${x}%;top:${y}%">${r.t}</span>`; }).join('');
+  const geo = '<div class="map-img" aria-hidden="true"></div>';
+  const nomes = ''; // os nomes das regiões já vêm na pintura
   const nodes = fases.map(f => {
     const i = D.fases.indexOf(f), open = aberta(f), won = venceu(f.id), [x, y] = pos(f);
-    const ico = (ICONES[f.mapa.icone] || ICONES.ruinas)(i), req = (f.abre || []).map(id => (fasePorId(id) || {}).nome).filter(Boolean).join(' ou ');
+    const ico = (ICONES[f.mapa.icone] || ICONES.ruinas)(i), quem = (f.abre || []).map(id => (fasePorId(id) || {}).nome).filter(Boolean).join(' ou ');
+    // o que falta para abrir: vencer a(s) anterior(es) e/ou chegar ao nível (nivelMin); o nível aparece num selo azul embaixo do nome
+    const falta = [!caminhoAberto(f) && `Vença ${quem}`, !nivelOk(f) && `Chegue ao nível ${f.nivelMin}`].filter(Boolean), req = falta.join(' e ');
     return `<button class="map-node${f === cur ? ' primary cur' : ''}${open ? '' : ' locked'}${won ? ' won' : ''}" style="left:${x}%;top:${y}%;--c:${f.mapa.cor || '#c9a45c'}"
-      ${open ? '' : `disabled title="Vença ${req}"`} onclick="startBattle(${i})" aria-label="Jornada ${i + 1}: ${f.nome}${open ? '' : ' (trancada)'}">
+      ${open ? '' : `disabled title="${req}"`} onclick="startBattle(${i})" aria-label="Jornada ${i + 1}: ${f.nome}${open ? '' : ` (trancada: ${req})`}">
       ${f === cur ? `<span class="here">${ESCUDO}</span>` : ''}
-      <span class="medal"><svg viewBox="0 0 100 100" aria-hidden="true">${ico}</svg>${open ? '' : '<span class="lock">🔒</span>'}${won ? '<span class="seal">✓</span>' : ''}</span>
-      <span class="cap"><small>Jornada ${i + 1}</small><b>${f.nome}</b></span>
+      <span class="medal">${f.mapa.img ? `<img src="${f.mapa.img}" alt="" draggable="false">` : `<svg viewBox="0 0 100 100" aria-hidden="true">${ico}</svg>`}${open ? '' : '<span class="lock">🔒</span>'}${won ? '<span class="seal">✓</span>' : ''}</span>
+      <span class="cap"><small>Jornada ${i + 1}</small><b>${f.nome}</b>${!open && f.nivelMin && !nivelOk(f) ? `<em class="nv-req">Nível ${f.nivelMin}</em>` : ''}</span>
     </button>`;
   }).join('');
   stage.innerHTML = geo + nomes + svg + nodes;

@@ -7,6 +7,7 @@ import { heroDies, hitHero, overlap } from './combat.js';
 import { B } from './state.js';
 import { makeFrog } from './frog.js';
 import { startPreCena } from './cena.js';
+import { darXp } from './xp.js';
 
 // ---------- Chefão da Jornada 3: Golias, o gigante de Gate (1 Samuel 17) ----------
 // data.js → { tipo: "gigante", x, vida }. Quando o herói chega perto, a câmera trava numa arena e ele entra pela direita.
@@ -136,18 +137,40 @@ export function drawEstatua() {
   ctx.drawImage(S.img, fr * S.FW, 0, S.FW, S.FH, L.x - S.FW / 2 * sc, topo, S.FW * sc, S.FH * sc);
   ctx.restore();
 }
+// ---------- Chefão das Pragas: o Faraó (Êxodo 5–12) ----------
+// data.js → { tipo: "gigante", pele: "farao", x, vida, caverna: true } — no fim da tumba (a caverna das Pragas). Só tem a arte dele
+// andando: os ataques são do cajado, com o brilho como aviso (sem quadros próprios). Anda guardando ~300 px; parado, arma
+// (cajado e olhos brilhando roxo) e: atk = lança uma nuvem de praga (gafanhotos) no herói; invoca = rãs saem do chão ao lado dele
+// (a praga das rãs, no máximo 3 vivas); slam = bate o cajado no chão e uma onda roxa corre pelo chão à frente dele (pule ou erga
+// o escudo). Mente como o Golias (mentiras tipo "farao", refutadas pelos mandamentos).
+// cobra = de perto (~200 px), o ataque com a arte própria: estica o cajado, que vira uma COBRA DOURADA e morde à frente (o escudo
+// bloqueia). Sprites (olham para a DIREITA; ax = a coroa, pés na base; as duas tiras na mesma escala, medida pela altura em pé):
+// farao-walk.webp 6 quadros 194×275 (andando); farao-attack.webp 6 quadros 337×275 (em pé → arma → cajado estendido brilhando →
+// a cobra surge → a cobra morde, esticada → volta). A pose do cajado estendido também serve para lançar a praga
+export const FARAO = { walk: { img: new Image(), FW: 194, FH: 275, ax: 123, n: 6, fps: 7 }, atk: { img: new Image(), FW: 337, FH: 275, ax: 199, n: 6 },
+  cajado: [70, 175] }; // cajado: a ponta na pose estendida (px à frente da coroa, px acima do chão)
+FARAO.walk.img.src = 'assets/sprites/enemy/farao-walk.webp'; FARAO.atk.img.src = 'assets/sprites/enemy/farao-attack.webp';
+// morte: farao-morte.webp 5 quadros 275×275 (de pé → curva-se → agacha → cai de joelhos e larga o cajado → prostrado), alinhados pelo
+// pé de trás; ax casa a coroa do 1º quadro com a do andar. Fica prostrado (não some) e fala (Êxodo 12:31–32: deixa o povo ir)
+FARAO.morte = { img: new Image(), FW: 275, FH: 275, ax: 128, n: 5 }; FARAO.morte.img.src = 'assets/sprites/enemy/farao-morte.webp';
+const F_MORTE_Q = [[0, 0], [.3, 1], [.6, 2], [.95, 3], [1.3, 4]], F_FALA = [1.6, 6.2], F_FALA_TXT = ['Saia daqui! Deixe-me em paz!', 'Seu Deus é maior.'];
+const F_COBRA_T = 1.3, F_COBRA = [[0, 0], [.15, 1], [.35, 2], [.55, 3], [.72, 4], [1.02, 5]], F_COBRA_HIT = [.72, 1], F_COBRA_DMG = 15, F_COBRA_ALC = 200;
+const F_DIST = 300, F_SPEED = 55, F_CD = 1.7, F_ARMA = .8, F_ATK_T = 1.2, F_VOO = 380, F_DMG = 12;
+const F_INV_T = 1.5, F_INV_N = 2, F_INV_MAX = 3, F_SLAM_T = 1.5, F_SLAM_HIT = .9, F_ONDA = 520, F_ONDA_DMG = 13, F_ONDA_ALC = 420;
+const SEQ_FARAO = ['atk', 'invoca', 'atk', 'slam'];
 const R_DIST = 320, R_SPEED = 60, R_CD = 1.8, R_ARMA = .7, R_ATK_T = 1.1, R_VOO = 430, R_DMG = 14;
 const R_RAJADA = [.8, 1.05, 1.3], R_RAJADA_T = 1.75;
 
 export function makeGiant(e) {
-  const rei = e.pele === 'rei', lies = D.mentiras.filter(m => m.tipo === (rei ? 'rei' : 'gigante'));
-  return { kind: 'gigante', rei, bolas: [], lieY: rei ? GROUND - 300 : 0, nome: rei ? 'Nabucodonosor · o rei de Babilônia' : 'Golias · o gigante de Gate', x: e.x, home: e.x, face: -1, hp: e.vida || 60, maxHp: e.vida || 60, state: 'hidden', t: 0, cd: 1, flash: 0, hit: false, sink: 0,
+  const rei = e.pele === 'rei', farao = e.pele === 'farao', lies = D.mentiras.filter(m => m.tipo === (rei ? 'rei' : farao ? 'farao' : 'gigante'));
+  return { kind: 'gigante', rei, farao, caverna: !!e.caverna, bolas: [], lieY: rei || farao ? GROUND - 300 : 0,
+    nome: rei ? 'Nabucodonosor · o rei de Babilônia' : farao ? 'Faraó · o rei do Egito' : 'Golias · o gigante de Gate', x: e.x, home: e.x, face: -1, hp: e.vida || 60, maxHp: e.vida || 60, state: 'hidden', t: 0, cd: 1, flash: 0, hit: false, sink: 0,
     lies, li: 0, lie: null, lieIn: 5, // a 1ª mentira só aparece 5 s depois de ele surgir
     vuln: false, lastVerse: null, lieFlash: 0 };
 }
 // próxima mentira (chamada quando o poder do versículo contra ele acaba): alterna o versículo que a refuta
 export function nextGiantLie(L) { if (!L.lies.length) return; L.li = (L.li + 1) % L.lies.length; L.lie = L.lies[L.li]; L.vuln = false; L.lieFlash = .3; }
-export const giantBox = L => L.estatua ? [L.x - 115, GROUND - 400, L.x + 115, GROUND] : L.rei ? [L.x - 50, GROUND - 270, L.x + 50, GROUND] : [L.x - 60, GROUND - 290, L.x + 60, GROUND];
+export const giantBox = L => L.estatua ? [L.x - 115, GROUND - 400, L.x + 115, GROUND] : L.rei ? [L.x - 50, GROUND - 270, L.x + 50, GROUND] : L.farao ? [L.x - 45, GROUND - 262, L.x + 45, GROUND] : [L.x - 60, GROUND - 290, L.x + 60, GROUND];
 const heroBox = h => [h.x - 22, GROUND + h.y - 160, h.x + 22, GROUND + h.y];
 // a ponta da lança na estocada: para o lado em que ele olha, na altura do peito do herói
 function spearBox(L) {
@@ -158,15 +181,20 @@ function spearBox(L) {
 export function updateGiant(L, dt) {
   const h = B.hero;
   if (L.state === 'hidden') {
-    if (h.x > L.home - 620 && !B.zona && !B.arena && B.groups.every(g => g.done) && !B.demons.length) { // arena: a câmera trava e ele entra
+    if (h.x > L.home - 620 && (!B.zona || (L.caverna && B.zona === 'caverna')) && !B.arena && B.groups.every(g => g.done || g.apos || g.caverna) && !B.demons.length) { // (as ondas da caverna, apos, não contam: a caverna é opcional) arena: a câmera trava e ele entra
       B.arena = { left: L.home - 740, right: L.home + 220, boss: true };
       L.state = 'enter'; L.t = 0; L.x = B.arena.right + 160; L.face = -1; sfx('hurt');
-      B.notice = { lines: [L.rei ? 'Nabucodonosor, o rei de Babilônia!' : 'Golias, o gigante de Gate!'], t: 3, c: '#ffb46a' };
+      B.notice = { lines: [L.rei ? 'Nabucodonosor, o rei de Babilônia!' : L.farao ? 'O Faraó, o rei do Egito!' : 'Golias, o gigante de Gate!'], t: 3, c: '#ffb46a' };
     }
     return;
   }
-  if (L.rei || L.estatua) updateBolas(L, h, dt);
+  if (L.rei || L.estatua || L.farao) updateBolas(L, h, dt);
+  if (L.farao) updateOnda(L, h, dt);
   if (L.state === 'dead' && L.estatua) return morteEstatua(L, dt);
+  if (L.state === 'dead' && L.farao) { // prostrado, fala; depois o aviso de seguir
+    if (!L.avisou && L.t > F_FALA[1]) { L.avisou = true; B.notice = { lines: ['O Faraó caiu!', 'Siga até o fim da tumba'], t: 4, c: '#f2c84b' }; }
+    return;
+  }
   if (L.state === 'dead') { // o rei: depois de afundar, a cena da estátua que desperta (uma vez)
     L.sink = Math.min(1, L.sink + dt / DIE_T);
     if (L.rei && !L.cenaVista && L.sink >= 1) { L.cenaVista = true; startPreCena(); } // na fase e no Bestiário: tremor e fala, depois a cena
@@ -179,6 +207,7 @@ export function updateGiant(L, dt) {
   if (!L.lie && L.lieIn > 0 && (L.lieIn -= dt) <= 0 && L.lies.length) { L.lie = L.lies[0]; L.lieFlash = .3; } // chega calado; depois de 5 s começa a mentir
   if (L.state === 'enter') { L.x = Math.max(L.home, L.x - 220 * dt); if (L.x <= L.home) { L.state = 'walk'; L.t = 0; } return; }
   if (L.rei) return updateRei(L, h, dt);
+  if (L.farao) return updateFarao(L, h, dt);
   if (L.estatua) return updateEstatuaBoss(L, h, dt);
   const dx = h.x - L.x;
   if (L.state === 'walk') {
@@ -246,6 +275,114 @@ function updateRei(L, h, dt) {
     if (L.t >= CH_ARMA + CH_DUR + .25) { L.state = 'walk'; L.t = 0; L.cd = R_CD; L.atks = (L.atks || 0) + 1; }
   }
 }
+// o faraó: anda guardando distância; parado, arma (cajado brilhando) e solta a praga, as rãs ou a onda no chão
+function updateFarao(L, h, dt) {
+  const dx = h.x - L.x;
+  L.face = Math.sign(dx) || L.face;
+  if (L.state === 'walk') {
+    L.cd -= dt;
+    const want = Math.abs(dx) - F_DIST;
+    if (Math.abs(want) > 30) L.x += Math.sign(dx) * Math.sign(want) * F_SPEED * dt;
+    L.x = Math.max(B.arena.left + 80, Math.min(B.arena.right - 60, L.x));
+    L.anda = Math.abs(want) > 30;
+    if (L.cd <= 0 && h.deadAt == null && Math.abs(dx) < F_COBRA_ALC) { L.state = 'cobra'; L.t = 0; L.hit = false; L.anda = false; return; } // de perto: a cobra
+    if (L.cd <= 0 && h.deadAt == null) {
+      let a = SEQ_FARAO[(L.atks || 0) % SEQ_FARAO.length];
+      if (a === 'invoca' && rasDoFarao() >= F_INV_MAX - 1) a = 'atk'; // já tem rãs demais: lança a praga
+      L.state = a; L.t = 0; L.tiros = 0; L.anda = false;
+    }
+  } else if (L.state === 'atk') { // a nuvem de praga (gafanhotos) voa do cajado até onde o herói está
+    if (!L.tiros && L.t >= F_ARMA) { L.tiros = 1; praga(L, h); }
+    if (L.t >= F_ATK_T) { L.state = 'walk'; L.t = 0; L.cd = F_CD; L.atks = (L.atks || 0) + 1; }
+  } else if (L.state === 'cobra') { // o cajado vira cobra e morde à frente
+    if (!L.hit && L.t >= F_COBRA_HIT[0] && L.t <= F_COBRA_HIT[1]) {
+      if (L.t - dt < F_COBRA_HIT[0]) sfx('whoosh');
+      const a = L.x + L.face * 40, b = L.x + L.face * 185;
+      if (overlap([Math.min(a, b), GROUND - 215, Math.max(a, b), GROUND - 95], heroBox(h))) { L.hit = true; hitHero(F_COBRA_DMG); }
+    }
+    if (L.t >= F_COBRA_T) { L.state = 'walk'; L.t = 0; L.cd = F_CD; }
+  } else if (L.state === 'invoca') { // rãs saem do chão ao lado dele (a praga das rãs)
+    if (!L.tiros && L.t >= F_ARMA) {
+      L.tiros = 1; sfx('croak'); B.shake = .2;
+      for (let k = 0; k < F_INV_N; k++) {
+        const x = Math.max(B.arena.left + 60, Math.min(B.arena.right - 40, L.x + L.face * (100 + k * 80)));
+        const r = makeFrog({ tipo: 'ra', x, bando: 'farao' }); r.face = L.face; r.wait = .4; B.frogs.push(r);
+        for (let q = 0; q < 12; q++) B.shards.push({ x: x + (Math.random() - .5) * 50, y: GROUND - Math.random() * 16, vx: (Math.random() - .5) * 180, vy: -120 - Math.random() * 240, r: Math.random() * 6, t: .7, c: Math.random() < .5 ? '170,90,220' : '120,160,50', sz: .4 + Math.random() * .5 });
+      }
+      if (!B.faraoRasTold) { B.faraoRasTold = true; B.notice = { lines: ['O Faraó invoca a praga das rãs!'], t: 2.5, c: '#c79aff' }; }
+    }
+    if (L.t >= F_INV_T) { L.state = 'walk'; L.t = 0; L.cd = F_CD; L.atks = (L.atks || 0) + 1; }
+  } else if (L.state === 'slam') { // bate o cajado no chão: uma onda roxa corre pelo chão para a frente dele
+    if (!L.tiros && L.t >= F_SLAM_HIT) {
+      L.tiros = 1; B.shake = .4; stoneSfx('crack', 1);
+      L.onda = { x: L.x + L.face * 40, x0: L.x + L.face * 40, face: L.face, hit: false };
+      if (!B.faraoOndaTold) { B.faraoOndaTold = true; B.notice = { lines: ['O cajado do Faraó faz o chão tremer!', 'Pule [W] por cima da onda ou erga o escudo [J]'], t: 3.5, c: '#c79aff' }; }
+    }
+    if (L.t >= F_SLAM_T) { L.state = 'walk'; L.t = 0; L.cd = F_CD; L.atks = (L.atks || 0) + 1; }
+  }
+}
+// a onda do cajado: corre rente ao chão; pega o herói se ele estiver no chão quando ela passa (o escudo bloqueia; pulando, passa por baixo)
+function updateOnda(L, h, dt) {
+  const o = L.onda; if (!o) return;
+  o.x += o.face * F_ONDA * dt;
+  if (!o.hit && Math.abs(h.x - o.x) < 40 && h.y > -50 && h.deadAt == null) { o.hit = true; hitHero(F_ONDA_DMG); }
+  if (Math.abs(o.x - o.x0) > F_ONDA_ALC || o.x < B.cam - 40 || o.x > B.cam + 1000) L.onda = null;
+}
+function praga(L, h) {
+  const x = L.x + L.face * FARAO.cajado[0], y = GROUND - FARAO.cajado[1], tx = h.x, ty = GROUND + h.y - 90;
+  const d = Math.hypot(tx - x, ty - y) || 1;
+  L.bolas.push({ x, y, vx: (tx - x) / d * F_VOO, vy: (ty - y) / d * F_VOO, t: 0, r: 22, dmg: F_DMG, praga: true });
+  sfx('whoosh');
+}
+const rasDoFarao = () => B.frogs.filter(f => f.bando === 'farao' && !f.dead).length;
+function drawFarao(L) {
+  let S = FARAO.walk, fr = (L.state === 'walk' && L.anda) || L.state === 'enter' ? Math.floor(B.time * S.fps) % S.n : 0; // parado: o 1º quadro
+  if (L.state === 'dead' && FARAO.morte.img.naturalWidth) { S = FARAO.morte; fr = 0; F_MORTE_Q.forEach(([t, q]) => { if (L.t >= t) fr = q; }); }
+  if (FARAO.atk.img.naturalWidth) {
+    if (L.state === 'cobra') { S = FARAO.atk; fr = 0; F_COBRA.forEach(([t, q]) => { if (L.t >= t) fr = q; }); }
+    else if (L.state === 'atk') { S = FARAO.atk; fr = L.t < F_ARMA * .4 ? 1 : L.t < F_ATK_T - .15 ? 2 : 5; } // arma e estende o cajado: a praga sai da ponta
+    else if (L.state === 'invoca') { S = FARAO.atk; fr = L.t < F_ARMA ? 1 : 5; }
+  }
+  if (!S.img.naturalWidth) return;
+  const arma = (L.state === 'atk' || L.state === 'invoca') && L.t < F_ARMA || L.state === 'slam' && L.t < F_SLAM_HIT || L.state === 'cobra' && L.t < F_COBRA_HIT[0];
+  ctx.save();
+  ctx.translate(L.x, GROUND); ctx.scale(L.face, 1);
+  if (L.flash > 0) ctx.filter = 'brightness(3) saturate(0)';
+  else if (arma) ctx.filter = 'drop-shadow(0 0 16px #b45cff)'; // armando: brilho roxo
+  const ergue = L.state === 'slam' ? (L.t < F_SLAM_HIT ? -Math.min(1, L.t / F_SLAM_HIT) * 14 : Math.max(0, 8 - (L.t - F_SLAM_HIT) * 40)) : 0; // ergue e bate
+  ctx.drawImage(S.img, fr * S.FW, 0, S.FW, S.FH, -S.ax, 2 - S.FH + ergue, S.FW, S.FH);
+  ctx.restore();
+  if (arma && L.state !== 'dead' && L.state !== 'cobra' && L.state !== 'invoca') { // a ponta do cajado acende (o brilho do ataque já vem na arte)
+    const cx = L.x + L.face * FARAO.cajado[0], cy = GROUND - FARAO.cajado[1], k = .6 + .4 * Math.sin(B.time * 18);
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30 * k); g.addColorStop(0, 'rgba(255,230,255,.95)'); g.addColorStop(.4, 'rgba(190,100,255,.7)'); g.addColorStop(1, 'rgba(120,40,200,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(cx, cy, 30 * k, 0, 7); ctx.fill(); ctx.restore();
+  }
+  if (L.onda) { // a onda roxa rente ao chão
+    const o = L.onda, a = 1 - Math.abs(o.x - o.x0) / F_ONDA_ALC;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = Math.max(0, a);
+    const g = ctx.createRadialGradient(o.x, GROUND, 0, o.x, GROUND, 60); g.addColorStop(0, 'rgba(230,180,255,.9)'); g.addColorStop(.5, 'rgba(160,70,240,.6)'); g.addColorStop(1, 'rgba(90,20,160,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(o.x, GROUND - 8, 60, 34, 0, Math.PI, 0); ctx.fill(); ctx.restore();
+    if (!reducedFx()) B.shards.push({ x: o.x + (Math.random() - .5) * 30, y: GROUND - 4, vx: -o.face * Math.random() * 120, vy: -80 - Math.random() * 160, r: Math.random() * 6, t: .5, c: Math.random() < .5 ? '200,140,255' : '120,95,70', sz: .4 + Math.random() * .4 });
+  }
+  drawBolas(L);
+  if (L.state === 'dead') falaFarao(L);
+}
+// o balão da fala dele, prostrado (papel, como as falas da cena): aparece e some suave
+function falaFarao(L) {
+  if (L.t < F_FALA[0] || L.t > F_FALA[1]) return;
+  const a = Math.min(1, (L.t - F_FALA[0]) / .2, (F_FALA[1] - L.t) / .3);
+  ctx.save(); ctx.globalAlpha = a; ctx.font = '700 19px Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const w = Math.max(...F_FALA_TXT.map(t => ctx.measureText(t).width)) + 34, bh = F_FALA_TXT.length * 25 + 16;
+  const hx = L.x + L.face * 60, x = Math.min(B.cam + 960 - w / 2 - 8, Math.max(B.cam + w / 2 + 8, hx)), y = GROUND - 165;
+  ctx.fillStyle = '#fbf3e2'; ctx.strokeStyle = '#2a1a10'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y - bh, w, bh, 12); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(hx - 10, y - 1); ctx.lineTo(hx - 2, y + 14); ctx.lineTo(hx + 8, y - 1); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillRect(hx - 9, y - 4, 16, 4);
+  ctx.fillStyle = '#2a1a10'; F_FALA_TXT.forEach((t, i) => ctx.fillText(t, x, y - bh + 8 + 12.5 + i * 25));
+  ctx.restore();
+}
+const reducedFx = () => B.time % .05 > .025; // metade dos quadros solta poeira (não enche a tela)
 const soldadosDoRei = () => B.frogs.filter(f => f.bando === 'rei' && !f.dead).length;
 // o jato: das mãos para a frente e para baixo (na diagonal), crescendo no começo; pega se a caixa tocar algum trecho dele
 function chamaPega(L, tj, hb) {
@@ -303,6 +440,7 @@ function drawRei(L) {
 }
 function drawBolas(L) {
   L.bolas.forEach(b => { // bola de fogo com rastro
+    if (b.praga) return drawPraga(b);
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
     for (let k = 3; k >= 0; k--) {
       const R = b.r || 16, px = b.x - b.vx * k * .025, py = b.y - b.vy * k * .025, r = R - k * R / 5;
@@ -312,6 +450,18 @@ function drawBolas(L) {
     ctx.restore();
   });
 }
+// a nuvem de praga do faraó: um enxame escuro de gafanhotos zumbindo em volta de um miolo roxo
+function drawPraga(b) {
+  ctx.save();
+  const g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r * 1.4); g.addColorStop(0, 'rgba(150,70,210,.55)'); g.addColorStop(1, 'rgba(60,20,90,0)');
+  ctx.fillStyle = g; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * 1.4, 0, 7); ctx.fill();
+  ctx.fillStyle = '#2a1406';
+  for (let k = 0; k < 16; k++) { // os insetos girando em volta
+    const a = k * 2.4 + b.t * (6 + k % 3), rr = b.r * (.3 + (k * 37 % 10) / 12);
+    ctx.beginPath(); ctx.ellipse(b.x + Math.cos(a) * rr - b.vx * .02, b.y + Math.sin(a) * rr * .7, 3, 1.6, a, 0, 7); ctx.fill();
+  }
+  ctx.restore();
+}
 // dano do tremor: direto na vida (o escudo não bloqueia), com o mesmo aviso vermelho dos outros golpes
 function quake(h, dmg = SLAM_DMG) {
   sfx('hurt'); if (!opts.god) B.hp = Math.max(0, B.hp - dmg); h.hurt = .3;
@@ -319,11 +469,13 @@ function quake(h, dmg = SLAM_DMG) {
   if (B.hp <= 0) heroDies(); // vida zerada: a mesma morte dos outros golpes
 }
 export function giantDies(L) {
-  L.state = 'dead'; L.t = 0; L.sink = 0; B.shake = .5;
+  L.state = 'dead'; L.t = 0; L.sink = 0; B.shake = .5; darXp('grande', L.x, GROUND - 300);
   if (B.arena && B.arena.boss) B.arena = null;
   L.bolas = [];
   if (L.rei) B.frogs.forEach(f => { if (f.bando === 'rei' && !f.dead) f.hp = 0, f.dead = true; }); // os soldados invocados caem com ele
+  if (L.farao) { B.frogs.forEach(f => { if (f.bando === 'farao' && !f.dead) f.hp = 0, f.dead = true; }); L.onda = null; } // as rãs dele somem junto
   B.notice = L.rei ? { lines: ['Nabucodonosor caiu!'], t: 2.5, c: '#f2c84b' } // logo depois vem a cena da estátua
+    : L.farao ? null // ele fala primeiro; o aviso vem depois (updateGiant)
     : { lines: [L.estatua ? 'O Ídolo Babilônico caiu!' : 'Golias caiu!', 'Siga até a cruz no fim da jornada'], t: 4, c: '#f2c84b' };
   sfx('refute');
 }
@@ -331,6 +483,7 @@ export function giantDies(L) {
 export function drawGiant() {
   const L = B.boss; if (!L || L.kind !== 'gigante' || L.state === 'hidden') return;
   if (L.rei) return drawRei(L);
+  if (L.farao) return drawFarao(L);
   if (L.estatua) return drawBolas(L); // ela é desenhada atrás do chão (drawEstatua); as bolas de fogo, na frente
   if (!GIG.run.naturalWidth) return;
   let img = GIG.run, fr = Math.floor(B.time * 8) % 8;
@@ -353,7 +506,7 @@ export function drawGiant() {
 export const giantLieY = L => L.lieY || (L.pele && L.pele.lieY) || GROUND - 285; // abaixo da barra de vida do chefão (a Naja traz o dela)
 export function drawGiantLie() {
   // também o chefão do mar que mente (Naja): some enquanto ele mergulha ou sobe da água
-  const L = B.boss; if (!L || !L.lies || !L.lie || !['walk', 'atk', 'slam', 'invoca', 'chamas', 'swim', 'bite', 'acid'].includes(L.state)) return;
+  const L = B.boss; if (!L || !L.lies || !L.lie || !['walk', 'atk', 'slam', 'invoca', 'chamas', 'cobra', 'swim', 'bite', 'acid'].includes(L.state)) return;
   L.lieFlash = Math.max(0, L.lieFlash - 1 / 60);
   ctx.save(); ctx.globalAlpha = 1 - L.lieFlash / .3;
   ctx.font = '800 19px Cinzel, Georgia, serif';
