@@ -4,15 +4,28 @@
 // Leão (Orgulho, Babilônia): igual, mas o bote é um SALTO que avança `salto` px. Cobra verde (aparencia { sprite: "verde", acido }):
 // não chega perto — guarda ~300 px e CUSPE ÁCIDO em arco.
 // Sprites: config.js → ESPR[sprite] (run + attack; olham para a direita; sem a arte carregada, o desenho à mão da Tentação)
+import { cobraSom, dragaoSom } from '../../../core/audio.js';
 import { GROUND, ESPR, SPIT_ANIM, ctx } from '../../config.js';
 import { hitHero } from '../../combat.js';
 import { drawShadow } from '../../draw/world.js';
 import { B } from '../../state.js';
 import { ENEMY_GAP } from '../../world.js';
 import { Monstro } from '../base/monstro.js';
-import { FILTRO_ACERTO, brilho, spitAcid } from '../efeitos.js';
+import { FILTRO_ACERTO, brilho, ouvido, spitAcid } from '../efeitos.js';
 
 export class Serpente extends Monstro {
+  // voz de dragão (js/core/audio.js → dragaoSom): ruge ao chegar, rosna no aviso do bote e solto de vez em quando, grunhe ao
+  // levar golpe e dá um rugido longo ao estourar. grave: < 1 = mais grave (o leão), > 1 = mais agudo (a cobra verde)
+  get grave() { return 1; }
+  voz(kind, vol = 1) { dragaoSom(kind, vol * ouvido(this.x), this.grave); }
+  somChegar() { this.voz('rugido', .8); }
+  somArmar() { this.voz('rosnar'); }
+  somDor() { if (B.time - (this.ultDor || -9) > .5) { this.ultDor = B.time; this.voz('dor', .8); } } // sem empilhar nos combos
+  somMorte() { this.voz('morte'); }
+  somParado(dt) { // rosnado solto e baixo a cada 4–8 s, fora do aviso
+    if (this.rosna == null) this.rosna = 2 + Math.random() * 4;
+    if ((this.rosna -= dt) <= 0) { this.rosna = 4 + Math.random() * 4; if (this.state === 'idle') this.voz('rosnar', .45); }
+  }
   get alcanceBote() { return 150 + (this.s.salto || 0); }
   caixa() { return [this.x - 45, this.y - 200, this.x + 45, this.y]; }
   balaoY() { return this.s.sprite ? this.y - 262 : this.y - 230; }
@@ -73,6 +86,7 @@ export class Serpente extends Monstro {
 
 // ---------- Leão do Orgulho (Babilônia, Daniel 6): o bote é um salto que avança `salto` px ----------
 export class Leao extends Serpente {
+  get grave() { return .85; }
   caixa() { return [this.x - 80, this.y - 150, this.x + 80, this.y]; } // baixo e comprido
   balaoY() { return this.y - 205; }
   agir(h, dt) {
@@ -88,6 +102,7 @@ export class Leao extends Serpente {
 
 // ---------- Cobra verde (a 1ª Mentira do Exodus): guarda ~300 px e cospe ácido em arco ----------
 export class CobraVerde extends Serpente {
+  voz(kind, vol = 1) { cobraSom(kind, vol * ouvido(this.x)); } // a cobra verde sibila (gravado), em vez da voz de dragão
   get duracaoGolpe() { return SPIT_ANIM; }
   get corAviso() { return '#9cff3a'; }
   balaoY() { return this.y - 250; }

@@ -395,6 +395,7 @@ window.DATA = {
   fases: [{
     // Jornada 1: só 2 versículos (Êxodo 20:3, depois Hebreus 4:12), bem separados. Cada um vem antes de 2 serpentes (uma por vez) que ele refuta.
     id: "exodus", nome: "Exodus", comprimento: 11200,
+    musica: "assets/audio/musics/Cantemus Domino.mp3", // a música da fase, em loop (js/core/musica.js)
     mapa: { x: 10, y: 71, icone: "piramide", img: "assets/img/simbolo-exodus.webp", cor: "#e0782c" }, // img: o símbolo (faraó, pirâmides, sol e palmeira) no lugar do desenho // Egito, perto das pirâmides (posição na pintura assets/img/mapa.webp)
     // fundo (opcional): imagem que rola devagar (parallax) e se repete espelhada, emendando sem corte; escuro = véu por cima
     fundo: { img: "assets/img/fundo-exodus.webp", parallax: 0.35, escuro: 0.35 },
@@ -496,6 +497,7 @@ window.DATA = {
     // Jornada 3: a Dúvida ataca do alto. 2 versículos contra o medo (Isaías 41:10, Salmos 23:4), 4 inimigos e o chefão Golias.
     id: "vale", abre: ["exodus", "pragas"], // abre quando o herói vence o Exodus OU As Pragas
     nome: "O vale da sombra", comprimento: 11500,
+    coruja: true, uivo: true, // ambiente: uma coruja pia e um lobo uiva ao longe de vez em quando (js/battle/ambiente.js)
     // sul de Canaã, a oeste do Mar Morto (o deserto da Judeia, onde Davi pastoreava). via: a trilha chega por terra, pela rota do
     // Êxodo — de Gósen pelo Deserto de Sur, atravessando o Sinai perto do Monte Sinai, e subindo pelo Neguebe (o Exodus entra nela)
     mapa: { x: 53, y: 48, icone: "vale", cor: "#5d7fb8",

@@ -22,6 +22,7 @@ import { setPause, showPauseView, toggleDeck, togglePeek, closePeek, useVerse, h
 import { startDash } from './js/battle/combat.js';
 import { updateBattle } from './js/battle/update.js';
 import { drawBattle } from './js/battle/draw/scene.js';
+import { somAmbiente } from './js/battle/ambiente.js';
 import './js/battle/draw/world.js';
 import './js/battle/draw/hud.js';
 import './js/input/controls.js';
@@ -35,6 +36,7 @@ function loop(now) {
   const dt = Math.min(.05, (now - last) / 1000); last = now;
   forgeTick(dt); sharpTick(dt); sparksTick(dt);
   if (B) { if ((!B.over || B.hp <= 0) && !halted()) updateBattle(dt); drawBattle(); }
+  somAmbiente(); // o mar perto da água (js/battle/ambiente.js)
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);

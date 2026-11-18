@@ -6,7 +6,7 @@
 //   leviata.config.js  → números e as peles     leviata.attacks.js → o bote e o ácido
 //   leviata.sprites.js → as artes                leviata.draw.js    → o desenho (dentro do mar)
 // data.js → { tipo: "chefe", x, vida, pele? }
-import { sfx } from '../../../../core/audio.js';
+import { dragaoSom } from '../../../../core/audio.js';
 import { GROUND } from '../../../config.js';
 import { B } from '../../../state.js';
 import { Chefe } from '../../base/chefe.js';
@@ -42,17 +42,18 @@ export class Leviata extends Chefe {
     return laje ? pisou : h.x > this.sea.x - 420;
   }
   surgir() {
-    super.surgir(); sfx('hurt'); respingo(this.x, 22);
+    super.surgir(); dragaoSom('rugido', 1, .8); respingo(this.x, 22); // voz de dragão, grave (é grande)
     B.notice = { lines: [`${this.pele.nome}, ${this.pele.titulo}!`, 'Golpeie-o da laje ou da margem — e cuidado com o bote'], t: 4, c: '#ff7a6a' };
   }
 
   // ----- dano e morte -----
   aoSofrer() { // Naja: a cada 1/6 da vida perdida, rãs entram na fila para cair na jangada
+    if (this.hp > 0 && B.time - (this.ultDor || -9) > .6) { this.ultDor = B.time; dragaoSom('dor', .9, .8); }
     if (!this.pele.ras) return;
     const k = Math.min(5, Math.floor((this.maxHp - Math.max(0, this.hp)) / (this.maxHp / 6)));
     while ((this.rasK || 0) < k) { this.rasK = (this.rasK || 0) + 1; if (this.hp > 0) { this.fila = (this.fila || 0) + this.pele.ras; if (!(this.rasT > 0)) this.rasT = 0; this.rasAviso = true; } }
   }
-  aoMorrer() { B.acid = []; B.risers.forEach(r => { r.up = true; }); respingo(this.x, 30); } // a terra do fim sobe da água
+  aoMorrer() { dragaoSom('morte', 1, .75); B.acid = []; B.risers.forEach(r => { r.up = true; }); respingo(this.x, 30); } // a terra do fim sobe da água
   morto(dt) { this.sink = Math.min(1, this.sink + dt / 1.6); }
 
   // ----- a luta: cada estado tem o seu método -----
@@ -98,7 +99,7 @@ export class Leviata extends Chefe {
     if (this.t < MERGULHO.embaixo) return;
     const N = this.distante, d = N ? N + Math.random() * 60 : 170 + Math.random() * 120;
     this.x = this.dentroDoMar(h.x + (Math.random() < .5 ? -1 : 1) * d);
-    this.face = h.x < this.x ? -1 : 1; this.state = 'surge'; this.t = 0; this.cd = .8; respingo(this.x, 18); sfx('hurt');
+    this.face = h.x < this.x ? -1 : 1; this.state = 'surge'; this.t = 0; this.cd = .8; respingo(this.x, 18); dragaoSom('rosnar', .9, .8); // reaparece rosnando
   }
   /** depois de cada ataque: a cada 3, mergulha (a Naja: depois do bote recua, e aí mergulha) */
   fimDoAtaque(qual) {

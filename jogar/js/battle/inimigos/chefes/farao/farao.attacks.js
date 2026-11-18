@@ -1,5 +1,5 @@
 // O Faraó: os ataques. Cada um = { estado, atualizar(chefe, h, dt) → true quando acabou }
-import { sfx, stoneSfx } from '../../../../core/audio.js';
+import { sapoSom, sfx, stoneSfx } from '../../../../core/audio.js';
 import { GROUND } from '../../../config.js';
 import { hitHero, overlap } from '../../../combat.js';
 import { B } from '../../../state.js';
@@ -38,7 +38,7 @@ export const pragaDasRas = {
   estado: 'pragaDasRas',
   atualizar(L) {
     if (!L.tiros && L.t >= FARAO.arma) {
-      L.tiros = 1; sfx('croak'); B.shake = .2;
+      L.tiros = 1; sapoSom('coaxar', 1, .9); B.shake = .2;
       L.invocar('ra', RAS.quantas, { d0: 100, passo: 80, cores: ['170,90,220', '120,160,50'], prepara: r => { r.wait = .4; } });
       avisarUmaVez('faraoRas', { lines: FARAO.textos.avisoRas, t: 2.5, c: '#c79aff' });
     }

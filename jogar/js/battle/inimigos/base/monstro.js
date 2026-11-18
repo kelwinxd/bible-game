@@ -14,6 +14,8 @@
 //   balaoY()           a altura do balão da mentira (a ponta aponta para ela)
 // Ganchos (opcionais): agir(h, dt) (para quem não segue o ciclo idle/arm, como a ave), barraY(), desenharSombra(),
 //   mostraMentira(), get balaoEmbaixo
+// Sons (opcionais): somChegar() ao parar na vaga, somArmar() no começo do aviso, somDor() ao levar golpe sem morrer,
+//   somMorte() no estouro (combat.js), somParado(dt) a cada quadro enquanto ele vive (rosnados soltos)
 import { GROUND } from '../../config.js';
 import { drawShadow } from '../../draw/world.js';
 import { B } from '../../state.js';
@@ -50,6 +52,7 @@ export class Monstro {
   barraY() { return this.y - 200; }         // a barrinha de vida, acima da cabeça
   mostraMentira() { return !!this.lie; }    // o balão aparece (a ave esconde a frase no mergulho)
   desenharSombra() { drawShadow(this.x, this.y, 120); }
+  somChegar() {} somArmar() {} somDor() {} somMorte() {} somParado(dt) {}
   /** quem não segue o ciclo idle/arm (a ave) sobrescreve este */
   agir(h, dt) { const dist = h.x - this.x; if (this.state === 'idle') this.mover(h, dt, dist); this.cicloDeAtaque(h, dt, dist); }
 
@@ -58,15 +61,16 @@ export class Monstro {
     this.flash = Math.max(0, this.flash - dt); this.strikeAnim = Math.max(0, this.strikeAnim - dt); this.bob += dt;
     this.lieFlash = Math.max(0, this.lieFlash - dt); this.moving = this.state === 'enter';
     if (this.state === 'dead') return;
-    if (this.state === 'enter') { this.x -= ENTRA_V * dt; if (this.x <= this.tx) { this.x = this.tx; this.state = 'idle'; } return; }
+    if (this.state === 'enter') { this.x -= ENTRA_V * dt; if (this.x <= this.tx) { this.x = this.tx; this.state = 'idle'; this.somChegar(); } return; }
     if (B.trans > 0) return;
+    this.somParado(dt);
     this.agir(h, dt);
   }
   /** espera a cadência → arma (o aviso, `tell` s) → golpeia → volta a esperar */
   cicloDeAtaque(h, dt, dist) {
     if (this.state === 'idle') {
       this.timer -= dt;
-      if (this.timer <= 0 && this.noAlcance(dist)) { this.state = 'arm'; this.arm = this.s.tell; }
+      if (this.timer <= 0 && this.noAlcance(dist)) { this.state = 'arm'; this.arm = this.s.tell; this.somArmar(); }
     } else if (this.state === 'arm') {
       this.arm -= dt;
       if (this.arm <= 0) { this.state = 'idle'; this.timer = this.s.cadencia; this.strikeAnim = this.duracaoGolpe; this.golpear(h); }

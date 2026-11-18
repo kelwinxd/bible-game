@@ -50,7 +50,7 @@ export function startBattle(fi = 0, all = opts.all, faseObj = null) {
       B.caverna = e; B.terrain.push({ x: e.x, w: e.w, top: 600 });
       B.terrain.push({ x: e.x1 - 420, w: 420, top: -110 }); // no fim da caverna, a rampa de pedra até a saída
     }
-    else if (e.tipo === 'ovelha') { if (!((e.calma || e.sobe) && !fase.dev && achouOvelha(fase.id))) B.ovelhas.push(makeSheep(e)); } // ovelha perdida (js/battle/sheep.js); a que se acha (calma ou sobe) some se já foi achada nesta jornada
+    else if (e.tipo === 'ovelha') B.ovelhas.push(makeSheep(e, (e.calma || e.sobe) && !fase.dev && achouOvelha(fase.id))); // ovelha perdida (js/battle/sheep.js); já achada nesta jornada, ela aparece igual mas não dá vida nem XP de novo
     else if (['ra', 'lobo', 'soldado', 'piolhenta', 'boi', 'espantalho'].includes(e.tipo)) B.frogs.push(makeFrog(e)); // bichos soltos pela fase: rã, lobo, soldado, mulher dos piolhos, boi morto (js/battle/frog.js)
     else if (e.tipo === 'terra') B.risers.push({ x: e.x, w: e.w, k: 0, up: false, solid: false });
   });

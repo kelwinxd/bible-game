@@ -4,14 +4,14 @@
 // Ficha: vida, dano, anda/corre (px/s), perto (vê o herói), ronda/coleira (px de casa), arma/golpe (s), salto (px que avança no
 // golpe), cd (s entre golpes), ataca (arma a esta distância), colado (não chega mais perto), nArma (quadros armando), arcoAt (px
 // acima do chão por quadro do ataque), run/atk/idle (sprites; olham para a direita), sombra, som, cores (lascas ao morrer)
-import { sfx } from '../../../core/audio.js';
+import { loboSom, sfx, uivoSom } from '../../../core/audio.js';
 import { GROUND, ctx } from '../../config.js';
 import { heroBox, hitHero, overlap } from '../../combat.js';
 import { drawShadow } from '../../draw/world.js';
 import { B } from '../../state.js';
 import { terrainTop } from '../../world.js';
 import { Bicho } from '../base/bicho.js';
-import { FILTRO_ACERTO, brilho, desenharQuadro } from '../efeitos.js';
+import { FILTRO_ACERTO, brilho, desenharQuadro, ouvido } from '../efeitos.js';
 
 const img = src => Object.assign(new Image(), { src });
 const SP = 'assets/sprites/enemy/';
@@ -48,7 +48,8 @@ export class Patrulheiro extends Bicho {
   patrulhar(h, dx, perto, dt) {
     const P = this.P;
     if (perto && !(this.chaseOff > 0)) this.face = Math.sign(dx) || this.face;
-    if (perto && Math.abs(dx) < P.ataca && this.cd <= 0) { this.state = 'arm'; this.t = 0; return; } // ao alcance: arma o golpe
+    if (perto && !this.viu) this.aoVer(); this.viu = perto; // acabou de ver o herói
+    if (perto && Math.abs(dx) < P.ataca && this.cd <= 0) { this.state = 'arm'; this.t = 0; this.aoArmar(); return; } // ao alcance: arma o golpe
     if (perto && Math.abs(dx) < P.colado) return; // colado no herói: espera o próximo golpe
     // perto mas não alcança (fim da coleira, buraco, parede): não fica parado encarando — volta a patrulhar
     if (perto && (Math.abs(this.x + this.face * 20 - this.home) > P.coleira || !this.podePisar(this.x + this.face * 50))) this.chaseOff = 1.5;
@@ -62,6 +63,8 @@ export class Patrulheiro extends Bicho {
   }
   /** gancho: na hora em que o golpe sai (a Mulher dos piolhos cospe aqui) */
   aoGolpear() {}
+  aoVer() {}    // gancho: viu o herói (parte atrás dele)
+  aoArmar() {}  // gancho: começou a armar o golpe
   golpear(h) {
     const P = this.P, k = Math.min(1, this.t / P.golpe), stop = h.x - this.face * 45;
     let to = this.x0 + this.face * P.salto * Math.sin(k * Math.PI / 2);
@@ -84,6 +87,17 @@ export class Patrulheiro extends Bicho {
 // ---------- Lobo (o Vale da sombra): salta mordendo ----------
 // lobo-run.webp 6 quadros 190×136 (andando); lobo-attack.webp 6 quadros (agacha → rosna → arma → SALTO → aterrissa → volta)
 export class Lobo extends Patrulheiro {
+  // voz: os rosnados da pantera negra (gravados, js/core/audio.js → loboSom) — rosna ao ver o herói (no máx. 1 a cada 4 s), rosna
+  // forte ao armar o salto, ganido curto ao levar golpe e o rosnado lento ao morrer; o volume cai com a distância (ouvido)
+  aoVer() { if (B.time - (this.ultVe ?? -9) > 4) { this.ultVe = B.time; loboSom('ve', .8 * ouvido(this.x)); } }
+  aoArmar() { loboSom('rosnar', ouvido(this.x)); }
+  // uiva uma vez quando aparece na tela, se o herói ainda não está em cima dele (o lado do som segue o lado do lobo)
+  agir(h, dt) {
+    if (!this.uivou && this.visivel() && Math.abs(h.x - this.x) > 260) { this.uivou = true; uivoSom(.55, (this.x - B.cam - 480) / 480); }
+    super.agir(h, dt);
+  }
+  sofrer(dano, cor) { super.sofrer(dano, cor); if (!this.dead && B.time - (this.ultDor ?? -9) > .5) { this.ultDor = B.time; loboSom('dor', ouvido(this.x)); } }
+  aoMorrer() { loboSom('morte', ouvido(this.x)); }
   static FICHA = { vida: 40, dano: 8, anda: 55, corre: 150, perto: 200, ronda: 170, coleira: 340, arma: .35, golpe: .4, salto: 95, cd: 1.4, ataca: 150, colado: 90,
     run: { img: img(SP + 'lobo-run.webp'), FW: 190, FH: 136, ax: 97, n: 6 }, atk: { img: img(SP + 'lobo-attack.webp'), FW: 190, FH: 136, ax: 97, n: 6 }, nArma: 3, arcoAt: [3, 5, 3, 20, 2, 0],
     caixa: (f, y) => [f.x - 55, y - 72, f.x + 55, y], sombra: 120, som: 'slash', cores: ['70,60,58', '150,40,30'] };
@@ -111,6 +125,7 @@ export class Piolhenta extends Patrulheiro {
     idle: { img: img(SP + 'piolhenta-idle.webp'), FW: 108, FH: 198, ax: 43, n: 6, fps: 6 }, nArma: 6, arcoAt: [0, 0, 0, 0, 0, 0],
     caixa: (f, y) => [f.x - 27, y - 145, f.x + 27, y], sombra: 70, som: 'whoosh', cores: ['200,180,140', '110,70,30'] };
   static NUVEM = { boca: [65, 148], n: 16, solta: .3, vel: [330, 470], abre: .2, vida: 1.5 };
+  static VOZ = { som: 'piolho', vol: .35, raio: 700 }; // o murmúrio dela em loop, baixo, saindo dela (js/battle/ambiente.js)
   constructor(e) { super(e); this.piol = []; }
   quadroAtaque() { // vai e volta: arma do 1º ao último, golpe do último ao 1º
     const P = this.P, n = P.atk.n;

@@ -84,7 +84,7 @@ export function damageDemon(d, impulso = false) {
   const b = demonBox(d);
   if (B.fase.dev && d.hp <= 0) { d.hp = d.maxHp; B.floats.push({ x: d.x, y: b[1] - 50, t: 1, s: 'imortal · vida cheia', c: '#9fe4ff' }); } // Bestiário
   B.floats.push({ x: d.x, y: b[1] - 20, t: .8, s: dmg.toFixed(dmg % 1 ? 1 : 0), c: impulso ? '#9fe4ff' : powered ? tema(P.v).claro : '#bbb' });
-  if (d.hp <= 0) startFatal(d, impulso ? null : d.lastVerse, impulso);
+  if (d.hp <= 0) startFatal(d, impulso ? null : d.lastVerse, impulso); else d.somDor?.();
   return powered;
 }
 // Com o poder ativo, o golpe vira um rasgo de luz que voa reto (horizontal) para onde o herói está virado,
@@ -135,7 +135,7 @@ export function startFatal(d, v, espirito = false) {
   // o balão da mentira estoura em lascas de papel (se estava à vista: a ave esconde a frase no mergulho)
   const shown = d.balao && d.mostraMentira();
   if (shown) B.shards.push(...d.rachas.lascas(d.balao.x, d.balao.y, d.balao.w, d.balao.h, 3));
-  d.state = 'dead'; d.lie = null; fatalSound(); explodeDemon(d); darXp('grande', d.x, demonBox(d)[1]);
+  d.state = 'dead'; d.lie = null; fatalSound(); d.somMorte?.(); explodeDemon(d); darXp('grande', d.x, demonBox(d)[1]);
   addFire(1); if (B.tut) B.tut.killed = true;
   const t = espirito ? FATAL_SPIRIT_T : FATAL_T;
   B.fatal = { t, dur: t, d, v, espirito }; // espirito: morto pelo Impulso → frase azul

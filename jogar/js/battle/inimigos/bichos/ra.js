@@ -3,13 +3,13 @@
 // dá um pulo curto: longe do herói vai e volta em volta de casa; perto, pula na direção dele (sem se afastar muito de casa).
 // Também cai do céu (chuva de rãs depois de uma arena; na jangada da Naja, presa a ela). ronda = só patrulha; ensina = a dica do [K].
 // ra-idle.webp 6 quadros 106×84; ra-pulo.webp 6 quadros 172×210 (a altura do pulo já vem desenhada; o chão é a borda de baixo)
-import { sfx } from '../../../core/audio.js';
+import { sapoSom } from '../../../core/audio.js';
 import { GROUND } from '../../config.js';
 import { drawShadow, relevo } from '../../draw/world.js';
 import { B } from '../../state.js';
 import { terrainTop } from '../../world.js';
 import { Bicho } from '../base/bicho.js';
-import { FILTRO_ACERTO, desenharQuadro } from '../efeitos.js';
+import { FILTRO_ACERTO, desenharQuadro, ouvido } from '../efeitos.js';
 
 const img = src => Object.assign(new Image(), { src });
 export const RA = { idle: { img: img('assets/sprites/enemy/ra-idle.webp'), FW: 106, FH: 84, ax: 53, n: 6 }, pulo: { img: img('assets/sprites/enemy/ra-pulo.webp'), FW: 172, FH: 210, ax: 86, n: 6 } };
@@ -19,10 +19,15 @@ const PULO_T = .55, PULO_D = 90, VIDA = 20, DANO = 4, PERTO = 180, RONDA = 110, 
 export class Ra extends Bicho {
   constructor(e) {
     super(e, { vida: VIDA });
-    Object.assign(this, { ronda: !!e.ronda, ensina: !!e.ensina, state: 'idle', wait: .8 + Math.random() * 1.6, x0: e.x, x1: e.x, cai: 0, pl: null });
+    Object.assign(this, { ronda: !!e.ronda, ensina: !!e.ensina, state: 'idle', wait: .8 + Math.random() * 1.6, x0: e.x, x1: e.x, cai: 0, pl: null, tom: .85 + Math.random() * .3, coaxa: 1 + Math.random() * 5 }); // tom: cada rã com a sua voz
   }
   /** a rã cai do céu de `altura` px (chuva de rãs); na jangada (pl), fica presa nela */
   cairDoCeu(altura, pl = null) { this.cai = altura; this.wait = 1 + Math.random() * 1.5; if (pl) { this.pl = pl; this.plx = pl.x; } return this; }
+  // voz (js/core/audio.js → sapoSom): coaxa ao pular e ao pousar do céu, solta um coaxar parada a cada 3–7 s, coaxa ao levar golpe
+  // e guincha ao morrer; o volume cai com a distância da tela (ouvido)
+  coaxar(vol = 1, kind = 'coaxar') { sapoSom(kind, vol * ouvido(this.x), this.tom); }
+  sofrer(dano, cor) { super.sofrer(dano, cor); if (!this.dead) this.coaxar(.9); }
+  aoMorrer() { this.coaxar(1, 'grito'); }
   quadro() { return this.state === 'hop' ? Math.min(5, Math.floor(this.t / PULO_T * 6)) : 0; }
   chao() { return this.pl ? this.pl.top : terrainTop(this.x); }
   piso() { return GROUND + (this.pl ? this.pl.top : terrainTop(this.x) + relevo(this.x)); } // no desenho: acompanha o relevo
@@ -31,8 +36,9 @@ export class Ra extends Bicho {
 
   agir(h, dt) {
     if (this.pl) { const d = this.pl.x - this.plx; this.plx = this.pl.x; this.x += d; this.x0 += d; this.x1 += d; this.home = this.pl.x + this.pl.w / 2; } // vai junto com a jangada
-    if (this.cai > 0) { this.cai = Math.max(0, this.cai - QUEDA_V * dt); if (!this.cai) sfx('croak'); return; } // ainda caindo do céu
+    if (this.cai > 0) { this.cai = Math.max(0, this.cai - QUEDA_V * dt); if (!this.cai) this.coaxar(.8); return; } // ainda caindo do céu
     const dx = h.x - this.x, perto = !this.ronda && Math.abs(dx) < PERTO && Math.abs(h.y) < 120 && h.deadAt == null;
+    if (this.state === 'idle' && (this.coaxa -= dt) <= 0) { this.coaxa = 3 + Math.random() * 4; this.coaxar(.55); } // coaxar solto, parada
     if (this.state === 'idle' && (this.wait -= dt) <= 0) this.pular(dx, perto);
     else if (this.state === 'hop') {
       this.t += dt;
@@ -49,7 +55,7 @@ export class Ra extends Bicho {
     const lim = perto ? COLEIRA : RONDA;
     let to = this.x + this.face * (perto ? Math.min(PULO_D, Math.max(30, Math.abs(dx) - 20)) : PULO_D);
     to = Math.max(this.home - lim, Math.min(this.home + lim, to));
-    if (Math.abs(to - this.x) > 10 && this.podePisar(to)) { this.state = 'hop'; this.t = 0; this.x0 = this.x; this.x1 = to; if (Math.abs(this.x - B.cam - 480) < 560) sfx('croak'); }
+    if (Math.abs(to - this.x) > 10 && this.podePisar(to)) { this.state = 'hop'; this.t = 0; this.x0 = this.x; this.x1 = to; this.coaxar(.7); }
     else { this.face = -this.face; this.wait = .6; } // travou (buraco, parede ou fim da coleira): vira e tenta o outro lado
   }
 

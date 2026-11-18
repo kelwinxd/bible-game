@@ -3,17 +3,21 @@
 // evita), passa raspando com as garras, sobe em curva do outro lado e vira para encarar o herói de novo. Só uma ave mergulha por vez.
 // O balão fica EMBAIXO dela (em cima ficaria atrás do HUD) e some no mergulho e na subida.
 // Sprite: config.js → ESPR.ave (fly + attack). Sem a arte carregada, o desenho à mão da Dúvida (manto e "?")
-import { sfx } from '../../../core/audio.js';
+import { aveSom, sfx } from '../../../core/audio.js';
 import { GROUND, ESPR, ctx } from '../../config.js';
 import { heroBox, hitHero, overlap } from '../../combat.js';
 import { B } from '../../state.js';
 import { Monstro } from '../base/monstro.js';
-import { FILTRO_ACERTO, brilho } from '../efeitos.js';
+import { FILTRO_ACERTO, brilho, ouvido } from '../efeitos.js';
 
 export const PAIRA_Y = 285; // altura em que paira: baixa o bastante para o rasgo do poder (mesmo do chão) pegar a parte de baixo dela
 const MERGULHO_V = 640, SOBE_VX = 380, SOBE_VY = 560;
 
 export class Ave extends Monstro {
+  // voz: o grito da ave de rapina (gravado, js/core/audio.js → aveSom) ao chegar e a cada mergulho; curto ao levar golpe; lento ao morrer
+  somChegar() { aveSom('grito', ouvido(this.x)); }
+  somDor() { if (B.time - (this.ultDor || -9) > .6) { this.ultDor = B.time; aveSom('dor', ouvido(this.x)); } }
+  somMorte() { aveSom('morte', ouvido(this.x)); }
   get balaoEmbaixo() { return true; }
   caixa() { return [this.x - 70, this.y - 55, this.x + 70, this.y + 65]; } // corpo e garras, sem as pontas das asas
   balaoY() { return Math.min(this.y, PAIRA_Y) + 55; } // preso à altura de pairar: não desce junto no mergulho
@@ -49,7 +53,7 @@ export class Ave extends Monstro {
   mergulhar(h, hb) {
     const dx = h.x - this.x, dy = Math.min(GROUND - 70, (hb[1] + hb[3]) / 2) - this.y, L = Math.hypot(dx, dy) || 1;
     Object.assign(this, { state: 'dive', vx: dx / L * MERGULHO_V, vy: dy / L * MERGULHO_V, diveLen: L, dived: 0, hitDone: false });
-    this.face = Math.sign(dx) || this.face; sfx('whoosh');
+    this.face = Math.sign(dx) || this.face; sfx('whoosh'); aveSom('grito', .8 * ouvido(this.x));
   }
 
   // voo = tira fly em loop (bate mais rápido subindo); aviso = ataque 0→1 (ergue as asas); mergulho = 6/7 (corpo esticado) e,

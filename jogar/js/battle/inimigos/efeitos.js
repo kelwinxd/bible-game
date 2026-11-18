@@ -9,6 +9,8 @@ import { heroDies, hitHero, overlap } from '../combat.js';
 import { B } from '../state.js';
 
 /** caixa do herói para os golpes dos inimigos (alto = altura considerada, em px) */
+/** volume de um som que sai de x (0–1): cheio dentro da tela, some a ~420 px fora da borda */
+export const ouvido = x => { const d = Math.abs(x - (B.cam + 480)); return d < 480 ? 1 : Math.max(0, 1 - (d - 480) / 420); };
 export const caixaHeroi = (h, alto = 160) => [h.x - 22, GROUND + h.y - alto, h.x + 22, GROUND + h.y];
 /** quadro de uma linha de tempo [[t, quadro], …]: o último cujo t já passou */
 export const quadroNoTempo = (linha, t) => { let q = linha[0][1]; linha.forEach(([t0, f]) => { if (t >= t0) q = f; }); return q; };

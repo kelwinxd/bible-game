@@ -191,12 +191,19 @@ export function stoneSfx(kind, dano = 0) {
 // ---------- Sons gravados (assets/audio) ----------
 // escudo.mp3 (~8,7 s, um zumbido contínuo): toca EM LOOP enquanto o escudo está erguido (entra e sai com fade curto)
 // poder.mp3 (~4,2 s): o golpe com o poder do versículo (no lugar do 'laser' sintetizado, que fica de reserva até carregar)
-const RAW = { escudo: 'assets/audio/escudo.mp3', poder: 'assets/audio/poder.mp3' }, BUF = {}, BYTES = {};
-for (const k in RAW) fetch(RAW[k]).then(r => r.ok ? r.arrayBuffer() : null).then(a => { BYTES[k] = a; decode(); }).catch(() => {});
+// bichos (gravados, assets/audio/sound-effects/<bicho>.mp3): ra = 6 coaxares · dragao = rugido de T-Rex (~1,5 s) · cobra = sibilo (~1,6 s) · lobo = 2 rosnados de pantera negra (um calmo, um forte) · uivo = uivo de lobo (~5 s) · piolho = o murmúrio da mulher dos piolhos (loop de ~10 s) · ave = grito de ave de rapina · coruja = 2 piados
+const RAW = { escudo: 'assets/audio/escudo.mp3', poder: 'assets/audio/poder.mp3',
+  ra: 'assets/audio/sound-effects/ra.mp3', dragao: 'assets/audio/sound-effects/dragao.mp3',
+  cobra: 'assets/audio/sound-effects/cobra.mp3', lobo: 'assets/audio/sound-effects/lobo-rosnado.mp3', uivo: 'assets/audio/sound-effects/lobo-uivo.mp3', piolho: 'assets/audio/sound-effects/mulher-piolho.mp3', ave: 'assets/audio/sound-effects/ave.mp3', coruja: 'assets/audio/sound-effects/coruja.mp3' }, BUF = {}, BYTES = {};
+for (const k in RAW) fetch(encodeURI(RAW[k])).then(r => r.ok ? r.arrayBuffer() : null).then(a => { BYTES[k] = a; decode(); }).catch(() => {});
 function decode() { // só decodifica depois que o AudioContext existe (ele nasce no 1º som, já com um clique/tecla do jogador)
   if (!actx) return;
   for (const k in BYTES) if (BYTES[k] && !BUF[k]) { const a = BYTES[k]; BYTES[k] = null; actx.decodeAudioData(a).then(b => { BUF[k] = b; }).catch(() => {}); }
 }
+// já no 1º clique/tecla (o navegador só deixa criar o áudio depois de um gesto): cria o AudioContext e decodifica os sons
+// gravados, para o 1º coaxar/rugido da jornada já sair do arquivo (e não da reserva sintetizada)
+const preparar = () => { try { ctxOk(); } catch (e) {} removeEventListener('pointerdown', preparar); removeEventListener('keydown', preparar); };
+addEventListener('pointerdown', preparar); addEventListener('keydown', preparar);
 function ctxOk() {
   actx = actx || new (window.AudioContext || window.webkitAudioContext)();
   if (actx.state === 'suspended') actx.resume();
@@ -235,5 +242,207 @@ export function escudoSom(on) {
       const { s, g } = esc, t = actx.currentTime; esc = null;
       g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value, t); g.gain.exponentialRampToValueAtTime(.0001, t + .15); s.stop(t + .16);
     }
+  } catch (e) {}
+}
+
+// ---------- Mar (ambiente, sintetizado) ----------
+// Ondas indo e vindo: ruído rosa em loop por 2 filtros — grave (o corpo da onda, "shhhuuu") e agudo (a espuma) — com o volume
+// subindo e descendo devagar (uma onda a cada ~8 s) e o grave mudando de cor aos poucos. Fica sempre ligado em silêncio;
+// marSom(vol, pan) só ajusta o volume (0–1) e o lado (-1 esquerda … 1 direita), com transição suave (js/battle/ambiente.js)
+let mar = null;
+function criarMar() {
+  const n = actx.sampleRate * 6, buf = actx.createBuffer(1, n, actx.sampleRate), d = buf.getChannelData(0);
+  let b0 = 0, b1 = 0, b2 = 0; // ruído rosa (filtro de Paul Kellet, versão leve): soa como água, o branco soa como chiado
+  for (let i = 0; i < n; i++) { const w = Math.random() * 2 - 1; b0 = .99765 * b0 + w * .099046; b1 = .963 * b1 + w * .2965164; b2 = .57 * b2 + w * 1.0526913; d[i] = (b0 + b1 + b2 + w * .1848) * .18; }
+  const fade = 2000; for (let i = 0; i < fade; i++) { const k = i / fade; d[i] = d[i] * k + d[n - fade + i] * (1 - k); } // emenda do loop sem estalo
+  const src = actx.createBufferSource(); src.buffer = buf; src.loop = true;
+  const out = actx.createGain(); out.gain.value = 0;
+  const pan = actx.createStereoPanner ? actx.createStereoPanner() : null;
+  if (pan) { out.connect(pan); pan.connect(actx.destination); } else out.connect(actx.destination);
+  const onda = actx.createOscillator(); onda.frequency.value = .125; // o ritmo das ondas
+  const cor = actx.createOscillator(); cor.frequency.value = .043; // o grave clareia e escurece devagar
+  // grave: o corpo da onda
+  const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 520; lp.Q.value = .6;
+  const cg = actx.createGain(); cg.gain.value = 220; cor.connect(cg); cg.connect(lp.frequency);
+  const gGrave = actx.createGain(); gGrave.gain.value = .55; const og = actx.createGain(); og.gain.value = .4; onda.connect(og); og.connect(gGrave.gain);
+  // agudo: a espuma quebrando no alto da onda
+  const bp = actx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 2200; bp.Q.value = .5;
+  const gEsp = actx.createGain(); gEsp.gain.value = .1; const oe = actx.createGain(); oe.gain.value = .09; onda.connect(oe); oe.connect(gEsp.gain);
+  src.connect(lp); lp.connect(gGrave); gGrave.connect(out);
+  src.connect(bp); bp.connect(gEsp); gEsp.connect(out);
+  src.start(); onda.start(); cor.start();
+  return { out, pan, vol: 0 };
+}
+export function marSom(vol, p = 0) {
+  try {
+    if (!opts.sound) vol = 0;
+    if (!mar) { if (vol <= 0) return; ctxOk(); mar = criarMar(); }
+    const t = actx.currentTime, alvo = vol * .9;
+    if (Math.abs(alvo - mar.vol) > .002) { mar.vol = alvo; mar.out.gain.setTargetAtTime(alvo, t, .25); }
+    if (mar.pan) mar.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, p)), t, .2);
+  } catch (e) {}
+}
+// aba escondida: o jogo para (sem quadros), então o mar silencia na hora
+document.addEventListener('visibilitychange', () => { if (document.hidden && mar) { mar.vol = 0; mar.out.gain.setTargetAtTime(0, actx.currentTime, .05); } });
+
+// ---------- Vozes dos bichos (sintetizadas) ----------
+// distorção leve (dá a aspereza da garganta)
+let curvaAspera = null;
+function aspera() {
+  if (!curvaAspera) { const n = 1024; curvaAspera = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; curvaAspera[i] = Math.tanh(x * 3.2); } }
+  const w = actx.createWaveShaper(); w.curve = curvaAspera; return w;
+}
+// (reserva sintetizada, enquanto o arquivo gravado não carregou)
+// Rã: 'coaxar' = "crroac-crroac" (2 pulsos curtos: dente de serra com o volume batendo rápido — o "rrr" — num filtro nasal);
+//      'grito' = o guincho curto quando morre. vol 0–1 (quem chama já põe a distância); tom = 0.8–1.2 (cada rã um pouco diferente)
+function sapoSint(kind = 'coaxar', vol = 1, tom = 1) {
+  if (!opts.sound || vol <= .01) return;
+  try {
+    ctxOk(); const t = actx.currentTime, out = actx.createGain(); out.gain.value = .55 * vol; out.connect(actx.destination);
+    const pulso = (at, dur, f0, f1, v) => {
+      const o = actx.createOscillator(), am = actx.createOscillator(), amg = actx.createGain(), g = actx.createGain(), bp = actx.createBiquadFilter(), bp2 = actx.createBiquadFilter();
+      o.type = 'sawtooth'; o.frequency.setValueAtTime(f0 * tom, at); o.frequency.exponentialRampToValueAtTime(f1 * tom, at + dur);
+      am.type = 'square'; am.frequency.value = 62 * tom; amg.gain.value = .5; am.connect(amg); amg.connect(g.gain); // o "rrr"
+      bp.type = 'bandpass'; bp.frequency.value = 850 * tom; bp.Q.value = 2.5; bp2.type = 'bandpass'; bp2.frequency.value = 380 * tom; bp2.Q.value = 3;
+      const env = actx.createGain(); env.gain.setValueAtTime(.0001, at); env.gain.exponentialRampToValueAtTime(v, at + .012); env.gain.setValueAtTime(v, at + dur * .6); env.gain.exponentialRampToValueAtTime(.0001, at + dur);
+      g.gain.value = .5; o.connect(g); g.connect(bp); g.connect(bp2); bp.connect(env); bp2.connect(env); env.connect(out);
+      o.start(at); am.start(at); o.stop(at + dur + .02); am.stop(at + dur + .02);
+    };
+    if (kind === 'grito') {
+      const o = actx.createOscillator(), g = actx.createGain(); o.type = 'triangle';
+      o.frequency.setValueAtTime(1100 * tom, t); o.frequency.exponentialRampToValueAtTime(320 * tom, t + .22);
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.35, t + .01); g.gain.exponentialRampToValueAtTime(.0001, t + .24);
+      o.connect(g); g.connect(out); o.start(t); o.stop(t + .25);
+      pulso(t + .05, .16, 260, 150, .9);
+    } else { pulso(t, .11, 300, 220, 1); pulso(t + .17, .14, 280, 190, 1); }
+  } catch (e) {}
+}
+// Dragão / serpente / leão: tudo grave, áspero e com respiração (ruído).
+//   'rosnar' = rosnado baixo e trêmulo (~0,8 s: o aviso antes do bote) · 'rugido' = sobe e desce, forte (~1,3 s: chegou, surgiu)
+//   'dor'    = grunhido curto ao levar golpe                         · 'morte'  = rugido longo que cai e some (~1,8 s)
+// grave = 0.7–1.3 (menor = mais grave/maior)
+function dragaoSint(kind = 'rosnar', vol = 1, grave = 1) {
+  if (!opts.sound || vol <= .01) return;
+  try {
+    ctxOk(); const t = actx.currentTime;
+    const P = { rosnar: { d: .8, f: [62, 70, 55], ruido: [380, 520, 300], v: .5, trem: 22 },
+                rugido: { d: 1.3, f: [95, 175, 70], ruido: [500, 1500, 380], v: .6, trem: 30 },
+                dor:    { d: .35, f: [150, 120, 80], ruido: [700, 900, 400], v: .5, trem: 35 },
+                morte:  { d: 1.8, f: [140, 120, 38], ruido: [1200, 700, 160], v: .6, trem: 26 } }[kind];
+    const out = actx.createGain(); out.gain.value = P.v * vol; out.connect(actx.destination);
+    const env = actx.createGain(), d = P.d; // ataque rápido, segura e cai
+    env.gain.setValueAtTime(.0001, t); env.gain.exponentialRampToValueAtTime(1, t + Math.min(.12, d * .2)); env.gain.setValueAtTime(1, t + d * .55); env.gain.exponentialRampToValueAtTime(.0001, t + d);
+    const lp = actx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(700, t); lp.frequency.linearRampToValueAtTime(kind === 'rugido' ? 1600 : 900, t + d * .4); lp.frequency.linearRampToValueAtTime(400, t + d);
+    const dist = aspera(); dist.connect(lp); lp.connect(env); env.connect(out);
+    const trem = actx.createGain(); trem.gain.value = .65; trem.connect(dist); // tremor da garganta
+    const lfo = actx.createOscillator(), lg = actx.createGain(); lfo.type = 'sawtooth'; lfo.frequency.value = P.trem; lg.gain.value = .35; lfo.connect(lg); lg.connect(trem.gain);
+    const [f0, f1, f2] = P.f.map(f => f / grave);
+    [[0, 'sawtooth', .5], [-14, 'sawtooth', .35], [1200, 'square', .06]].forEach(([det, tp, v]) => { // a voz: 2 serras desafinadas + um harmônico
+      const o = actx.createOscillator(), g = actx.createGain(); o.type = tp; o.detune.value = det + (Math.random() - .5) * 20;
+      o.frequency.setValueAtTime(f0, t); o.frequency.linearRampToValueAtTime(f1, t + d * .35); o.frequency.exponentialRampToValueAtTime(f2, t + d);
+      g.gain.value = v; o.connect(g); g.connect(trem); o.start(t); o.stop(t + d + .05);
+    });
+    const n = actx.createBufferSource(), nf = actx.createBiquadFilter(), ng = actx.createGain(); // o bafo
+    n.buffer = noise(d + .05); nf.type = 'bandpass'; nf.Q.value = 1.4;
+    const [r0, r1, r2] = P.ruido.map(f => f / grave); nf.frequency.setValueAtTime(r0, t); nf.frequency.linearRampToValueAtTime(r1, t + d * .35); nf.frequency.exponentialRampToValueAtTime(r2, t + d);
+    ng.gain.value = .9; n.connect(nf); nf.connect(ng); ng.connect(trem); n.start(t);
+    lfo.start(t); lfo.stop(t + d + .05);
+  } catch (e) {}
+}
+
+// ---------- Vozes gravadas ----------
+// toca um trecho de um som carregado: ini/dur em s do arquivo, rate = velocidade (< 1 = mais grave e lento), lp = filtro passa-baixa
+// (Hz, abafa), pan −1…1; fade curto nas pontas para não estalar. false se o arquivo ainda não carregou
+function amostra(k, { ini = 0, dur, rate = 1, vol = 1, lp = 0, pan = 0 } = {}) {
+  if (!opts.sound) return true;
+  try {
+    ctxOk(); const b = BUF[k]; if (!b) return false;
+    const t = actx.currentTime, d = Math.min(dur ?? b.duration - ini, b.duration - ini), real = d / rate;
+    const s = actx.createBufferSource(), g = actx.createGain(); s.buffer = b; s.playbackRate.value = rate;
+    g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + Math.min(.02, real * .1));
+    g.gain.setValueAtTime(vol, t + real * .75); g.gain.exponentialRampToValueAtTime(.0001, t + real);
+    let n = s; n.connect(g); n = g;
+    if (lp) { const f = actx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp; n.connect(f); n = f; }
+    if (pan && actx.createStereoPanner) { const p = actx.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, pan)); n.connect(p); n = p; }
+    n.connect(actx.destination); s.start(t, ini, d); return true;
+  } catch (e) { return true; }
+}
+// Rã (gravada): 'coaxar' = um dos 6 coaxares do arquivo, sorteado · 'grito' = um coaxar curto mais agudo (morrendo)
+// tom = a voz de cada rã (velocidade 0,85–1,15)
+const COAXARES = [[.2, .45], [.8, .45], [1.85, .4], [2.4, .45], [2.9, .4], [3.4, .5]];
+export function sapoSom(kind = 'coaxar', vol = 1, tom = 1) {
+  if (!opts.sound || vol <= .01) return;
+  const [ini, dur] = COAXARES[Math.floor(Math.random() * COAXARES.length)];
+  const ok = kind === 'grito' ? amostra('ra', { ini, dur: dur * .6, rate: tom * 1.45, vol: vol * .9 }) : amostra('ra', { ini, dur, rate: tom, vol: vol * .8 });
+  if (!ok) sapoSint(kind, vol, tom);
+}
+// Dragão (o rugido do T-Rex): 'rugido' = inteiro · 'rosnar' = mais lento, grave e abafado, baixo · 'dor' = um pedaço curto e mais
+// agudo · 'morte' = inteiro, bem lento (cai e some). grave < 1 = mais grave (Naja, leão), > 1 = mais agudo (cobra verde)
+export function dragaoSom(kind = 'rosnar', vol = 1, grave = 1) {
+  if (!opts.sound || vol <= .01) return;
+  const P = { rugido: { rate: 1, vol: .7 }, rosnar: { ini: .1, dur: 1.2, rate: .72, vol: .5, lp: 900 }, dor: { ini: .25, dur: .45, rate: 1.3, vol: .55 }, morte: { rate: .68, vol: .8, lp: 2200 } }[kind];
+  if (!amostra('dragao', { ...P, rate: P.rate * grave, vol: P.vol * vol })) dragaoSint(kind, vol, grave);
+}
+// Ave de rapina (a Ave da Dúvida): 'grito' = o grito inteiro (ao chegar e no mergulho) · 'dor' = curto e agudo · 'morte' = lento
+export function aveSom(kind = 'grito', vol = 1) {
+  if (!opts.sound || vol <= .01) return;
+  const P = { grito: { ini: .05, dur: 1.3, rate: 1, vol: .6 }, dor: { ini: .3, dur: .4, rate: 1.25, vol: .5 }, morte: { ini: .05, dur: 1.3, rate: .75, vol: .65 } }[kind];
+  if (!amostra('ave', { ...P, vol: P.vol * vol })) sfx('whoosh');
+}
+// Coruja (ambiente do Vale da sombra): um dos 2 piados do arquivo, longe (abafado), do lado `pan`
+export function corujaSom(vol = .35, pan = 0) {
+  if (!opts.sound) return;
+  const [ini, dur] = Math.random() < .5 ? [.05, 1] : [1.75, 1.45];
+  amostra('coruja', { ini, dur, rate: .95 + Math.random() * .1, vol, lp: 2500, pan });
+}
+
+// Cobra verde (o sibilo): mesmos tipos do dragão — 'rugido' (ao chegar) = o sibilo inteiro · 'rosnar' = mais curto (o aviso
+// antes do cuspe; baixo quando solto) · 'dor' = curtinho e agudo · 'morte' = inteiro e lento
+export function cobraSom(kind = 'rosnar', vol = 1) {
+  if (!opts.sound || vol <= .01) return;
+  const P = { rugido: { ini: 0, dur: 1.65, rate: 1, vol: .8 }, rosnar: { ini: .15, dur: .9, rate: 1.05, vol: .7 }, dor: { ini: .3, dur: .35, rate: 1.3, vol: .6 }, morte: { ini: 0, dur: 1.65, rate: .7, vol: .8 } }[kind];
+  if (!amostra('cobra', { ...P, vol: P.vol * vol })) dragaoSint(kind, vol, 1.2);
+}
+
+// Lobo (os rosnados da pantera negra): 've' = rosnado calmo (viu o herói e parte atrás dele) · 'rosnar' = pedaço do rosnado forte
+// (arma o salto) · 'dor' = curtinho e agudo · 'morte' = o fim do rosnado forte, lento
+export function loboSom(kind = 'rosnar', vol = 1) {
+  if (!opts.sound || vol <= .01) return;
+  const P = { ve: { ini: 1.0, dur: 1.4, rate: 1.05, vol: .7 }, rosnar: { ini: 3.9, dur: .7, rate: 1.1, vol: .8 }, dor: { ini: 4.3, dur: .3, rate: 1.35, vol: .6 }, morte: { ini: 4.2, dur: .9, rate: .75, vol: .8 } }[kind];
+  if (!amostra('lobo', { ...P, rate: P.rate * (.95 + Math.random() * .1), vol: P.vol * vol })) dragaoSint(kind === 've' ? 'rosnar' : kind, vol * .7, 1.3);
+}
+
+// Uivo de lobo: o lobo uivando quando aparece na tela (perto) ou um uivo distante de fundo (longe = abafado e baixo); pan = o lado
+let ultUivo = -99;
+export function uivoSom(vol = .6, pan = 0, longe = false) {
+  if (!opts.sound || vol <= .01) return;
+  const agora = performance.now() / 1000; if (agora - ultUivo < 8) return; // nunca 2 uivos um em cima do outro
+  if (amostra('uivo', { ini: .15, dur: 5.2, rate: .96 + Math.random() * .08, vol, pan, lp: longe ? 1800 : 0 })) ultUivo = agora;
+}
+
+// Som em loop que sai de um bicho (a mulher dos piolhos): loopsDeBichos(k, [[dono, vol, pan], …]) a cada quadro — cada dono da
+// lista tem o seu loop (começa num ponto sorteado do arquivo, para dois não soarem iguais) com volume e lado ajustados suavemente;
+// quem saiu da lista (morreu, outra jornada, pausa) some em ~0,3 s e o loop é desligado
+const LOOPS = new Map(); // dono → { k, s, g, p }
+export function loopsDeBichos(k, lista) {
+  try {
+    const vivos = new Set();
+    if (opts.sound && BUF[k]) for (const [dono, vol, pan] of lista) {
+      vivos.add(dono);
+      let L = LOOPS.get(dono);
+      if (!L) {
+        if (vol <= .01) { vivos.delete(dono); continue; }
+        ctxOk(); const s = actx.createBufferSource(), g = actx.createGain(), p = actx.createStereoPanner ? actx.createStereoPanner() : null;
+        s.buffer = BUF[k]; s.loop = true; g.gain.value = 0; s.connect(g);
+        if (p) { g.connect(p); p.connect(actx.destination); } else g.connect(actx.destination);
+        s.start(0, Math.random() * BUF[k].duration); L = { k, s, g, p }; LOOPS.set(dono, L);
+      }
+      const t = actx.currentTime; L.g.gain.setTargetAtTime(vol, t, .2); if (L.p) L.p.pan.setTargetAtTime(Math.max(-1, Math.min(1, pan)), t, .2);
+    }
+    else if (!BUF[k] && lista.length) ctxOk(); // ainda não decodificou: pede (na próxima vez já toca)
+    LOOPS.forEach((L, dono) => {
+      if (L.k !== k || vivos.has(dono)) return;
+      const t = actx.currentTime; L.g.gain.setTargetAtTime(0, t, .08); L.s.stop(t + .4); LOOPS.delete(dono);
+    });
   } catch (e) {}
 }

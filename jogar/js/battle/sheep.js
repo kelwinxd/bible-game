@@ -22,7 +22,8 @@ const SC = .7, CORRE = 260, GRAV = 1400, PERTO = 120, MEIA = 40; // PERTO: px en
 // sem ele, fica sobre o terreno embaixo dela (chão, terreno alto ou degrau de estrutura)
 // sobe (opcional): [[x, y], ...] = onde ela pousa a cada pulo; assustada, em vez de cair no vão ela foge pulando de base em base
 // (degrau → plataforma) e lá em cima fica calma, como a achada (tocar nela dá vida e fica salvo)
-export const makeSheep = e => ({ x: e.x, y: 0, vy: 0, face: -1, state: e.calma ? 'calma' : 'idle', t: Math.random() * 3, bala: 1.5, chao: e.y ?? null, sobe: e.sobe || null });
+// achada = já foi achada antes nesta jornada: aparece e foge do mesmo jeito, mas tocar nela só faz ela balir (sem vida nem XP)
+export const makeSheep = (e, achada = false) => ({ x: e.x, y: 0, vy: 0, face: -1, state: e.calma ? 'calma' : 'idle', t: Math.random() * 3, bala: 1.5, chao: e.y ?? null, sobe: e.sobe || null, achada });
 const SALTO = 110; // px antes do ponto de pouso em que ela pula
 const pisoDe = o => o.chao ?? terrainTop(o.x);
 
@@ -36,6 +37,7 @@ export function updateSheep(dt) {
       if (d < 450 && (o.bala -= dt) <= 0) { o.bala = 3.5 + Math.random() * 3; bleat(d < 150 ? .06 : .035); }
       if (!o.deu && d < MEIA + 22 && Math.abs(h.y - pisoDe(o)) < 60 && h.deadAt == null) {
         o.deu = true; o.bala = 3; bleat(.07);
+        if (o.achada) { B.floats.push({ x: o.x, y: GROUND + pisoDe(o) - 120, t: 1.4, s: 'Ovelha já achada', c: '#f2c84b' }); return; }
         if (!B.fase.dev) marcarOvelha(B.fase.id); // salva: nesta jornada ela não aparece mais
         const ganho = Math.min(CURA, B.hpMax - B.hp); B.hp = Math.min(B.hpMax, B.hp + CURA);
         B.floats.push({ x: o.x, y: GROUND + pisoDe(o) - 120, t: 1.4, s: ganho > 0 ? `+${Math.round(ganho)} vida` : 'vida cheia', c: '#7dff8a' });
