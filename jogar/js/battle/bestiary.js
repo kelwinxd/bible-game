@@ -23,7 +23,7 @@ export const BESTIARIO = [
   { id: 'leviata', nome: 'Leviatã', sub: 'Antigo chefão do mar (fora das jornadas) · mordida, mergulho e ácido', base: 0, boss: 'leviata', thumb: [SP + 'leviata.webp', 8, 2] },
   { id: 'naja', nome: 'Naja do mar', sub: 'Chefona da jornada 1 · bote, mergulho, jato de ácido e mentiras', base: 0, boss: 'leviata', pele: 'naja', thumb: [SP + 'naja-run.webp', 8, 1] },
   { id: 'farao', nome: 'Faraó', sub: 'Chefão das Pragas · nuvem de praga, rãs e a onda do cajado', base: 1, boss: 'golias', pele: 'farao', thumb: [SP + 'farao-walk.webp', 6, 1] },
-  { id: 'golias', nome: 'Golias', sub: 'Chefão da jornada 3 · estocada e golpe no chão', base: 2, boss: 'golias', thumb: [SP + 'gigante-run.webp', 8, 1] },
+  { id: 'golias', nome: 'Golias', sub: 'Chefão da jornada 3 · estocada e golpe no chão', base: 2, boss: 'golias', thumb: [SP + 'gigante-run.webp', 7, 1] },
   { id: 'rei', nome: 'Nabucodonosor', sub: 'Chefão da jornada 4 · fogo dos olhos, lança-chamas e soldados', base: 3, boss: 'golias', pele: 'rei', thumb: [SP + 'rei-idle.webp', 6, 1] },
   // atalho: a mesma arena com o rei já derrotado → a cena da estátua desperta e a luta com ela
   { id: 'estatua', nome: 'Ídolo Babilônico', sub: 'Chefão final da jornada 4 · pula direto para a morte do rei · soco no chão', base: 3, boss: 'golias', pele: 'rei', pular: true, thumb: [SP + 'estatua-idle.webp', 4, 1] }
@@ -42,7 +42,10 @@ function faseDe(m) {
     const dx = 90 - fim[0].x; // o piso de cinzas começa logo depois do começo da arena curta
     comprimento = Math.round(b.comprimento + dx);
     eventos = [...fim.map(e => ({ ...e, x: e.x + dx })), { ...rei, x: rei.x + dx }];
-  } else if (m.boss === 'golias') { comprimento = 2000; eventos = [{ tipo: 'gigante', x: 1400, vida: 60, pele: m.pele }]; }
+  } else if (m.boss === 'golias') { // o Golias (sem pele) com a mesma arena do Vale: a plataforma alta à esquerda e a 1ª vida menor
+    comprimento = 2000;
+    eventos = m.pele ? [{ tipo: 'gigante', x: 1400, vida: 60, pele: m.pele }] : [{ tipo: 'plataforma', x: 720, w: 190, altura: 110 }, { tipo: 'gigante', x: 1400, vida: 35 }];
+  }
   else if (m.bicho) { comprimento = 2400; eventos = [{ tipo: m.bicho, x: 1000 }]; } // bicho solto (lobo, soldado, mulher dos piolhos)
   else { comprimento = 2400; eventos = [{ tipo: 'inimigos', x: 1000, inimigos: [m.inimigo], vida: 1, aparencia: m.aparencia }]; }
   const f = { nome: m.nome, dev: m.id, comprimento, eventos, fundo: b.fundo, chao: b.chao, chaoMedidas: b.chaoMedidas };

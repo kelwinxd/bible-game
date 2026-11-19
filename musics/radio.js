@@ -8,11 +8,12 @@
   const PLAYLIST = [
     { arq: 'et-veritas-me-liberat.mp3', nome: 'Et Veritas Me Liberat' },
     { arq: 'indutus-virtute-dei.mp3', nome: 'Indutus Virtute Dei' },
-    { arq: 'yehua-seu-nome-e.mp3', nome: 'Yehua, Seu Nome É' }
+    { arq: 'digitus-dei-est-hic.mp3', nome: 'Digitus Dei est hic' } // "o dedo de Deus está aqui" (Êx 8:19); a Magia Nostra Deficit com reprises
   ];
   const base = document.currentScript ? document.currentScript.src : location.href;
   let st = { i: 0, mudo: false, vol: .5 };
   try { st = Object.assign(st, JSON.parse(localStorage.getItem('ef-radio') || '{}')); } catch (e) {}
+  if (!(st.i >= 0 && st.i < PLAYLIST.length)) st.i = 0; // a faixa salva pode não existir mais (a playlist mudou)
   const salva = () => { try { localStorage.setItem('ef-radio', JSON.stringify({ i: st.i, mudo: st.mudo, vol: st.vol })); } catch (e) {} };
   const au = new Audio(); au.preload = 'none';
   const carrega = () => { au.src = new URL(PLAYLIST[st.i].arq, base).href; au.volume = st.vol; au.muted = st.mudo; };

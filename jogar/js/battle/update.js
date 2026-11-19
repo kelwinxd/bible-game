@@ -91,8 +91,8 @@ export function updateBattle(rdt) {
         B.zona = 'caverna'; h.x = C.entrada; h.y = -300; h.vy = 0; h.safe = { x: C.entrada, y: 0 }; B.cam = C.x0;
         B.notice = { lines: C.aviso || ['Você caiu na caverna escura!', 'Ache a Palavra aqui embaixo e a saída do outro lado'], t: 4, c: '#ffb46a' };
       } };
-    } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && (B.groups.some(g => (g.apos || g.caverna) && !g.done) || B.demons.length || B.frogs.some(f => f.bando && !f.dead && f.x > C.x0))) {
-      // a saída só abre com a caverna limpa (as ondas também contam para o Golias aparecer depois)
+    } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && (B.groups.some(g => (g.apos || g.caverna) && !g.done) || B.demons.length || B.frogs.some(f => f.bando && !f.dead && f.x > C.x0) || (B.boss && B.boss.caverna && B.boss.state !== 'dead'))) {
+      // a saída só abre com a caverna limpa (as ondas também contam para o Golias aparecer depois; o chefão da caverna, como o Faraó, também)
       h.x = C.x1 - 170; if (!B.notice) B.notice = { lines: ['Uma força te prende aqui embaixo…', 'Derrote os monstros da caverna para sair'], t: 2.5, c: '#ff8a6a' };
     } else if (C && C.fim && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160 && !B.over && !bossBlocksWin()) { // caverna do fim da jornada (As Pragas): chegou ao fim dela = venceu
       B.over = true; endScreen(true);
@@ -100,7 +100,7 @@ export function updateBattle(rdt) {
       h.vy = 0;
       B.passagem = { t: 0, acao: () => {
         B.zona = null; h.x = C.saida; h.y = 0; h.vy = 0; h.safe = { x: C.saida, y: 0 }; B.cam = Math.max(0, h.x - 360);
-        B.notice = { lines: ['Você saiu da caverna', 'Siga pelo vale'], t: 3, c: '#9fc3ff' };
+        B.notice = { lines: C.saiu || ['Você saiu da caverna', 'Siga pelo vale'], t: 3, c: '#9fc3ff' };
       } };
     } else if (h.y > 420) fallInHole(h);
     if (h.swing > 0) {

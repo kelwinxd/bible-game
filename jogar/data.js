@@ -442,8 +442,8 @@ window.DATA = {
     // Jornada 2: As Pragas (Êxodo 7–11). O mesmo cenário do Exodus. Sem versículo novo: o herói usa os do Exodus.
     // Começa com a mulher dos piolhos (Êxodo 8:16–18): uma sozinha, depois duas juntas (soltas, como os lobos); depois uma
     // arena com 2 cobras vermelhas (Idolatria → Êxodo 20:3; Mentira → Hebreus 4:12); no fim, a boca de uma CAVERNA igual à do
-    // Vale da sombra: ele cai lá dentro e a jornada termina no fim da caverna (fim: true — por enquanto a caverna está vazia)
-    id: "pragas", nome: "As Pragas", comprimento: 8450,
+    // Vale da sombra: ele cai numa tumba (a mulher dos piolhos, o boi e o Faraó), sobe a rampa de volta à superfície e termina na cruz
+    id: "pragas", nome: "As Pragas", comprimento: 8850, // a superfície vai até a cruz, depois da boca da tumba (8160 → a saída em 8300 → a cruz em 8690)
     musica: "assets/audio/musics/Magia Nostra Deficit — versos repetidos.mp3", // a música da fase, em loop (js/core/musica.js)
     mapa: { x: 23, y: 53, icone: "pragas", img: "assets/img/simbolo-pragas.webp", cor: "#a96ad8" }, // img: o olho de Hórus, o mosquito e a caveira // Gósen, no delta do Nilo // medalhão roxo e amarelo: a nuvem de gafanhotos
     // fundo: uma rua do Egito ao pôr do sol (muralhas, tendas, palmeiras, estátuas de faraó e braseiros), parada e esticada pela fase;
@@ -485,18 +485,23 @@ window.DATA = {
       { tipo: "estrutura", x: 7100, img: "assets/img/boi-morto-2.webp", w: 400, h: 230, sc: .45, base: 36, degraus: [] },
       { tipo: "boi", x: 7300 }, // outro boi, entre a última cobra e a caverna
       // 4) a boca da caverna (como no Vale da sombra): o vão é largo demais para pular — ele cai lá dentro
-      { tipo: "caverna", x: 7600, w: 560, x0: 8900, x1: 10700, entrada: 9120, saida: 8250, fim: true,
-        aviso: ["Você caiu numa caverna!", "Siga até o fim dela"],
+      //    dentro da tumba (área à parte, x 9500–12400): a mulher dos piolhos, o boi e, andando mais um pouco, o Faraó; vencido ele,
+      //    a rampa do fim leva de volta à superfície (saida), e a jornada termina na cruz
+      { tipo: "caverna", x: 7600, w: 560, x0: 9500, x1: 12400, entrada: 9720, saida: 8300,
+        aviso: ["Você caiu numa tumba!", "Atravesse-a e ache a saída"], saiu: ["Você saiu da tumba!", "Siga até a cruz"],
         // fundo próprio: uma tumba egípcia escavada na rocha (Anúbis, ankh, escaravelho alado, colunas, braseiro e um facho de luz)
         fundo: { img: "assets/img/fundo-caverna-egito.webp", estica: 1, escuro: 0.3 },
         chao: { img: "assets/img/chao-caverna.webp", medidas: { cap: 330, capR: 310, capFade: 60, capOut: 50, surf: 240, band: [280, 345], fade: 160, s: 0.5, semFaixa: true } } },
-      // no fim da tumba: o chefão, o Faraó (a arena trava a câmera; vencido ele, siga até o fim da caverna)
-      { tipo: "gigante", pele: "farao", x: 10120, vida: 60, caverna: true }
+      { tipo: "piolhenta", x: 10250 },
+      { tipo: "boi", x: 10750 },
+      // no fim da tumba: o chefão, o Faraó (a arena trava a câmera; a saída só abre com ele vencido)
+      { tipo: "gigante", pele: "farao", x: 11700, vida: 60, caverna: true }
     ]
   }, {
     // Jornada 3: a Dúvida ataca do alto. 2 versículos contra o medo (Isaías 41:10, Salmos 23:4), 4 inimigos e o chefão Golias.
     id: "vale", abre: ["exodus", "pragas"], // abre quando o herói vence o Exodus OU As Pragas
     nome: "O vale da sombra", comprimento: 11500,
+    musica: "assets/audio/musics/The Lord Is My Shepherd — com flauta.mp3", // a música da fase, em loop (js/core/musica.js)
     coruja: true, uivo: true, // ambiente: uma coruja pia e um lobo uiva ao longe de vez em quando (js/battle/ambiente.js)
     // sul de Canaã, a oeste do Mar Morto (o deserto da Judeia, onde Davi pastoreava). via: a trilha chega por terra, pela rota do
     // Êxodo — de Gósen pelo Deserto de Sur, atravessando o Sinai perto do Monte Sinai, e subindo pelo Neguebe (o Exodus entra nela)
@@ -567,7 +572,8 @@ window.DATA = {
       { tipo: "inimigos", x: 10050, inimigos: ["duvida", "duvida"], vida: 0.7, frases: ["Seus inimigos são fortes demais.", "Você está sozinho no escuro."],
         aparencia: [null, { sprite: "serpente", chao: true, mergulho: false, passo: 70, tell: 0.6, cadencia: 1.8 }] },
       //    → chefão: Golias, o gigante de Gate (estocada de lança; fala mentiras alternando o versículo que as refuta)
-      { tipo: "gigante", x: 10950, vida: 60 }
+      { tipo: "plataforma", x: 10270, w: 190, altura: 110 }, // na arena do Golias, à esquerda: lá em cima o empurrão e o tremor do golpe no chão não pegam
+      { tipo: "gigante", x: 10950, vida: 35 } // 1ª vida (de capacete); depois ele perde o capacete e volta com mais 50 (golias.config.js)
     ]
   }, {
     // Jornada 4: Babilônia, a cidade dos ídolos e do orgulho (Daniel 3–4). 2 versículos de humildade e dependência do Senhor

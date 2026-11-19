@@ -13,7 +13,7 @@ export const FARAO = {
   textos: {
     nome: 'Faraó · o rei do Egito',
     anuncio: 'O Faraó, o rei do Egito!',
-    caiu: ['O Faraó caiu!', 'Siga até o fim da tumba'],
+    caiu: ['O Faraó caiu!', 'Suba a rampa e saia da tumba'],
     avisoRas: ['O Faraó invoca a praga das rãs!'],
     avisoOnda: ['O cajado do Faraó faz o chão tremer!', 'Pule [W] por cima da onda ou erga o escudo [J]']
   }

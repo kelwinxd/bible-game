@@ -46,6 +46,6 @@ export class Farao extends ChefeDeArena {
     return a === pragaDasRas.estado && this.ajudantesVivos() >= RAS.maximo - 1 ? praga.estado : a;
   }
   // morto: prostrado (não some), fala; depois o aviso de seguir
-  morto() { if (!this.avisou && this.t > MORTE.fala[1]) { this.avisou = true; B.notice = { lines: FARAO.textos.caiu, t: 4, c: '#f2c84b' }; } }
+  morto() { if (!this.avisou && this.t > MORTE.fala[1] && (!this.caverna || B.zona === 'caverna')) { this.avisou = true; B.notice = { lines: FARAO.textos.caiu, t: 4, c: '#f2c84b' }; } }
   desenhar() { desenharFarao(this); }
 }

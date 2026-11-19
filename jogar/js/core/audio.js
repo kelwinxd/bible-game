@@ -277,7 +277,7 @@ export function marSom(vol, p = 0) {
   try {
     if (!opts.sound) vol = 0;
     if (!mar) { if (vol <= 0) return; ctxOk(); mar = criarMar(); }
-    const t = actx.currentTime, alvo = vol * .9;
+    const t = actx.currentTime, alvo = vol * .38; // volume máximo do mar (em cima da água)
     if (Math.abs(alvo - mar.vol) > .002) { mar.vol = alvo; mar.out.gain.setTargetAtTime(alvo, t, .25); }
     if (mar.pan) mar.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, p)), t, .2);
   } catch (e) {}
@@ -380,7 +380,8 @@ export function sapoSom(kind = 'coaxar', vol = 1, tom = 1) {
 // agudo · 'morte' = inteiro, bem lento (cai e some). grave < 1 = mais grave (Naja, leão), > 1 = mais agudo (cobra verde)
 export function dragaoSom(kind = 'rosnar', vol = 1, grave = 1) {
   if (!opts.sound || vol <= .01) return;
-  const P = { rugido: { rate: 1, vol: .7 }, rosnar: { ini: .1, dur: 1.2, rate: .72, vol: .5, lp: 900 }, dor: { ini: .25, dur: .45, rate: 1.3, vol: .55 }, morte: { rate: .68, vol: .8, lp: 2200 } }[kind];
+  // volumes baixados ~40% (estavam altos)
+  const P = { rugido: { rate: 1, vol: .42 }, rosnar: { ini: .1, dur: 1.2, rate: .72, vol: .3, lp: 900 }, dor: { ini: .25, dur: .45, rate: 1.3, vol: .33 }, morte: { rate: .68, vol: .48, lp: 2200 } }[kind];
   if (!amostra('dragao', { ...P, rate: P.rate * grave, vol: P.vol * vol })) dragaoSint(kind, vol, grave);
 }
 // Ave de rapina (a Ave da Dúvida): 'grito' = o grito inteiro (ao chegar e no mergulho) · 'dor' = curto e agudo · 'morte' = lento
@@ -408,7 +409,8 @@ export function cobraSom(kind = 'rosnar', vol = 1) {
 // (arma o salto) · 'dor' = curtinho e agudo · 'morte' = o fim do rosnado forte, lento
 export function loboSom(kind = 'rosnar', vol = 1) {
   if (!opts.sound || vol <= .01) return;
-  const P = { ve: { ini: 1.0, dur: 1.4, rate: 1.05, vol: .7 }, rosnar: { ini: 3.9, dur: .7, rate: 1.1, vol: .8 }, dor: { ini: 4.3, dur: .3, rate: 1.35, vol: .6 }, morte: { ini: 4.2, dur: .9, rate: .75, vol: .8 } }[kind];
+  // volumes baixados ~40% (estavam altos)
+  const P = { ve: { ini: 1.0, dur: 1.4, rate: 1.05, vol: .42 }, rosnar: { ini: 3.9, dur: .7, rate: 1.1, vol: .48 }, dor: { ini: 4.3, dur: .3, rate: 1.35, vol: .36 }, morte: { ini: 4.2, dur: .9, rate: .75, vol: .48 } }[kind];
   if (!amostra('lobo', { ...P, rate: P.rate * (.95 + Math.random() * .1), vol: P.vol * vol })) dragaoSint(kind === 've' ? 'rosnar' : kind, vol * .7, 1.3);
 }
 

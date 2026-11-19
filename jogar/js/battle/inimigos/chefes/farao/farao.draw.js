@@ -42,6 +42,7 @@ function onda(o) {
 /** o balão da fala dele, prostrado (papel, como as falas da cena): aparece e some suave */
 function fala(L) {
   const [t0, t1] = MORTE.fala; if (L.t < t0 || L.t > t1) return;
+  if (L.caverna && B.zona !== 'caverna') return; // já saiu da tumba: a fala fica lá embaixo
   ctx.save(); ctx.globalAlpha = Math.min(1, (L.t - t0) / .2, (t1 - L.t) / .3);
   ctx.font = '700 19px Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   const w = Math.max(...MORTE.texto.map(t => ctx.measureText(t).width)) + 34, bh = MORTE.texto.length * 25 + 16;

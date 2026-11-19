@@ -93,7 +93,7 @@ export class Lobo extends Patrulheiro {
   aoArmar() { loboSom('rosnar', ouvido(this.x)); }
   // uiva uma vez quando aparece na tela, se o herói ainda não está em cima dele (o lado do som segue o lado do lobo)
   agir(h, dt) {
-    if (!this.uivou && this.visivel() && Math.abs(h.x - this.x) > 260) { this.uivou = true; uivoSom(.55, (this.x - B.cam - 480) / 480); }
+    if (!this.uivou && this.visivel() && Math.abs(h.x - this.x) > 260) { this.uivou = true; uivoSom(.32, (this.x - B.cam - 480) / 480); }
     super.agir(h, dt);
   }
   sofrer(dano, cor) { super.sofrer(dano, cor); if (!this.dead && B.time - (this.ultDor ?? -9) > .5) { this.ultDor = B.time; loboSom('dor', ouvido(this.x)); } }

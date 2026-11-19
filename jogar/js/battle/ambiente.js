@@ -17,7 +17,7 @@ function coruja() {
   const agora = performance.now() / 1000, dt = Math.min(.1, agora - ultimo); ultimo = agora;
   if (!B || !(B.fase.coruja || B.fase.uivo) || B.over || halted() || B.passagem || B.zona === 'caverna') return;
   const lado = () => (Math.random() < .5 ? -1 : 1) * (.4 + Math.random() * .5);
-  if (B.fase.uivo && (uivoT -= dt) <= 0) { uivoT = 30 + Math.random() * 20; uivoSom(.3, lado(), true); }
+  if (B.fase.uivo && (uivoT -= dt) <= 0) { uivoT = 30 + Math.random() * 20; uivoSom(.18, lado(), true); }
   if (B.fase.coruja && (corujaT -= dt) <= 0) { corujaT = 12 + Math.random() * 13; corujaSom(.25 + Math.random() * .15, (Math.random() < .5 ? -1 : 1) * (.4 + Math.random() * .5)); }
 }
 
