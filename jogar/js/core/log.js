@@ -9,7 +9,9 @@
 //  - Erros de JavaScript também viram evento (erro_js), com a mensagem e onde aconteceu.
 import { $ } from './utils.js';
 
-const PROD = import.meta.env.PROD, KEY = import.meta.env.VITE_POSTHOG_KEY, HOST = import.meta.env.VITE_POSTHOG_HOST || 'https://us.i.posthog.com';
+// fora do Vite (servidor simples, Live Server) import.meta.env não existe: aí conta como desenvolvimento (só no console)
+const ENV = import.meta.env || {};
+const PROD = ENV.PROD === true, KEY = ENV.VITE_POSTHOG_KEY, HOST = ENV.VITE_POSTHOG_HOST || 'https://us.i.posthog.com';
 let ligado = true;
 try { ligado = localStorage.getItem('ef-analytics') !== '0'; } catch (e) {}
 

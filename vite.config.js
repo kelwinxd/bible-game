@@ -38,5 +38,7 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: { input: { site: resolve(raiz, 'index.html'), jogar: resolve(raiz, 'jogar/index.html') } }
   },
-  plugins: [copiarEstaticos()]
+  plugins: [copiarEstaticos()],
+  // testes (npm test): Vitest, em testes/ — validação do data.js e dos arquivos, e a lógica do progresso
+  test: { include: ['testes/**/*.test.js'], environment: 'node', setupFiles: ['testes/ambiente.js'] }
 });

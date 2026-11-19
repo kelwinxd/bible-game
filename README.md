@@ -22,6 +22,20 @@ Gera a pasta `dist/` (é ela que vai para o servidor): os módulos do jogo e o C
 
 O jogo continua em JS puro (módulos ES), sem framework: o Vite só serve no desenvolvimento e empacota no build.
 
+### Testes
+
+```bash
+npm test
+```
+
+Vitest, em `testes/` (o `npm run build` roda os testes antes e não publica se algum falhar; `npm run test:watch` roda de novo a cada arquivo salvo):
+
+- `dados.test.js`: o `data.js` — ids repetidos; tema e autor que existem; cada lacuna da forja está no texto do versículo e não aparece entre os próprios distratores; resposta certa da afiação fora das erradas; versículos citados pelas mentiras e pelas pedras das fases existem; tipos de evento conhecidos, largura, x dentro da fase, um chefão por fase; liberação (`abre`) aponta para jornadas que existem; todo arquivo `assets/…` citado existe
+- `arquivos.test.js`: todo sprite, som e imagem citado no JS (inclusive `SP + 'nome.webp'`) e no CSS (`url(…)`) existe no disco
+- `progresso.test.js`: a lógica de `js/core/progress.js` — XP e níveis, vida máxima, liberação das jornadas, migração do save antigo, forja (dano) e afiação (duração), ovelha salva
+
+Cada falha diz o que está errado e onde (ex.: `Exodus, evento 2 (pedra x 1500): versículo "ex20-99" não existe`). Ao criar um tipo de evento novo no `world.js`, acrescente-o em `TIPOS` no `dados.test.js`.
+
 ### Logs de uso (PostHog, só em produção)
 
 `jogar/js/core/log.js`: `log('evento', {dados})` em pontos-chave do jogo. No `npm run dev` só aparece no console (`[log] …`); no build, envia ao PostHog (carregado sob demanda, num arquivo à parte). Para ligar: crie um projeto em posthog.com, copie `.env.example` para `.env.production` e coloque a chave (`VITE_POSTHOG_KEY`, pública) e a região. Sem a chave, nada é enviado. Anônimo (id aleatório por aparelho), sem gravação de tela nem captura automática de cliques; o jogador pode desligar em Configurações → "Dados de uso anônimos".
