@@ -1,4 +1,5 @@
-import { setB } from '../battle/state.js';
+import { B, setB } from '../battle/state.js';
+import { log } from '../core/log.js';
 import { treino } from '../core/progress.js';
 import { pararMusica } from '../core/musica.js';
 import { escudoSom } from '../core/audio.js';
@@ -10,7 +11,12 @@ import { renderMap } from './map.js';
 import { showMenuView } from './menu.js';
 
 // ---------- Telas ----------
+// saiu de uma jornada no meio (menu, mapa, recomeçar ou fechou a página): onde parou (% da fase) e há quanto tempo jogava
+export const ondeParou = () => ({ fase: B.fase.id, progresso: Math.round(Math.min(1, Math.max(0, B.hero.x / B.fase.comprimento)) * 100), segundos: Math.round(B.time), zona: B.zona || 'fase' });
+addEventListener('pagehide', () => { if (B && !B.over && !B.fase.dev) log('jornada_abandonada', { ...ondeParou(), fechou: true }, true); });
+
 export function show(id) {
+  if (B && !B.over && !B.fase.dev) log('jornada_abandonada', ondeParou()); // trocou de tela no meio da jornada
   document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
   $('endOverlay').classList.remove('on');
   $('pauseOverlay').classList.remove('on');

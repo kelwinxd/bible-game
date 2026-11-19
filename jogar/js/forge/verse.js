@@ -3,6 +3,7 @@ import { $, D } from '../core/utils.js';
 import { curForge } from './forge.js';
 import { curSharp } from './sharpen.js';
 import { show } from '../ui/screens.js';
+import { log } from '../core/log.js';
 import { burst } from '../ui/sparks.js';
 
 // ---------- Tela do versículo (Forja + Afiação, 3 níveis cada) ----------
@@ -35,7 +36,8 @@ export function toggleStudy() { const s = $('study'); s.style.display = s.style.
 // tela de resultado comum à Forja e à Afiação
 export function levelResult(elId, kind, v, level, errors, extra) {
   const passed = errors === 0, p = progOf(v.id);
-  if (passed && level > p[kind]) { p[kind] = level; saveProg(); }
+  if (passed && level > p[kind]) { p[kind] = level; saveProg(); log(kind === 'forja' ? 'versiculo_forjado' : 'versiculo_afiado', { verso: v.id, nivel: level }); }
+  if (!passed) log(kind === 'forja' ? 'forja_errou' : 'afiacao_errou', { verso: v.id, nivel: level, erros: errors });
   const next = passed && level < 3;
   extra = passed && extra ? extra() : ''; // mensagem montada depois de salvar o progresso
   const open = kind === 'forja' ? 'openForge' : 'openSharpen';

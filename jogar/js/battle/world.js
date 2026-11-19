@@ -10,6 +10,7 @@ import { makeBoss, makeGiant, nextGiantLie } from './boss.js';
 import { makeFrog } from './frog.js';
 import { criarMonstro } from './inimigos/index.js';
 import { tocarMusicaDaFase } from '../core/musica.js';
+import { log } from '../core/log.js';
 import { makeSheep } from './sheep.js';
 import { bordaBuraco } from './draw/world.js';
 import { show } from '../ui/screens.js';
@@ -23,6 +24,7 @@ export function startBattle(fi = 0, all = opts.all, faseObj = null) {
   show('battle');
   const fase = faseObj || D.fases[fi];
   tocarMusicaDaFase(fase.musica); // a música da fase (ou nenhuma)
+  if (!fase.dev) log('jornada_iniciada', { fase: fase.id }); // js/core/log.js (só em produção)
   treino.on = !!fase.treino; $('treinoPainel').classList.toggle('on', treino.on); // Treinamento: poderes do painel (js/battle/treino.js)
   $('pauseBest').hidden = !fase.dev || !!fase.treino; // Bestiário: botão de trocar de monstro na pausa
   const prev = D.fases.slice(0, Math.max(0, fi)).flatMap(f => f.eventos.filter(e => e.tipo === 'pedra' && found.includes(e.verso)).map(e => byId[e.verso]));
@@ -117,6 +119,7 @@ export function collectBook(b) {
   b.got = true; celestial(); // som celestial (coro + sinos subindo)
   B.callout = { s: b.v.ref, t: 1.8, dur: 1.8, c: { cor: '#f2c84b', brilho: '#ffd34d' } };
   B.floats.push({ x: b.x, y: b.y - 40, t: 1.4, s: 'Novo versículo!', c: '#ffe08a' });
+  if (!found.includes(b.v.id) && !B.fase.dev) log('versiculo_achado', { verso: b.v.id, fase: B.fase.id });
   markFound(b.v.id);
   if (B.deck.includes(b.v)) return;
   B.deck.push(b.v); buildHotbar();

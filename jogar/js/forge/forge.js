@@ -3,6 +3,7 @@ import { opts } from '../core/options.js';
 import { progOf, saveProg, verseMult } from '../core/progress.js';
 import { $, D, shuffle } from '../core/utils.js';
 import { levelResult } from './verse.js';
+import { log } from '../core/log.js';
 import { show } from '../ui/screens.js';
 import { burst } from '../ui/sparks.js';
 
@@ -175,7 +176,7 @@ export function finishForge() {
 function forgeWin(f) {
   if (curForge !== f) return;
   const p = progOf(f.v.id), m = D.niveis.forja;
-  if (f.level > p.forja) { p.forja = f.level; saveProg(); }
+  if (f.level > p.forja) { p.forja = f.level; saveProg(); log('versiculo_forjado', { verso: f.v.id, nivel: f.level }); }
   const n = f.gaps.length, last = f.level >= 3;
   $('forge').classList.add('result');
   $('forgeDone').innerHTML = `<div class="fres win">
@@ -205,6 +206,7 @@ $('strip').onclick = () => { if (opts.forge !== 'sempressa') hammer(); };
 function forgeFail(f, dead = false) {
   if (curForge !== f) return; // saiu da forja antes
   const ok = dead ? f.gap : f.gaps.length, bad = f.errors, pct = Math.round(ok / (ok + bad) * 100);
+  log('forja_errou', { verso: f.v.id, nivel: f.level, erros: bad, acertos: ok, apagou: dead });
   $('forge').classList.add('result');
   $('forgeDone').innerHTML = `<div class="fres">
     <h2>${dead ? 'Sem vidas' : 'Forja não concluída'}</h2>

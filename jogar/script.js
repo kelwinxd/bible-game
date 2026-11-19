@@ -5,6 +5,7 @@ import { byId } from './js/core/utils.js';
 import './js/core/options.js';
 import './js/core/progress.js';
 import './js/core/audio.js';
+import './js/core/log.js';
 import { show } from './js/ui/screens.js';
 import { sparksTick } from './js/ui/sparks.js';
 import { showMenuView } from './js/ui/menu.js';

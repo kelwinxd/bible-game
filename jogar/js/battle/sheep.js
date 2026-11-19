@@ -6,6 +6,7 @@ import { B } from './state.js';
 import { marcarOvelha } from '../core/progress.js';
 import { terrainTop } from './world.js';
 import { darXp } from './xp.js';
+import { log } from '../core/log.js';
 
 // ---------- Ovelha perdida (Vale da sombra, antes da boca da caverna; Exodus, foge para o alto) ----------
 // data.js → { tipo: "ovelha", x }. Parada, olhando para o herói (idle, 6 quadros); quando ele chega a ~120 px dela, ela se
@@ -38,7 +39,7 @@ export function updateSheep(dt) {
       if (!o.deu && d < MEIA + 22 && Math.abs(h.y - pisoDe(o)) < 60 && h.deadAt == null) {
         o.deu = true; o.bala = 3; bleat(.07);
         if (o.achada) { B.floats.push({ x: o.x, y: GROUND + pisoDe(o) - 120, t: 1.4, s: 'Ovelha já achada', c: '#f2c84b' }); return; }
-        if (!B.fase.dev) marcarOvelha(B.fase.id); // salva: nesta jornada ela não aparece mais
+        if (!B.fase.dev) { log('ovelha_achada', { fase: B.fase.id }); marcarOvelha(B.fase.id); } // salva: nesta jornada ela não aparece mais
         const ganho = Math.min(CURA, B.hpMax - B.hp); B.hp = Math.min(B.hpMax, B.hp + CURA);
         B.floats.push({ x: o.x, y: GROUND + pisoDe(o) - 120, t: 1.4, s: ganho > 0 ? `+${Math.round(ganho)} vida` : 'vida cheia', c: '#7dff8a' });
         B.notice = { lines: ['Você achou a ovelha perdida!', 'O Senhor é o meu pastor: nada me faltará'], t: 3.5, c: '#f2c84b' };

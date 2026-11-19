@@ -8,6 +8,8 @@ import { fatalSound, poderSfx, sfx, swordSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
 import { abertaBase, dashDmg, forjaDe, marcarVitoria, venceu } from '../core/progress.js';
 import { darXp } from './xp.js';
+import { log } from '../core/log.js';
+import { ondeParou } from '../ui/screens.js';
 import { $, D, reduced, rgbOf } from '../core/utils.js';
 import { rainFrogs } from './frog.js';
 
@@ -109,7 +111,7 @@ export function swingHit() {
   if (bossAlive(B.boss) && overlap(box, bossBox(B.boss))) { swordSfx('cut'); damageBoss(BASE_DMG); } // Leviatã: da laje ou da margem
 }
 
-export function heroDies() { B.over = true; B.hero.deadAt = B.time; setTimeout(() => endScreen(false), 1400); } // dá tempo de ver a queda
+export function heroDies() { if (!B.fase.dev) log('morreu', { ...ondeParou(), arena: !!B.arena, chefe: !!(B.boss && B.boss.lutando && B.boss.lutando()) }); B.over = true; B.hero.deadAt = B.time; setTimeout(() => endScreen(false), 1400); } // dá tempo de ver a queda
 export function hitHero(dmg) {
   if (B.over || B.hero.dash > 0) return; // atravessando no impulso: intocável
   if (B.shield) { B.fx.push({ ring: true, t: .3 }); return; }
@@ -157,6 +159,7 @@ export function endScreen(win) {
   }
   // vitória: marca a jornada; as que essa vitória abriu (data.js → abre) aparecem no texto, e a 1ª delas vira o botão principal
   const fi = B.faseIdx, antes = B.abertasAntes || D.fases.filter(abertaBase);
+  if (win) log('jornada_vencida', { fase: B.fase.id, segundos: Math.round(B.time), vida: Math.round(B.hp), vidaMax: B.hpMax, primeira: !venceu(B.fase.id) });
   if (win) marcarVitoria(B.fase.id);
   const novas = win ? D.fases.filter(f => abertaBase(f) && !antes.includes(f)) : [];
   const prox = win && (novas[0] || D.fases.find(f => abertaBase(f) && !venceu(f.id))), pi = prox ? D.fases.indexOf(prox) : -1;
