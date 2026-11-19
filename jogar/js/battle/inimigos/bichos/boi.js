@@ -22,7 +22,15 @@ export class Boi extends Bicho {
     const perto = this.perto(h), nx = this.x + this.face * (perto ? BOI.corre : BOI.anda) * dt;
     const passou = perto && (h.x - this.x) * this.face < -BOI.passa; // já passou do herói
     const frente = perto && (h.x - this.x) * this.face > 0;        // indo na direção dele: a ronda estica um pouco
-    if (passou || Math.abs(nx - this.home) > BOI.coleira + (frente ? 120 : 0) || !this.podePisar(nx + this.face * 60)) { this.face = -this.face; return; } // vira na hora
+    // fim da coleira: só conta se o passo o leva PARA LONGE de casa (voltando, nunca vira por ela). Antes contava sempre, e como a
+    // coleira estica indo na direção do herói, ao virar ela encolhia e ele virava de novo: ficava parado virando sem parar
+    const fora = Math.abs(nx - this.home) > BOI.coleira + (frente ? 120 : 0) && Math.abs(nx - this.home) > Math.abs(this.x - this.home);
+    const barrado = !this.podePisar(nx + this.face * 60); // buraco ou parede à frente
+    this.vira = Math.max(0, (this.vira || 0) - dt);
+    if (passou || fora || barrado) {
+      if (this.vira <= 0) { this.face = -this.face; this.vira = .5; return; } // vira — e espera meio segundo antes de poder virar de novo
+      if (fora || barrado) return; // acabou de virar e ainda está barrado (preso entre buraco e parede): fica parado, sem tremer
+    }
     this.x = nx; this.moving = true;
     this.ferirAoEncostar(h, BOI.dano, BOI.toque);
   }
