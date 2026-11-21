@@ -233,6 +233,9 @@ function drawGroundImg(k, cam) {
   B.holes.forEach(o => cut(o.x + 14, o.w - 28, Infinity)); // a laje avança um pouco sobre a borda do buraco, onde ainda dá pé
   // estrutura que substitui o chão (data/jornadas → substitui: true): a arte dela é o piso ali; o chão normal termina numa ponta antes dela
   B.estruturas.forEach(e => { if (e.substitui) cut(e.x + (e.corte || 0), e.w * e.sc, Infinity); });
+  // sobra de chão estreita demais entre dois cortes (ex.: Babilônia, os 4 px entre o último buraco e o piso de cinzas): não
+  // desenha — com as duas pontas (largas) ela cobria o buraco com chão dourado e o cálice
+  segs = segs.filter(s => s.top === Infinity || s.b - s.a >= 60 || s.a <= x0 || s.b >= x1);
   // fundo dos buracos: escuridão por trás das lajes (no mar: o mar agitado; buracoSeco = só o vão escuro, sem água nem mãos)
   B.holes.forEach(o => { if (o.mar && !B.fase.buracoSeco) return drawSea(o); if (!B.fase.buracoSeco && drawSeaHands(o)) return; const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
   // terra submersa subindo (ou já em cima): na frente do mar
