@@ -155,12 +155,13 @@
       <div class="scroll" id="sharpQ"></div>
       <div class="sharp-bottom">
         <div class="sharp-opts" id="sharpOpts"></div>
-        <div id="sharpInfo" class="muted"></div>
+        <!-- como o Martelar da forja: escolhe a resposta (clique ou 1–4) e afia com o botão ou K/Espaço quando a mancha está na mira -->
+        <div class="anvil"><button class="hammer primary" id="sharpBtn">🗡 Afiar <kbd class="hk">K</kbd></button><span id="sharpInfo" class="muted"></span></div>
       </div>
     </div>
     <div class="forge-right">
       <div class="smith-box" aria-hidden="true"></div>
-      <div class="smith-sprite idle" id="smithS" aria-hidden="true"></div>
+      <div class="smith-sprite afia" id="smithS" aria-hidden="true"></div>
       <div class="smith-say" id="smithSayS" aria-live="polite"></div>
       <div class="strip sharp" id="sharpStrip"><div class="mira" id="sharpMira"></div><div class="stain" id="stain"></div></div>
     </div>
@@ -323,7 +324,6 @@
 <canvas id="sparks"></canvas>
 
 <script src="../musics/radio.js" vite-ignore></script>
-<script src="data.js" vite-ignore></script>
 <script type="module" src="script.js"></script>
 </body>
 </html>

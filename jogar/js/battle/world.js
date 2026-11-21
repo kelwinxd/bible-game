@@ -2,7 +2,7 @@ import { heroDies, renderFires } from './combat.js';
 import { FIRE_MAX, GROUND, IDOL, cv } from './config.js';
 import { buildHotbar, toggleDeck, togglePeek } from './hud.js';
 import { B, setB } from './state.js';
-import { celestial, sfx, stoneSfx } from '../core/audio.js';
+import { celestial, heroiDanoSom, sfx, stoneSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
 import { abertaBase, achouOvelha, escudoAtual, found, markFound, treino, vidaMax } from '../core/progress.js';
 import { $, D, byId, rand, reduced } from '../core/utils.js';
@@ -16,7 +16,7 @@ import { bordaBuraco } from './draw/world.js';
 import { show } from '../ui/screens.js';
 import { burst, sp } from '../ui/sparks.js';
 
-// Jornada fi (data.js → fases): o herói começa só com os versículos achados nas jornadas anteriores e encontra
+// Jornada fi (data/jornadas/*.js → fases): o herói começa só com os versículos achados nas jornadas anteriores e encontra
 // os novos em pedras brilhantes pelo caminho. all = true (teste): começa já com todos os versículos.
 // faseObj (Bestiário, só dev): uma fase montada na hora em vez de D.fases[fi] (fi = -1).
 export const ROCK_HP = 3; // golpes para quebrar a pedra
@@ -148,7 +148,7 @@ export function fallInHole(h) {
   if (mar && !seco) for (let k = 0; k < (reduced ? 6 : 16); k++) // espirro d'água onde ele afundou
     B.shards.push({ x: h.x + (Math.random() - .5) * 60, y: GROUND + 20, vx: (Math.random() - .5) * 260, vy: -150 - Math.random() * 300, r: Math.random() * 6, t: .8, c: '214,232,240', sz: .4 + Math.random() * .5 });
   const sp = h.safe || { x: 200, y: 0 }; h.x = sp.x; h.y = sp.y; h.vy = 0; h.preso = null; // volta ao último ponto firme
-  sfx('hurt'); if (!opts.god) B.hp = Math.max(0, B.hp - 10); h.hurt = .3;
+  if (!heroiDanoSom()) sfx('hurt'); if (!opts.god) B.hp = Math.max(0, B.hp - 10); h.hurt = .3;
   B.floats.push({ x: h.x, y: GROUND - 250, t: 1, s: seco ? 'Caiu no buraco! -10' : mar && mar.mar ? 'Caiu no mar! -10' : 'Caiu na água! -10', c: '#ff5a4a' });
   if (B.hp <= 0) heroDies();
 }

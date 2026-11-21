@@ -3,7 +3,7 @@
 // A classe só COORDENA. O resto fica ao lado:
 //   farao.config.js  → números, textos e a sequência     farao.attacks.js → praga, cobra, praga das rãs, onda do cajado
 //   farao.sprites.js → as artes                           farao.draw.js    → o desenho (cajado, onda, fala)
-// data.js → { tipo: "gigante", pele: "farao", x, vida, caverna: true }
+// data/jornadas → { tipo: "gigante", pele: "farao", x, vida, caverna: true }
 import { GROUND } from '../../../config.js';
 import { B } from '../../../state.js';
 import { ChefeDeArena } from '../../base/chefeDeArena.js';

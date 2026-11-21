@@ -55,12 +55,14 @@ function renderHeroStats(vs) {
       <svg viewBox="0 0 200 116" aria-hidden="true"><path class="xp-trilho" d="M20 100a80 80 0 0 1 160 0"/>
         <path class="xp-arco" d="M20 100a80 80 0 0 1 160 0" stroke-dasharray="${ARCO}" stroke-dashoffset="${ARCO * (1 - Math.max(0, Math.min(1, frac)))}"/>
         <text x="100" y="78" class="xp-nv">${nv}</text><text x="100" y="98" class="xp-rot">NÍVEL</text></svg>
-      <div class="xp-info"><b>${xp}${ate ? ` / ${ate}` : ''} xp</b><small>${ate ? `faltam ${ate - xp} xp para o nível ${nv + 1}` : 'nível máximo'} · vida ${vidaMax()}</small></div></div>`;
+      <div class="xp-info"><b>${xp}${ate ? ` / ${ate}` : ''} xp</b><small>${ate ? `Faltam ${ate - xp} xp para o nível ${nv + 1}` : 'Nível máximo'}</small></div></div>`;
   $('heroStats').innerHTML = gauge + '<div class="hs-box"><h3>Templário</h3>' +
+    stat('❤', 'Vida', `${vidaMax()}`, `A cada nível sua vida aumenta ${D.xp.vidaPorNivel} pontos`) +
     stat('🛡', 'Fé', `${shieldMax}s`, 'escudo erguido', feLvl, feMax, 'gold') +
     stat('🕊', 'Espírito', `${dashDmg()}`, 'dano do impulso [L]', spiritLvl, D.espirito.nivelMax, 'gold') +
     stat('⚔', 'Espada', `${BASE_DMG}`, 'dano do golpe sem versículo') +
-    stat('📖', 'Palavra', `${vs.length}/${D.versiculos.length}`, vs.length ? `até ${n(best)} de dano · ${longest}s de poder` : 'nenhum versículo ainda') +
+    // 🕮 = livro no estilo de traço dos outros ícones (o 📖 é emoji colorido)
+    stat('🕮', 'Palavra', `${vs.length}/${D.versiculos.length}`, vs.length ? `até ${n(best)} de dano · ${longest}s de poder` : 'nenhum versículo ainda') +
     stat('🗺', 'Jornadas', `${D.fases.filter(f => venceu(f.id)).length}/${D.fases.length}`, 'vencidas') + '</div>';
 }
 export function forgeAll() { D.versiculos.filter(v => found.includes(v.id)).forEach(v => { const p = progOf(v.id); p.forja = Math.max(1, p.forja); }); saveProg(); renderList(); }

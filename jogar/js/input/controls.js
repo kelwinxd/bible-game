@@ -5,7 +5,7 @@ import { B, keys } from '../battle/state.js';
 import { escudoSom } from '../core/audio.js';
 import { $ } from '../core/utils.js';
 import { hammer } from '../forge/forge.js';
-import { curSharp, pickSharp } from '../forge/sharpen.js';
+import { afiar, curSharp, selectSharp } from '../forge/sharpen.js';
 
 // ---------- Entrada ----------
 export function setShield(on) {
@@ -38,7 +38,8 @@ addEventListener('keydown', e => {
   if (e.repeat) return;
   // Espaço ou K martelam (K = o mesmo botão do ataque na batalha); tira o foco de botão para não "clicar" nele junto
   if ($('forge').classList.contains('on') && (e.code === 'Space' || e.code === 'KeyK')) { e.preventDefault(); document.activeElement.blur(); hammer(); }
-  if (curSharp && /^Digit[1-4]$/.test(e.code)) { const b = $('sharpOpts').children[+e.code.slice(5) - 1]; b && pickSharp(b); }
+  if (curSharp && /^Digit[1-4]$/.test(e.code)) { const b = $('sharpOpts').children[+e.code.slice(5) - 1]; b && selectSharp(b); } // 1–4 escolhem a resposta
+  if ($('sharpen').classList.contains('on') && (e.code === 'Space' || e.code === 'KeyK')) { e.preventDefault(); document.activeElement.blur(); afiar(); } // K/Espaço afiam (como o Martelar)
   if (B) {
     if (e.code === 'KeyP' && !B.over && B.peek < 0) { setPause(!B.paused); return; }
     if (e.code === 'Escape' || (e.code === 'Enter' && B.peek >= 0)) { e.preventDefault(); if (B.peek >= 0) togglePeek(B.peek); else if (B.paused) setPause(false); else if (!B.over && !B.fatal) setPause(true); return; } // Esc também pausa

@@ -1,13 +1,13 @@
 // ---------- Chefões: a fachada ----------
 // B.boss é um chefão só por fase, um objeto de uma das classes em js/battle/inimigos/chefes/ (todas herdam de Chefe,
-// js/battle/inimigos/base/chefe.js — o contrato; cada chefão tem a sua pasta). Este arquivo só escolhe a classe pelo data.js e repassa as chamadas do resto
+// js/battle/inimigos/base/chefe.js — o contrato; cada chefão tem a sua pasta). Este arquivo só escolhe a classe pelo data/jornadas e repassa as chamadas do resto
 // do jogo para os métodos do chefão. Para criar um chefão novo: uma classe que herda de Chefe (ou ChefeDeArena, em terra),
-// e uma linha em chefesDeTerra (data.js → { tipo: "gigante", pele: "<nome>" }).
+// e uma linha em chefesDeTerra (data/jornadas → { tipo: "gigante", pele: "<nome>" }).
 import { B } from './state.js';
 import { Farao, Golias, Leviata, Nabucodonosor } from './inimigos/index.js';
 export { drawAcid, spitAcid, updateAcid } from './inimigos/index.js';
 
-/** pele (data.js) → classe do chefão de terra; sem pele = Golias (função: só lê as classes na hora, sem importação circular) */
+/** pele (data/jornadas) → classe do chefão de terra; sem pele = Golias (função: só lê as classes na hora, sem importação circular) */
 const chefesDeTerra = () => ({ rei: Nabucodonosor, farao: Farao });
 
 // ----- criação -----

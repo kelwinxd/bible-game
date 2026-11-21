@@ -4,7 +4,7 @@ import { $, D } from '../core/utils.js';
 import { show } from './screens.js';
 
 // ---------- Mapa das jornadas (tela Jogar) ----------
-// Cada jornada é um ponto do mapa (data.js → fases[].mapa: x/y em %, icone, cor), ligados por uma trilha
+// Cada jornada é um ponto do mapa (data/jornadas/*.js → fases[].mapa: x/y em %, icone, cor), ligados por uma trilha
 // na ordem das fases. A trilha já percorrida (jornadas vencidas) é dourada; depois da última ela some na névoa.
 // Em tela em pé o mapa gira: x e y trocam de lugar.
 
@@ -101,8 +101,8 @@ export function renderMap() {
   const cur = fases.find(f => aberta(f) && !venceu(f.id)) || fases[fases.length - 1]; // o escudo: a próxima a jogar
   const ptXY = (x, y) => { const [a, b] = P ? [100 - y, x] : [x, y]; return [a * VW / 100, b * VH / 100]; }; // % da pintura → viewBox (girado em pé)
   const pt = f => ptXY(f.mapa.x, f.mapa.y);
-  // trilhas: de cada jornada até as que ela abre (data.js → abre); dourada se já vencida. Depois da última, segue e some na névoa
-  // mapa.via (data.js) = pontos de passagem da trilha que CHEGA nesta jornada, por jornada de origem ({ pragas: [[x, y], …] }, em % da
+  // trilhas: de cada jornada até as que ela abre (data/jornadas → abre); dourada se já vencida. Depois da última, segue e some na névoa
+  // mapa.via (data/jornadas) = pontos de passagem da trilha que CHEGA nesta jornada, por jornada de origem ({ pragas: [[x, y], …] }, em % da
   // pintura): a trilha vai por terra (rota do Êxodo pelo Sinai; rota do cativeiro pela Síria) em vez de cortar o mar em linha reta
   const arestas = fases.flatMap(f => (f.abre || []).map(id => fasePorId(id)).filter(Boolean).map(o => ({ a: o, b: f,
     pts: [pt(o), ...((f.mapa.via || {})[o.id] || []).map(([x, y]) => ptXY(x, y)), pt(f)] })));

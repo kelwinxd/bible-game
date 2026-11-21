@@ -4,7 +4,7 @@
 // Ficha: vida, dano, anda/corre (px/s), perto (vê o herói), ronda/coleira (px de casa), arma/golpe (s), salto (px que avança no
 // golpe), cd (s entre golpes), ataca (arma a esta distância), colado (não chega mais perto), nArma (quadros armando), arcoAt (px
 // acima do chão por quadro do ataque), run/atk/idle (sprites; olham para a direita), sombra, som, cores (lascas ao morrer)
-import { loboSom, sfx, uivoSom } from '../../../core/audio.js';
+import { loboSom, piolhentaSom, sfx, uivoSom } from '../../../core/audio.js';
 import { GROUND, ctx } from '../../config.js';
 import { heroBox, hitHero, overlap } from '../../combat.js';
 import { drawShadow } from '../../draw/world.js';
@@ -127,6 +127,9 @@ export class Piolhenta extends Patrulheiro {
   static NUVEM = { boca: [65, 148], n: 16, solta: .3, vel: [330, 470], abre: .2, vida: 1.5 };
   static VOZ = { som: 'piolho', vol: .35, raio: 700 }; // o murmúrio dela em loop, baixo, saindo dela (js/battle/ambiente.js)
   constructor(e) { super(e); this.piol = []; }
+  // voz (gravada, js/core/audio.js → piolhentaSom): vomita ao cuspir a nuvem, geme ao levar golpe e, mais grave, ao morrer
+  sofrer(dano, cor) { super.sofrer(dano, cor); if (!this.dead && B.time - (this.ultDor ?? -9) > .4) { this.ultDor = B.time; piolhentaSom('dor', ouvido(this.x)); } }
+  aoMorrer() { piolhentaSom('morte', ouvido(this.x)); }
   quadroAtaque() { // vai e volta: arma do 1º ao último, golpe do último ao 1º
     const P = this.P, n = P.atk.n;
     if (this.state === 'arm') return Math.min(n - 1, Math.floor(this.t / P.arma * n));
@@ -137,6 +140,7 @@ export class Piolhenta extends Patrulheiro {
   agir(h, dt) { this.voarPiolhos(h, dt); super.agir(h, dt); }
   /** a nuvem: N piolhos saem da boca em sequência, em leque até onde o herói está */
   aoGolpear(h) {
+    piolhentaSom('vomito', ouvido(this.x));
     const C = Piolhenta.NUVEM, x = this.x + this.face * C.boca[0], y = GROUND + terrainTop(this.x) - C.boca[1];
     const mira = Math.atan2(GROUND + h.y - 100 - y, h.x - x), volley = { hit: false };
     this.piol = this.piol.filter(p => !p.dead);

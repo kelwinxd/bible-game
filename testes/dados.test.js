@@ -1,10 +1,10 @@
-// Validação do conteúdo (jogar/data.js): pega erros de digitação e referências quebradas antes de rodar o jogo.
+// Validação do conteúdo (jogar/data/, montado em data/index.js): pega erros de digitação e referências quebradas antes de rodar o jogo.
 // Cada falha diz exatamente o que está errado e onde (fase, evento, versículo).
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-const D = window.DATA;
+import D from '../jogar/data/index.js';
 const JOGO = resolve(import.meta.dirname, '../jogar');
 const versos = new Set(D.versiculos.map(v => v.id));
 const norm = s => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -36,6 +36,20 @@ describe('versículos', () => {
       expect(p.p && p.certa, `${id}: pergunta sem texto ou resposta`).toBeTruthy();
       expect(p.erradas.map(norm), `${id}: "${p.p}" tem a resposta certa entre as erradas`).not.toContain(norm(p.certa));
     }
+  });
+});
+
+describe('forja e afiação ligadas aos versículos (jogar/data/habilidades/)', async () => {
+  const { FORJA } = await import('../jogar/data/habilidades/forja.js');
+  const { AFIACAO } = await import('../jogar/data/habilidades/afiacao.js');
+  test('todo versículo tem as lacunas da forja e as 3 listas de perguntas da afiação', () => {
+    for (const v of D.versiculos) {
+      expect(FORJA[v.id]?.lacunas?.length, `${v.id}: sem lacunas em forja.js`).toBeGreaterThan(0);
+      expect(AFIACAO[v.id]?.length, `${v.id}: afiacao.js precisa de 3 níveis`).toBe(3);
+    }
+  });
+  test('nenhuma entrada da forja ou da afiação sem versículo (id digitado errado)', () => {
+    for (const id of [...Object.keys(FORJA), ...Object.keys(AFIACAO)]) expect(versos.has(id), `"${id}" não existe em palavra/versiculos.js`).toBe(true);
   });
 });
 
@@ -72,7 +86,7 @@ describe('jornadas (fases)', () => {
   });
 });
 
-describe('arquivos citados no data.js', () => {
+describe('arquivos citados em jogar/data/', () => {
   const caminhos = [];
   (function varre(o) {
     if (typeof o === 'string') { if (/^assets\//.test(o)) caminhos.push(o); }

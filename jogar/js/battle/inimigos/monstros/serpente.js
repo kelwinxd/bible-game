@@ -1,5 +1,5 @@
 // ---------- Monstros de chão: a Serpente (e quem herda dela: o Leão e a Cobra verde) ----------
-// Serpente (Tentação, Mentira, Idolatria — data.js → inimigos[].chao): persegue o herói pelo chão sem chegar a menos de ENEMY_GAP de
+// Serpente (Tentação, Mentira, Idolatria — data/batalha/inimigos.js → inimigos[].chao): persegue o herói pelo chão sem chegar a menos de ENEMY_GAP de
 // outro monstro; ao alcance arma (brilho vermelho, abre a boca) e dá o BOTE (fere se o herói estiver perto e no chão).
 // Leão (Orgulho, Babilônia): igual, mas o bote é um SALTO que avança `salto` px. Cobra verde (aparencia { sprite: "verde", acido }):
 // não chega perto — guarda ~300 px e CUSPE ÁCIDO em arco.

@@ -4,7 +4,7 @@ import { B } from './state.js';
 import { bossAlive, bossBox, damageBoss } from './boss.js';
 import { frogsIn, hitFrog } from './frog.js';
 import { hitRock, rockBox } from './world.js';
-import { fatalSound, poderSfx, sfx, swordSfx } from '../core/audio.js';
+import { fatalSound, heroiDanoSom, poderSfx, sfx, swordSfx } from '../core/audio.js';
 import { opts } from '../core/options.js';
 import { abertaBase, dashDmg, forjaDe, marcarVitoria, venceu } from '../core/progress.js';
 import { darXp } from './xp.js';
@@ -115,7 +115,7 @@ export function heroDies() { if (!B.fase.dev) log('morreu', { ...ondeParou(), ar
 export function hitHero(dmg) {
   if (B.over || B.hero.dash > 0) return; // atravessando no impulso: intocável
   if (B.shield) { B.fx.push({ ring: true, t: .3 }); return; }
-  sfx('hurt'); if (!opts.god) B.hp -= dmg; B.hero.hurt = .3;
+  if (!heroiDanoSom()) sfx('hurt'); if (!opts.god) B.hp -= dmg; B.hero.hurt = .3; // o gemido gravado (ou o sintetizado, até carregar)
   B.floats.push({ x: B.hero.x, y: GROUND + B.hero.y - 250, t: .9, s: '-' + dmg, c: '#ff5a4a' });
   if (B.hp <= 0) { B.hp = 0; heroDies(); }
 }
@@ -145,7 +145,7 @@ export function startFatal(d, v, espirito = false) {
 export function endFatal() {
   B.demons = B.demons.filter(d => d !== B.fatal.d); B.fatal = null;
   if (!B.demons.length && B.arena) {
-    const gr = B.arena.gr; if (gr && gr.ras) rainFrogs(gr.ras, B.arena); // data.js ras: N → rãs caem do céu quando a arena acaba
+    const gr = B.arena.gr; if (gr && gr.ras) rainFrogs(gr.ras, B.arena); // data/jornadas ras: N → rãs caem do céu quando a arena acaba
     B.arena = null; B.hp = Math.min(B.hpMax, B.hp + 20);
     B.floats.push({ x: B.hero.x, y: GROUND - 250, t: 1.2, s: '+20', c: '#7dff8a' });
   }
@@ -157,7 +157,7 @@ export function endScreen(win) {
     $('endBtns').innerHTML = `<button onclick="openBestiary()">← Bestiário</button><button class="primary" onclick="startBestiary('${B.fase.dev}')">Lutar de novo</button>`;
     return $('endOverlay').classList.add('on');
   }
-  // vitória: marca a jornada; as que essa vitória abriu (data.js → abre) aparecem no texto, e a 1ª delas vira o botão principal
+  // vitória: marca a jornada; as que essa vitória abriu (data/jornadas → abre) aparecem no texto, e a 1ª delas vira o botão principal
   const fi = B.faseIdx, antes = B.abertasAntes || D.fases.filter(abertaBase);
   if (win) log('jornada_vencida', { fase: B.fase.id, segundos: Math.round(B.time), vida: Math.round(B.hp), vidaMax: B.hpMax, primeira: !venceu(B.fase.id) });
   if (win) marcarVitoria(B.fase.id);

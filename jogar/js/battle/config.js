@@ -3,7 +3,7 @@ import { $, reduced } from '../core/utils.js';
 // ---------- Batalha ----------
 export const cv = $('arena'), ctx = cv.getContext('2d');
 export const GROUND = 480;
-// Sprites de inimigos (data.js → inimigos[].sprite): tiras horizontais do mesmo tamanho de quadro.
+// Sprites de inimigos (data/batalha/inimigos.js → inimigos[].sprite): tiras horizontais do mesmo tamanho de quadro.
 // ax = x dos pés/barriga dentro do quadro; a arte olha para a DIREITA.
 // ave: tira de voo (runName 'fly') e de ataque, 8 quadros cada; âncora (ax, ay) = olho vermelho
 export const ESPR = {

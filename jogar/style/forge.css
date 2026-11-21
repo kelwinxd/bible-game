@@ -58,6 +58,7 @@
 .sharp-opts button { font-size:17px; text-align:left; position:relative; padding-left:34px; }
 .sharp-opts button .k { position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; color:var(--muted); }
 .sharp-opts button.bad { background:#6a1d18; border-color:#ff8a7a; }
+.sharp-opts button.sel { border-color:#f2c84b; box-shadow:0 0 0 2px #f2c84b66, 0 0 14px #f2c84b55; color:#ffe9a8; } /* a resposta escolhida (afia com K) */
 /* --p (0–100%) = quanto já foi afiado: o pergaminho vai virando prata a cada acerto */
 .strip.sharp { --p:0%; background:linear-gradient(color-mix(in srgb,#e9d8b0,#f2f6fa var(--p)),color-mix(in srgb,#d6bf8e,#a9b6c4 var(--p))); border-color:color-mix(in srgb,#8a6534,#dfe8f0 var(--p)); cursor:default; transition:background .5s, border-color .5s; }
 .strip.sharp::after { content:''; position:absolute; inset:0; background:#ffd84a; opacity:0; pointer-events:none; }
@@ -105,14 +106,24 @@
 .smith-sprite.bad { animation:smithRed .6s ease-out; }
 @keyframes smithGold { 0%,35% { filter:brightness(1.45) saturate(1.3) drop-shadow(0 0 16px #ffd34d); } 100% { filter:none; } }
 @keyframes smithRed { 0%,35% { filter:grayscale(1) sepia(1) hue-rotate(-50deg) saturate(9) brightness(.8) drop-shadow(0 0 16px #ff2a2a); } 100% { filter:none; } }
+/* afiação: o afiador passa a espada na pedra em loop (afiador.webp, 5 quadros 316×402); ao errar faz a careta uma vez
+   (afiador-errou.webp, 4 quadros) piscando vermelho; ao acertar pisca dourado sem parar de afiar */
+.smith-sprite.afia { aspect-ratio:316/402; background:url('../assets/sprites/forge/afiador.webp') 0 0 / 500% 100% no-repeat; animation:afiaLoop .9s steps(5) infinite; }
+@keyframes afiaLoop { to { background-position-x:125%; } }
+.smith-sprite.afia.ok { animation:afiaLoop .9s steps(5) infinite, smithGold .6s ease-out; }
+/* sem 'forwards': ao fim da careta ele não fica parado na posição depois do último quadro (vazia, era o piscar) */
+.smith-sprite.afia.errou { background-image:url('../assets/sprites/forge/afiador-errou.webp'); background-size:400% 100%; animation:afiaErrou .72s steps(4) 1, smithRed .6s ease-out; }
+@keyframes afiaErrou { from { background-position-x:0; } to { background-position-x:133.333%; } }
+@media (prefers-reduced-motion:reduce) { .smith-sprite.afia { animation:none; } .smith-sprite.afia.errou { animation:smithRed .6s ease-out; background-position-x:66.667%; } }
 @media (max-width:720px) { :is(#forge, #sharpen).on { min-height:0; } .forge-grid { grid-template-columns:1fr; grid-template-areas:"scroll" "anvil" "smith" "strip"; gap:10px; padding:0; } :is(#forge, #sharpen) .scroll { margin-top:0; } :is(#forge, #sharpen) { --sm-top:40px; } .smith-sprite { width:min(190px, 55%); } }
 /* tecla do Martelar dentro do botão (K, como o ataque na batalha) */
 #hammerBtn .hk { display:inline-grid; place-items:center; min-width:1.5em; height:1.5em; margin-left:.45em; padding:0 .3em; border-radius:5px; vertical-align:.05em;
   font:800 .75em/1 system-ui, sans-serif; color:#ffe2b8; background:#0004; border:1px solid #ffffff55; box-shadow:0 2px 0 #0006; }
 @media (hover:none) { #hammerBtn .hk { display:none; } } /* celular: sem teclado */
 /* resultado de uma forja com erro: só o placar (sem versículo, forjador nem Martelar) */
-#forge.result .forge-grid, #forge.result #forgeTitle { display:none; }
-#forge.result #forgeDone { flex:1; display:grid; place-items:center; margin:0 !important; }
+/* resultado (forja e afiação): some o resto da tela, fica só o cartão no meio */
+#forge.result .forge-grid, #forge.result #forgeTitle, #sharpen.result .forge-grid, #sharpen.result #sharpTitle { display:none; }
+#forge.result #forgeDone, #sharpen.result #sharpDone { flex:1; display:grid; place-items:center; margin:0 !important; }
 .fres { width:min(560px, 100%); text-align:center; padding:clamp(22px, 3vw, 36px); border:2px solid #3d2c20; border-radius:14px;
   background:radial-gradient(ellipse at 50% 0%, #ff4a3a1a, transparent 60%), linear-gradient(#1a110d, #0f0a08); box-shadow:0 18px 50px #0009; }
 .fres h2 { margin:0; font-family:Cinzel, serif; color:#ff7a6a; font-size:clamp(24px, 2.4vw, 32px); }

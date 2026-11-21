@@ -1,5 +1,5 @@
 // ---------- Música das fases ----------
-// Cada jornada pode ter a sua música (data.js → fases[].musica = caminho do mp3): toca em loop do começo da jornada até sair dela
+// Cada jornada pode ter a sua música (data/jornadas/*.js → fases[].musica = caminho do mp3): toca em loop do começo da jornada até sair dela
 // (nos menus toca o rádio, ../musics/radio.js). Nas configurações (do menu e da pausa): Música liga/desliga e o volume, salvos no
 // aparelho (ef-musica, ef-musica-vol).
 import { $ } from './utils.js';

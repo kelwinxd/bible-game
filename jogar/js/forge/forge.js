@@ -137,7 +137,6 @@ export function hammer() {
 export function strike(id) { const h = $(id); h.classList.remove('hit'); void h.getBoundingClientRect(); h.classList.add('hit'); }
 // forjador: parado, em idle (respira, 4 quadros em loop); a cada martelada ergue (1), bate (2, com faíscas) e solta (3), e volta ao idle.
 // No impacto pisca dourado (acertou a palavra) ou vermelho (errou)
-// também na afiação: smithStrike(ok, 'smithS', 'smithSayS')
 const smithT = {};
 export function smithStrike(ok, sprite = 'smithF', fala = 'smithSay') {
   const el = $(sprite); (smithT[sprite] || []).forEach(clearTimeout);

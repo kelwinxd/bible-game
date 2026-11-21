@@ -194,7 +194,9 @@ export function stoneSfx(kind, dano = 0) {
 // bichos (gravados, assets/audio/sound-effects/<bicho>.mp3): ra = 6 coaxares · dragao = rugido de T-Rex (~1,5 s) · cobra = sibilo (~1,6 s) · lobo = 2 rosnados de pantera negra (um calmo, um forte) · uivo = uivo de lobo (~5 s) · piolho = o murmúrio da mulher dos piolhos (loop de ~10 s) · ave = grito de ave de rapina · coruja = 2 piados
 const RAW = { escudo: 'assets/audio/escudo.mp3', poder: 'assets/audio/poder.mp3',
   ra: 'assets/audio/sound-effects/ra.mp3', dragao: 'assets/audio/sound-effects/dragao.mp3',
-  cobra: 'assets/audio/sound-effects/cobra.mp3', lobo: 'assets/audio/sound-effects/lobo-rosnado.mp3', uivo: 'assets/audio/sound-effects/lobo-uivo.mp3', piolho: 'assets/audio/sound-effects/mulher-piolho.mp3', ave: 'assets/audio/sound-effects/ave.mp3', coruja: 'assets/audio/sound-effects/coruja.mp3' }, BUF = {}, BYTES = {};
+  cobra: 'assets/audio/sound-effects/cobra.mp3', lobo: 'assets/audio/sound-effects/lobo-rosnado.mp3', uivo: 'assets/audio/sound-effects/lobo-uivo.mp3', piolho: 'assets/audio/sound-effects/mulher-piolho.mp3',
+  vomito: 'assets/audio/sound-effects/piolhenta-vomito.mp3', piolhentaDor: 'assets/audio/sound-effects/piolhenta-dor.mp3',
+  heroiDano: 'assets/audio/sound-effects/heroi-dano.mp3', mugido: 'assets/audio/sound-effects/boi.mp3', goliasGrito: 'assets/audio/sound-effects/golias-grito.mp3', ave: 'assets/audio/sound-effects/ave.mp3', coruja: 'assets/audio/sound-effects/coruja.mp3' }, BUF = {}, BYTES = {};
 for (const k in RAW) fetch(encodeURI(RAW[k])).then(r => r.ok ? r.arrayBuffer() : null).then(a => { BYTES[k] = a; decode(); }).catch(() => {});
 function decode() { // só decodifica depois que o AudioContext existe (ele nasce no 1º som, já com um clique/tecla do jogador)
   if (!actx) return;
@@ -448,3 +450,26 @@ export function loopsDeBichos(k, lista) {
     });
   } catch (e) {}
 }
+
+// ---------- Herói, mulher dos piolhos, boi e o grito do Golias (gravados) ----------
+// Herói levando dano (heroi-dano.mp3: só os 2 s iniciais valem, o resto do arquivo é descartado): o gemido toca A CADA 2 GOLPES
+// recebidos (no 2º, 4º, 6º…); nos outros fica o som curto sintetizado de sempre. Devolve false quando quem chama deve tocar o sintetizado
+let golpesNoHeroi = 0;
+export function heroiDanoSom() {
+  if (!opts.sound) return true;
+  if (++golpesNoHeroi % 2) return false; // golpe ímpar: só o som curto
+  return amostra('heroiDano', { ini: 0, dur: 2, rate: .97 + Math.random() * .06, vol: .6 });
+}
+// Mulher dos piolhos: 'vomito' = o cuspe da nuvem (o trecho forte do arquivo) · 'dor' = o gemido ao levar golpe · 'morte' = o gemido grave
+export function piolhentaSom(kind = 'dor', vol = 1) {
+  if (!opts.sound || vol <= .01) return;
+  if (kind === 'vomito') return amostra('vomito', { ini: .1, dur: .85, vol: .7 * vol });
+  amostra('piolhentaDor', { ini: 0, dur: .45, rate: kind === 'morte' ? .75 : .95 + Math.random() * .1, vol: .6 * vol });
+}
+// Boi: o mugido (trecho de 0,6 a 1,8 s do arquivo); 'morte' = mais lento e grave
+export function boiSom(kind = 'mugido', vol = 1) {
+  if (!opts.sound || vol <= .01) return;
+  amostra('mugido', { ini: .55, dur: 1.3, rate: kind === 'morte' ? .7 : .95 + Math.random() * .1, vol: .5 * vol });
+}
+// Golias: o grito (grunhido de raiva) antes do empurrão
+export function goliasGritoSom(vol = 1) { if (opts.sound && vol > .01) amostra('goliasGrito', { ini: 0, dur: 1.5, vol: .7 * vol }); }

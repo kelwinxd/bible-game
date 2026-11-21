@@ -1,7 +1,7 @@
 // ---------- Efeitos compartilhados por chefões e bichos ----------
 // Tudo o que antes se repetia em cada inimigo: caixa do herói, desenho de um quadro de sprite, partículas (faíscas, poeira,
 // respingos), tremor de chão, projéteis (bolas de fogo, nuvem de praga) e o ácido (Leviatã/Naja e a cobra verde).
-import { sfx } from '../../core/audio.js';
+import { heroiDanoSom, sfx } from '../../core/audio.js';
 import { opts } from '../../core/options.js';
 import { reduced } from '../../core/utils.js';
 import { GROUND, ctx } from '../config.js';
@@ -44,7 +44,7 @@ export const gosma = (x, y, n) => lascas(x, y, n, { cores: ['150,230,60', '150,2
 
 /** tremor de chão: dano direto na vida (o escudo não segura; quem está no ar escapa — quem chama confere) */
 export function tremor(h, dano) {
-  sfx('hurt'); if (!opts.god) B.hp = Math.max(0, B.hp - dano); h.hurt = .3;
+  if (!heroiDanoSom()) sfx('hurt'); if (!opts.god) B.hp = Math.max(0, B.hp - dano); h.hurt = .3;
   B.floats.push({ x: h.x, y: GROUND + h.y - 250, t: .9, s: '-' + dano, c: '#ff5a4a' });
   if (B.hp <= 0) heroDies();
 }

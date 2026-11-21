@@ -2,7 +2,7 @@
 export const GOLIAS = {
   vida: 35,               // 1ª vida (de capacete); acabou, ele perde o capacete e volta com a 2ª
   vidaSemCapacete: 50,    // 2ª vida (sem capacete, furioso)
-  mentiras: 'gigante',     // data.js → mentiras[].tipo
+  mentiras: 'gigante',     // data/batalha/mentiras.js → mentiras[].tipo
   velocidade: 70,          // px/s andando até o herói
   alcance: 250,            // px: perto assim, estoca; longe disso (+80), bate no chão
   cd: 1.4,                 // s de espera entre um ataque e outro

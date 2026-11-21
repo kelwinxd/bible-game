@@ -1,6 +1,6 @@
 // ---------- Monstro: a classe-base (o contrato) dos monstros das arenas, os que MENTEM ----------
-// Surgem em grupos (data.js → { tipo: "inimigos", inimigos: [...], frases, aparencia }): a câmera trava numa arena, eles entram pela
-// direita já espaçados e cada um carrega UMA mentira num balão até morrer. Só o versículo certo (data.js → mentiras[].ideal) acende o
+// Surgem em grupos (data/jornadas → { tipo: "inimigos", inimigos: [...], frases, aparencia }): a câmera trava numa arena, eles entram pela
+// direita já espaçados e cada um carrega UMA mentira num balão até morrer. Só o versículo certo (data/batalha/mentiras.js → mentiras[].ideal) acende o
 // poder contra ele; morto, estoura (a fatality, em combat.js). Cada monstro HERDA desta classe e implementa o contrato.
 //
 // Ciclo (state): 'enter' (entra andando até a vaga) → 'idle' (anda/espera a cadência) ⇄ 'arm' (o aviso: brilho) → golpe → … → 'dead'
@@ -26,8 +26,8 @@ const ENTRA_V = 320; // px/s entrando na arena
 
 export class Monstro {
   /**
-   * @param {string} tipo   o tema (data.js → inimigos[tipo]: tentacao, duvida, mentira, idolatria, orgulho)
-   * @param {object} s      a ficha (data.js → inimigos[tipo], com a aparencia do grupo por cima): vida, dano, tell, cadencia, …
+   * @param {string} tipo   o tema (data/batalha/inimigos.js → inimigos[tipo]: tentacao, duvida, mentira, idolatria, orgulho)
+   * @param {object} s      a ficha (data/batalha/inimigos.js → inimigos[tipo], com a aparencia do grupo por cima): vida, dano, tell, cadencia, …
    * @param {object} vaga   x de onde entra, tx onde para, vida já multiplicada
    */
   constructor(tipo, s, { x, tx, hp }) {

@@ -1,8 +1,8 @@
 // ---------- Som ambiente das fases ----------
-// Mar: os buracos com água (data.js: tipo "buraco" ou "mar"; fora as fases com buracoSeco) soam como mar.
+// Mar: os buracos com água (data/jornadas: tipo "buraco" ou "mar"; fora as fases com buracoSeco) soam como mar.
 // O som sai DA ÁGUA: quanto mais perto o herói chega da borda, mais alto (some a RAIO px de distância), e vem do lado
 // em que a água está (esquerda/direita). Pausado, fora da jornada ou no fim dela, silencia. Chamado a cada quadro (script.js).
-// Coruja (data.js → fases[].coruja): pia ao longe a cada 12–25 s, de um lado sorteado (fora da caverna, fora das pausas).
+// Coruja (data/jornadas/*.js → fases[].coruja): pia ao longe a cada 12–25 s, de um lado sorteado (fora da caverna, fora das pausas).
 // Uivo (fases[].uivo): um lobo uiva bem longe (abafado) a cada 30–50 s, do mesmo jeito.
 // Bichos com som em loop (classe com `static VOZ = { som, vol, raio }`, ex.: a mulher dos piolhos): o som sai DELES, baixo, e cai
 // com a distância até o herói como o mar (some a `raio` px); vem do lado em que o bicho está. Morto, pausa ou fora da jornada: cala.

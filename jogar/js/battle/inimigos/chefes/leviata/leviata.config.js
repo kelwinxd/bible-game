@@ -1,4 +1,4 @@
-// O chefão do mar: os números, e as PELES (data.js → chefe.pele): mesma luta, muda a arte, os textos e alguns jeitos de lutar
+// O chefão do mar: os números, e as PELES (data/jornadas → chefe.pele): mesma luta, muda a arte, os textos e alguns jeitos de lutar
 import { GROUND } from '../../../config.js';
 import { SPRITES } from './leviata.sprites.js';
 
@@ -20,7 +20,7 @@ export const MERGULHO = { desce: .9, embaixo: 1.8 };                            
 export const DISTANTE = { vem: 300, volta: 240, bote: 190 };                              // Naja: vem rápido para o bote e recua
 
 // as peles: sc = escala, dir = −1 se a arte olha para a esquerda, boca = de onde sai o ácido (px na arte a partir de ax/foot)
-//  mentiras = tipo das mentiras (data.js); distancia = fica a N px do herói e só chega perto para o bote; ras = rãs na jangada a cada
+//  mentiras = tipo das mentiras (data/batalha/mentiras.js); distancia = fica a N px do herói e só chega perto para o bote; ras = rãs na jangada a cada
 //  1/6 da vida; jato = o ácido é o próprio sprite (caixa em px da arte; quadros que ferem); lieY = base do balão
 export const PELES = {
   leviata: { nome: 'Leviatã', titulo: 'o monstro do mar', furia: 'O Leviatã está furioso!', morte: 'Leviatã derrotado!',

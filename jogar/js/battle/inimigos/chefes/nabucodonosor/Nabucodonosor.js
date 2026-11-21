@@ -3,7 +3,7 @@
 // e o Ídolo Babilônico vira o próximo chefão na mesma arena. A classe só COORDENA. O resto fica ao lado:
 //   nabucodonosor.config.js  → números, textos e a sequência     nabucodonosor.attacks.js → fogo dos olhos, rajada, soldados, lança-chamas
 //   nabucodonosor.sprites.js → as artes                           nabucodonosor.draw.js    → o desenho (e o jato)
-// data.js → { tipo: "gigante", pele: "rei", x, vida }
+// data/jornadas → { tipo: "gigante", pele: "rei", x, vida }
 import { GROUND } from '../../../config.js';
 import { startPreCena } from '../../../cena.js';
 import { B } from '../../../state.js';

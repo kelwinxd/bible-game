@@ -4,7 +4,7 @@ import { B } from '../state.js';
 import { D, hash, mix, reduced } from '../../core/utils.js';
 import { focoEstatua } from '../cena.js';
 
-// fundo com imagem (data.js → fases[].fundo): na altura da tela, rola devagar (parallax) e se repete
+// fundo com imagem (data/jornadas/*.js → fases[].fundo): na altura da tela, rola devagar (parallax) e se repete
 // sempre na mesma orientação; o fim da imagem se dissolve no começo dela mesma (faixa de transição de 320 px),
 // então o cenário "volta ao início" sem corte nem espelho
 const BG = {}, BG_FADE = 320;
@@ -53,7 +53,7 @@ export function drawSky(cam) {
   }
   const F = B.fase.fundo;
   if (F) {
-    // fundo.final (data.js): troca quando a estátua de ouro desperta (no fundo final ela não está mais no pedestal);
+    // fundo.final (data/jornadas): troca quando a estátua de ouro desperta (no fundo final ela não está mais no pedestal);
     // a troca acontece já no começo da cena, que cobre a tela, então não aparece
     const fim = F.final && B.boss && (B.boss.estatua || (B.boss.rei && B.boss.cenaVista && !B.prec)), src = fim ? F.final : F.img;
     const img = BG[src] || (BG[src] = Object.assign(new Image(), { src }));
@@ -82,13 +82,13 @@ export function drawSky(cam) {
     for (let c = 0; c < k; c++) { const ch = 70 + hash(n * 3 + c) * 120; ctx.fillRect(x + c * 46, GROUND - ch, 22, ch); ctx.fillRect(x + c * 46 - 5, GROUND - ch, 32, 8); }
   }
 }
-// Chão com imagem (data.js → fases[].chao): uma laje de terra e pedras. O miolo vira uma faixa repetível
+// Chão com imagem (data/jornadas/*.js → fases[].chao): uma laje de terra e pedras. O miolo vira uma faixa repetível
 // (fim dissolvido no começo, como o fundo) e as pontas arredondadas viram "tampas" nas bordas de buracos e desníveis.
 // Medidas no arquivo recortado (2000×388): superfície onde se pisa em y=100, pontas de 120 px, faixa de rochas em y 160–340.
-// Outra arte de chão pode trazer as próprias medidas em data.js → fases[].chaoMedidas (mesmos campos) e chaoCor (null = sem tingir).
+// Outra arte de chão pode trazer as próprias medidas em data/jornadas/*.js → fases[].chaoMedidas (mesmos campos) e chaoCor (null = sem tingir).
 const GSRC = { cap: 120, surf: 100, band: [160, 340], fade: 160, s: .5 };
 // borda do buraco: a laje vai até o.x + 14 e a ponta passa mais capOut (a arte é opaca até a ponta, na altura em que se pisa).
-// O colisor do buraco começa exatamente aí — o herói cai onde o chão desenhado acaba (data.js → B.terrain em js/battle/world.js)
+// O colisor do buraco começa exatamente aí — o herói cai onde o chão desenhado acaba (data/jornadas → B.terrain em js/battle/world.js)
 export function bordaBuraco(fase) {
   if (!fase.chao) return 18; // chão desenhado por código: a borda é a do próprio retângulo
   const M = { ...GSRC, ...(fase.chaoMedidas || {}) };
@@ -146,7 +146,7 @@ function kitFim(img, M, mid, s, cap, capR, H) {
   return { ...k, tall: mid, pat: k.patMid, semFaixa: true };
 }
 const GK = {};
-// dentro da caverna (data.js → caverna.chao): o chão de pedra dela, com as próprias medidas e sem tingir
+// dentro da caverna (data/jornadas → caverna.chao): o chão de pedra dela, com as próprias medidas e sem tingir
 function chaoAtual() {
   const C = B.zona === 'caverna' && B.caverna && B.caverna.chao;
   return C ? { F: C.img, M: C.medidas, cor: null } : { F: B.fase.chao, M: B.fase.chaoMedidas, cor: B.fase.chaoCor === undefined ? CHAO_COR : B.fase.chaoCor };
@@ -185,9 +185,22 @@ export function relevo(x) {
   let w = 1;
   B.holes.forEach(o => { w = Math.min(w, longe(Math.abs(x - o.x)), longe(Math.abs(x - o.x - o.w))); });
   B.terrain.forEach(t => { if (t.top !== Infinity && !t.oculto) w = Math.min(w, longe(Math.abs(x - t.x)), longe(Math.abs(x - t.x - t.w))); });
-  if (!w) return 0;
+  const dp = descePonta(k, x);
+  if (!w) return dp;
   const p = perfil(k), P = p.length;
-  return w * p[((Math.round(x) % P) + P) % P];
+  return w * p[((Math.round(x) % P) + P) % P] + dp;
+}
+// pontas cujo piso desenhado fica mais baixo que o do miolo (data/jornadas → chaoMedidas.pontaDesce: { L, R } em px da tela): perto da
+// borda de um buraco o pé desce até esse tanto, entrando aos poucos desde o começo da ponta (sem isso ele parece flutuar)
+function descePonta(k, x) {
+  const D = !(B.zona === 'caverna') && B.fase.chaoMedidas && B.fase.chaoMedidas.pontaDesce; if (!D) return 0;
+  let dy = 0;
+  B.holes.forEach(o => {
+    const a = o.x + 14, b = o.x + o.w - 14; // onde as lajes terminam (a ponta direita da laje da esquerda, a esquerda da da direita)
+    if (D.R && x <= a && x > a - k.cwR) dy = Math.max(dy, D.R * Math.min(1, (x - (a - k.cwR)) / (k.cwR * .45)));
+    if (D.L && x >= b && x < b + k.cw) dy = Math.max(dy, D.L * Math.min(1, ((b + k.cw) - x) / (k.cw * .45)));
+  });
+  return dy;
 }
 // um pedaço de laje entre a e b com a superfície em y; tampas arredondadas onde capL/capR
 function slab(k, a, b, y, capL, capR, sc = 1, fundo = false) {
@@ -218,7 +231,7 @@ function drawGroundImg(k, cam) {
   };
   B.terrain.filter(t => t.top !== Infinity && !t.oculto).forEach(t => cut(t.x, t.w, t.top)); // degraus de estrutura: a arte dela já mostra
   B.holes.forEach(o => cut(o.x + 14, o.w - 28, Infinity)); // a laje avança um pouco sobre a borda do buraco, onde ainda dá pé
-  // estrutura que substitui o chão (data.js → substitui: true): a arte dela é o piso ali; o chão normal termina numa ponta antes dela
+  // estrutura que substitui o chão (data/jornadas → substitui: true): a arte dela é o piso ali; o chão normal termina numa ponta antes dela
   B.estruturas.forEach(e => { if (e.substitui) cut(e.x + (e.corte || 0), e.w * e.sc, Infinity); });
   // fundo dos buracos: escuridão por trás das lajes (no mar: o mar agitado; buracoSeco = só o vão escuro, sem água nem mãos)
   B.holes.forEach(o => { if (o.mar && !B.fase.buracoSeco) return drawSea(o); if (!B.fase.buracoSeco && drawSeaHands(o)) return; const gr = ctx.createLinearGradient(0, GROUND - 10, 0, 540); gr.addColorStop(0, '#0000'); gr.addColorStop(.35, '#000'); gr.addColorStop(1, '#0a0503'); ctx.fillStyle = gr; ctx.fillRect(o.x, GROUND - 10, o.w, 550 - GROUND); });
@@ -308,7 +321,7 @@ export function drawSea(o) {
 // A cena inteira (as 3 mãos) na largura do buraco, um pouco maior para as pontas ficarem atrás das lajes; base abaixo da borda da tela
 export const SEA_HANDS = { img: new Image(), FW: 524, FH: 260, n: 4, dur: .18 };
 SEA_HANDS.img.src = 'assets/sprites/hazard/mar-maos.webp';
-// outra arte por jornada: data.js → fases[].maos = { img, FW, FH, n, dur, agua (y da superfície no quadro), fundo: [cor1, cor2] }
+// outra arte por jornada: data/jornadas/*.js → fases[].maos = { img, FW, FH, n, dur, agua (y da superfície no quadro), fundo: [cor1, cor2] }
 const MAOS = {};
 export function drawSeaHands(o) {
   const M = B.fase.maos, S = M ? (MAOS[M.img] || (MAOS[M.img] = { ...M, img: Object.assign(new Image(), { src: M.img }) })) : SEA_HANDS;
@@ -393,7 +406,7 @@ export function drawBook(b) {
 // Se o chão dela estiver submerso, ela sobe junto com ele (dy)
 export const CROSS = { img: new Image(), FW: 350, FH: 412, ax: 120, foot: 406, sc: .42, ordem: [0, 1, 2, 3, 2, 1] };
 CROSS.img.src = 'assets/sprites/object/cruz.webp';
-// estrutura (data.js → { tipo: "estrutura" }): uma arte inteira (ex.: a escadaria do zigurate) em pé no chão, com a base
+// estrutura (data/jornadas → { tipo: "estrutura" }): uma arte inteira (ex.: a escadaria do zigurate) em pé no chão, com a base
 // `base` px abaixo da superfície; os degraus dela são terreno invisível (B.terrain com oculto) — ver js/battle/world.js
 // sombra leve no chão embaixo de um bicho: elipse escura e suave. alt = quanto o corpo está acima do chão
 // (no pulo/voo a sombra encolhe e clareia)

@@ -9,17 +9,17 @@ import { darXp } from './xp.js';
 import { log } from '../core/log.js';
 
 // ---------- Ovelha perdida (Vale da sombra, antes da boca da caverna; Exodus, foge para o alto) ----------
-// data.js → { tipo: "ovelha", x }. Parada, olhando para o herói (idle, 6 quadros); quando ele chega a ~120 px dela, ela se
+// data/jornadas → { tipo: "ovelha", x }. Parada, olhando para o herói (idle, 6 quadros); quando ele chega a ~120 px dela, ela se
 // assusta, vira, dispara na direção da boca da caverna e despenca lá dentro (some). Não fere nem leva golpe: é cenário vivo.
 // A arte olha para a direita. Escala SC sobre a tira (as tiras já foram reduzidas a 40% da arte enviada).
 const OV = { idle: { img: new Image(), FW: 128, FH: 126, n: 6, fps: 6 }, run: { img: new Image(), FW: 132, FH: 104, n: 6, fps: 14, k: 1.25 } }; // k: a arte da corrida veio ~25% menor (medido pelo corpo de lã): igualada ao idle
 OV.idle.img.src = 'assets/sprites/enemy/ovelha-idle.webp'; OV.run.img.src = 'assets/sprites/enemy/ovelha-run.webp';
-// a ovelha achada no fim da caverna (data.js → calma: true): idle tranquilo (6 quadros 128×130, fecha os olhos e ergue o focinho)
+// a ovelha achada no fim da caverna (data/jornadas → calma: true): idle tranquilo (6 quadros 128×130, fecha os olhos e ergue o focinho)
 OV.calma = { img: new Image(), FW: 128, FH: 130, n: 6, fps: 4 }; OV.calma.img.src = 'assets/sprites/enemy/ovelha-calma.webp';
 const CURA = 50; // vida que ela dá ao ser tocada (uma vez)
 const SC = .7, CORRE = 260, GRAV = 1400, PERTO = 120, MEIA = 40; // PERTO: px entre a borda do herói e a dela para ela se assustar // MEIA: meia largura do corpo (desenhado)
 
-// y (opcional, data.js) = altura fixa dos pés (y do mundo, negativo = mais alto) para a que fica numa plataforma flutuante;
+// y (opcional, data/jornadas) = altura fixa dos pés (y do mundo, negativo = mais alto) para a que fica numa plataforma flutuante;
 // sem ele, fica sobre o terreno embaixo dela (chão, terreno alto ou degrau de estrutura)
 // sobe (opcional): [[x, y], ...] = onde ela pousa a cada pulo; assustada, em vez de cair no vão ela foge pulando de base em base
 // (degrau → plataforma) e lá em cima fica calma, como a achada (tocar nela dá vida e fica salvo)

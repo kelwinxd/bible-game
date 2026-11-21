@@ -3,7 +3,7 @@ import { D } from './utils.js';
 // progresso por versículo: forja 0–3 (dano) e afia 0–3 (duração do poder)
 export let prog = {};
 try { prog = JSON.parse(localStorage.getItem('ef-prog') || '{}'); } catch (e) {}
-// jornadas vencidas (ids de data.js → fases[].id). Uma jornada fica aberta quando não tem `abre` (as do começo: Exodus e
+// jornadas vencidas (ids de data/jornadas/*.js → fases[].id). Uma jornada fica aberta quando não tem `abre` (as do começo: Exodus e
 // As Pragas, o jogador escolhe por qual começar) ou quando o herói já venceu alguma das listadas em `abre` (o Vale abre com
 // o Exodus OU As Pragas; a Babilônia com o Vale). Antes era um índice só (ef-fase): migra marcando as anteriores a ele
 export let vencidas = null;
@@ -23,7 +23,7 @@ export let ovelhas = [];
 try { ovelhas = JSON.parse(localStorage.getItem('ef-ovelhas') || '[]'); } catch (e) {}
 export const achouOvelha = id => ovelhas.includes(id);
 export function marcarOvelha(id) { if (!id || achouOvelha(id)) return; ovelhas.push(id); try { localStorage.setItem('ef-ovelhas', JSON.stringify(ovelhas)); } catch (e) {} }
-// XP e nível (data.js → xp): nível = quantos marcos de xp.niveis o total já passou; vida máxima = 100 + nível × vidaPorNivel
+// XP e nível (data/progresso/xp.js → xp): nível = quantos marcos de xp.niveis o total já passou; vida máxima = 100 + nível × vidaPorNivel
 export let xp = 0;
 try { xp = +localStorage.getItem('ef-xp') || 0; } catch (e) {}
 export const nivelDe = x => D.xp.niveis.filter(n => x >= n).length;

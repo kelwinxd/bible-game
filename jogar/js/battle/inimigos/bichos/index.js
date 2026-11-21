@@ -1,5 +1,5 @@
 // ---------- Bichos: a fábrica e a chuva de rãs ----------
-// criarBicho escolhe a classe pelo tipo do data.js. Para criar um bicho novo: uma classe que herda de Bicho (ou de Patrulheiro)
+// criarBicho escolhe a classe pelo tipo do data/jornadas. Para criar um bicho novo: uma classe que herda de Bicho (ou de Patrulheiro)
 // e uma linha em BICHOS.
 import { B } from '../../state.js';
 import { terrainTop } from '../../world.js';
@@ -8,11 +8,11 @@ import { Espantalho } from './espantalho.js';
 import { Lobo, Piolhenta, Soldado } from './patrulheiro.js';
 import { Ra } from './ra.js';
 
-/** tipo (data.js) → classe; sem tipo = rã (as da chuva de rãs). Função: só lê as classes na hora (sem importação circular) */
+/** tipo (data/jornadas) → classe; sem tipo = rã (as da chuva de rãs). Função: só lê as classes na hora (sem importação circular) */
 export const BICHOS = () => ({ ra: Ra, lobo: Lobo, soldado: Soldado, piolhenta: Piolhenta, boi: Boi, espantalho: Espantalho });
 export const criarBicho = e => new (BICHOS()[e.tipo] || Ra)(e);
 
-/** chuva de rãs (data.js → grupo com ras: N): quando a arena acaba, N rãs caem do céu espalhadas pela tela, longe do herói */
+/** chuva de rãs (data/jornadas → grupo com ras: N): quando a arena acaba, N rãs caem do céu espalhadas pela tela, longe do herói */
 export function chuvaDeRas(n, ar) {
   const hx = B.hero.x, xs = [];
   for (let tries = 0; xs.length < n && tries < 600; tries++) {

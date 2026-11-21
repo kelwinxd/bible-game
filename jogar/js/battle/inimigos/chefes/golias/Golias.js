@@ -2,14 +2,14 @@
 // A classe só COORDENA: anda até o herói e escolhe o próximo ataque. O resto fica nos arquivos ao lado:
 //   golias.config.js  → números e textos      golias.attacks.js → os ataques
 //   golias.sprites.js → as artes               golias.draw.js    → o desenho
-// data.js → { tipo: "gigante", x, vida }
+// data/jornadas → { tipo: "gigante", x, vida }
 // Duas fases: de capacete (1ª vida, menor: estocada e golpe no chão) e, quando ela acaba, ele PERDE O CAPACETE (cambaleia
 // cansado, sem levar golpe) e volta com a 2ª vida: mais rápido, com a sequência de golpes de lança e o empurrão (corre até o herói).
-import { sfx } from '../../../../core/audio.js';
+import { goliasGritoSom, sfx } from '../../../../core/audio.js';
 import { GROUND } from '../../../config.js';
 import { B } from '../../../state.js';
 import { ChefeDeArena } from '../../base/chefeDeArena.js';
-import { lascas } from '../../efeitos.js';
+import { lascas, ouvido } from '../../efeitos.js';
 import { empurrao, estocada, golpeNoChao, golpes } from './golias.attacks.js';
 import { GOLIAS, PERDE_CAPACETE } from './golias.config.js';
 import { desenharGolias } from './golias.draw.js';
@@ -27,7 +27,7 @@ export class Golias extends ChefeDeArena {
   get imortalNoBestiario() { return this.semCapacete; } // no Bestiário a 1ª vida também acaba (para ver a 2ª fase)
   caixa() { const { meiaLargura: w, altura } = GOLIAS.caixa; return [this.x - w, GROUND - altura * (this.semCapacete ? .92 : 1), this.x + w, GROUND]; }
   vulneravel() { return this.state !== 'perdeCapacete' && super.vulneravel(); }
-  iniciar(estado) { super.iniciar(estado); this.correu = false; this.parou = null; this.acertou = null; }
+  iniciar(estado) { super.iniciar(estado); this.correu = false; this.parou = null; this.acertou = null; if (estado === 'empurrao') goliasGritoSom(ouvido(this.x)); } // o grito antes de correr
 
   /** a 1ª vida acabou: em vez de morrer, perde o capacete e volta com a 2ª */
   morrer() {

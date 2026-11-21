@@ -1,4 +1,4 @@
-// ---------- Ave da Dúvida (data.js → inimigos[].mergulho) ----------
+// ---------- Ave da Dúvida (data/batalha/inimigos.js → inimigos[].mergulho) ----------
 // Paira no alto encarando o herói; no aviso ergue as asas e MERGULHA reto até onde o herói ESTAVA (sair do lugar ou erguer o escudo
 // evita), passa raspando com as garras, sobe em curva do outro lado e vira para encarar o herói de novo. Só uma ave mergulha por vez.
 // O balão fica EMBAIXO dela (em cima ficaria atrás do HUD) e some no mergulho e na subida.

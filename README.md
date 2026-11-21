@@ -18,7 +18,7 @@ Abra http://localhost:5500 (a landing page) ou http://localhost:5500/jogar/ (o j
 npm run build
 ```
 
-Gera a pasta `dist/` (é ela que vai para o servidor): os módulos do jogo e o CSS juntos e minificados, com hash no nome (cada versão nova tem nome novo, então ninguém fica com a velha em cache); os sprites, áudios e a playlist copiados como estão; `data.js` e `radio.js` minificados. Os caminhos são relativos: funciona na raiz do domínio ou numa subpasta (GitHub Pages). Para testar a versão de produção antes de publicar: `npm run preview` → http://localhost:4173. Configuração em `vite.config.js`.
+Gera a pasta `dist/` (é ela que vai para o servidor): os módulos do jogo e o CSS juntos e minificados, com hash no nome (cada versão nova tem nome novo, então ninguém fica com a velha em cache); os sprites, áudios e a playlist copiados como estão; `radio.js` minificado (o conteúdo, `jogar/data/`, entra no pacote do jogo). Os caminhos são relativos: funciona na raiz do domínio ou numa subpasta (GitHub Pages). Para testar a versão de produção antes de publicar: `npm run preview` → http://localhost:4173. Configuração em `vite.config.js`.
 
 O jogo continua em JS puro (módulos ES), sem framework: o Vite só serve no desenvolvimento e empacota no build.
 
@@ -30,7 +30,7 @@ npm test
 
 Vitest, em `testes/` (o `npm run build` roda os testes antes e não publica se algum falhar; `npm run test:watch` roda de novo a cada arquivo salvo):
 
-- `dados.test.js`: o `data.js` — ids repetidos; tema e autor que existem; cada lacuna da forja está no texto do versículo e não aparece entre os próprios distratores; resposta certa da afiação fora das erradas; versículos citados pelas mentiras e pelas pedras das fases existem; tipos de evento conhecidos, largura, x dentro da fase, um chefão por fase; liberação (`abre`) aponta para jornadas que existem; todo arquivo `assets/…` citado existe
+- `dados.test.js`: o conteúdo (`jogar/data/`) — todo versículo com a forja e a afiação ligadas pelo id; ids repetidos; tema e autor que existem; cada lacuna da forja está no texto do versículo e não aparece entre os próprios distratores; resposta certa da afiação fora das erradas; versículos citados pelas mentiras e pelas pedras das fases existem; tipos de evento conhecidos, largura, x dentro da fase, um chefão por fase; liberação (`abre`) aponta para jornadas que existem; todo arquivo `assets/…` citado existe
 - `arquivos.test.js`: todo sprite, som e imagem citado no JS (inclusive `SP + 'nome.webp'`) e no CSS (`url(…)`) existe no disco
 - `progresso.test.js`: a lógica de `js/core/progress.js` — XP e níveis, vida máxima, liberação das jornadas, migração do save antigo, forja (dano) e afiação (duração), ovelha salva
 
@@ -76,7 +76,12 @@ O Bestiário e o Treinamento não geram eventos. O PostHog ainda registra sozinh
   - `battle/inimigos/`: chefões, monstros e bichos em **classes** (`base/` = os contratos `Chefe`, `ChefeDeArena`, `Monstro` e `Bicho`; `chefes/`, `monstros/` e `bichos/` = cada inimigo herdando; `efeitos.js` = o que é comum). `boss.js` e `frog.js` são as fachadas
   - `battle/draw/`: desenho da cena, do cenário, do HUD e dos inimigos
   - `input/`: teclado, mouse e escudo
-- `data.js`: versículos, mentiras, inimigos, quizzes e as jornadas (`fases`, com posição no mapa)
+- `data/`: o **conteúdo** do jogo, dividido por domínio (módulos ES; `data/index.js` junta tudo em `DATA`, importado por `js/core/utils.js`):
+  - `palavra/versiculos.js` (o versículo em si: id, ref, tema, autor, texto) e `palavra/temas.js` (cores, abreviações)
+  - `habilidades/forja.js` (Forjar: as palavras que faltam de cada versículo, níveis e graus), `habilidades/afiacao.js` (Afiar: as perguntas de cada versículo, as dos autores e os níveis), `habilidades/fe.js` e `habilidades/espirito.js`
+  - `batalha/mentiras.js` (as mentiras e os versículos que as refutam) e `batalha/inimigos.js` (a ficha dos monstros)
+  - `progresso/xp.js` (XP e níveis) e `jornadas/` (a ordem das jornadas e a explicação dos eventos em `index.js`, um arquivo por jornada)
+  - um versículo novo: o texto em `palavra/versiculos.js`, as lacunas em `habilidades/forja.js`, as perguntas em `habilidades/afiacao.js` (o mesmo id nos três) e uma `pedra` com o id numa jornada; o `npm test` avisa se faltar algo
 - `assets/sprites/`: `hero/` (templário; `antigo/` = herói anterior), `enemy/` (serpente), `hazard/` (mãos em chamas)
 - `MECANICAS.md`: registro das mecânicas validadas no protótipo
 

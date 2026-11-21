@@ -14,7 +14,7 @@ import { forgeAll, habView, habBack } from './js/forge/list.js';
 import { openFaith, startQuiz, answerQuiz, nextQuiz } from './js/forge/faith.js';
 import { openVerse, toggleStudy, backToVerse } from './js/forge/verse.js';
 import { openForge, forgeTick } from './js/forge/forge.js';
-import { openSharpen, pickSharp, sharpTick } from './js/forge/sharpen.js';
+import { openSharpen, pickSharp, selectSharp, sharpTick } from './js/forge/sharpen.js';
 import './js/battle/config.js';
 import { startBattle } from './js/battle/world.js';
 import { openBestiary, startBestiary } from './js/battle/bestiary.js';
@@ -29,7 +29,7 @@ import './js/battle/draw/hud.js';
 import './js/input/controls.js';
 
 // onclick="..." do HTML (e dos trechos gerados) roda no escopo global
-Object.assign(window, { startBattle, openBestiary, startBestiary, startTreino, treinoAjusta, treinoCheio, treinoMax, treinoRecolhe, show, showMenuView, forgeAll, habView, habBack, openFaith, startQuiz, answerQuiz, nextQuiz, openVerse, openForge, openSharpen, toggleStudy, backToVerse, pickSharp, setPause, showPauseView, startDash, toggleDeck, togglePeek, closePeek, useVerse, byId });
+Object.assign(window, { startBattle, openBestiary, startBestiary, startTreino, treinoAjusta, treinoCheio, treinoMax, treinoRecolhe, show, showMenuView, forgeAll, habView, habBack, openFaith, startQuiz, answerQuiz, nextQuiz, openVerse, openForge, openSharpen, toggleStudy, backToVerse, pickSharp, selectSharp, setPause, showPauseView, startDash, toggleDeck, togglePeek, closePeek, useVerse, byId });
 
 // ---------- Loop ----------
 let last = performance.now();

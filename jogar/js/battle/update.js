@@ -197,7 +197,7 @@ export function updateBattle(rdt) {
   B.books = B.books.filter(b => !b.got);
   // inimigos surgem quando o herói chega perto; a câmera trava (arena) até o grupo cair
   if (!B.arena && !B.over) {
-    // apos: grupo em ondas (data.js) — não dispara por posição, e sim quando o bando anterior (grupo + lobos com esse
+    // apos: grupo em ondas (data/jornadas) — não dispara por posição, e sim quando o bando anterior (grupo + lobos com esse
     // bando) acabou, com o herói por perto; a arena é montada à frente dele (dentro da caverna, antes da rampa)
     const pronto = b => B.groups.every(o => o.bando !== b || o.done) && !B.demons.length && !B.frogs.some(f => f.bando === b && !f.dead);
     const gr = B.groups.find(g => !g.done && !g.apos && h.x >= g.x - 600 && h.x < g.x + 400) // perto dele (a caverna fica longe, depois do fim) // trava cedo: o herói fica à esquerda e sobra espaço para os inimigos espaçados

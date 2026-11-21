@@ -1,4 +1,5 @@
-export const D = window.DATA;
+import DATA from '../../data/index.js'; // o conteúdo do jogo, dividido por domínio em jogar/data/ (ver data/index.js)
+export const D = DATA;
 export const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 export const $ = id => document.getElementById(id);
 export const byId = Object.fromEntries(D.versiculos.map(v => [v.id, v]));

@@ -4,7 +4,7 @@ import { D } from '../core/utils.js';
 import { B } from './state.js';
 import { log } from '../core/log.js';
 
-// dá XP (data.js → xp: pequeno, grande, ovelha) com um "+N xp" roxo onde aconteceu; subiu de nível: a vida máxima cresce e
+// dá XP (data/progresso/xp.js → xp: pequeno, grande, ovelha) com um "+N xp" roxo onde aconteceu; subiu de nível: a vida máxima cresce e
 // o herói fica de vida cheia, com o aviso. No Bestiário não conta
 export function darXp(tipo, x, y) {
   const n = D.xp[tipo]; if (!B || B.fase.dev || !n) return;

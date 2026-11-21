@@ -2,12 +2,12 @@
 // Cada teste começa com o save zerado e importa o módulo de novo (ele lê o localStorage ao carregar).
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 
-const D = window.DATA;
+import D from '../jogar/data/index.js';
 let P;
 beforeEach(async () => { localStorage.clear(); vi.resetModules(); P = await import('../jogar/js/core/progress.js'); });
 
 describe('XP e níveis', () => {
-  test('nível pelos limites de data.js → xp.niveis', () => {
+  test('nível pelos limites de data/progresso/xp.js → xp.niveis', () => {
     const [n1, n2] = D.xp.niveis;
     expect(P.nivelDe(0)).toBe(0);
     expect(P.nivelDe(n1 - 1)).toBe(0);

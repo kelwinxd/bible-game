@@ -5,7 +5,7 @@
 // A classe só COORDENA (o nado, o mergulho e qual ataque fazer). O resto fica ao lado:
 //   leviata.config.js  → números e as peles     leviata.attacks.js → o bote e o ácido
 //   leviata.sprites.js → as artes                leviata.draw.js    → o desenho (dentro do mar)
-// data.js → { tipo: "chefe", x, vida, pele? }
+// data/jornadas → { tipo: "chefe", x, vida, pele? }
 import { dragaoSom } from '../../../../core/audio.js';
 import { GROUND } from '../../../config.js';
 import { B } from '../../../state.js';

@@ -26,15 +26,15 @@ const ESTADOS_SEM_FALA = ['hidden', 'dead', 'mergulho', 'submerso', 'surge', 'en
 
 export class Chefe {
   /**
-   * @param {object} e        o evento do data.js ({ tipo, x, vida, pele, … })
-   * @param {object} op       kind ('gigante' = em terra, 'leviata' = no mar), vida padrão, tipo das mentiras (data.js → mentiras[].tipo)
+   * @param {object} e        o evento do data/jornadas ({ tipo, x, vida, pele, … })
+   * @param {object} op       kind ('gigante' = em terra, 'leviata' = no mar), vida padrão, tipo das mentiras (data/batalha/mentiras.js → mentiras[].tipo)
    */
   constructor(e, { kind, vida = 60, mentiras = null, mentirEm = 5 } = {}) {
     const lies = mentiras ? D.mentiras.filter(m => m.tipo === mentiras) : [];
     Object.assign(this, {
       kind, x: e.x, home: e.x, face: -1, hp: e.vida || vida, maxHp: e.vida || vida,
       state: 'hidden', t: 0, cd: 1, flash: 0, hit: false, sink: 0, atks: 0, bolas: [],
-      // mentiras: uma por vez; cada uma é refutada por um versículo (data.js → ideal); quando o poder acaba, troca de mentira
+      // mentiras: uma por vez; cada uma é refutada por um versículo (data/batalha/mentiras.js → ideal); quando o poder acaba, troca de mentira
       lies, li: 0, lie: null, lieIn: lies.length ? mentirEm : 0, vuln: false, lastVerse: null, lieFlash: 0
     });
   }

@@ -2,12 +2,13 @@
 // SÓ CORRE (investe): sem golpe próprio, encostar fere (o escudo bloqueia). Com o herói perto, corre direto; quando passa dele,
 // chega ao fim da ronda ou a um buraco/parede, só VIRA para o outro lado e continua correndo. Longe do herói, trota indo e voltando.
 // boi-run.webp 6 quadros 181×143 (olha para a direita, alinhado pelos cascos)
+import { boiSom } from '../../../core/audio.js';
 import { GROUND } from '../../config.js';
 import { drawShadow } from '../../draw/world.js';
 import { B } from '../../state.js';
 import { terrainTop } from '../../world.js';
 import { Bicho } from '../base/bicho.js';
-import { FILTRO_ACERTO, desenharQuadro } from '../efeitos.js';
+import { FILTRO_ACERTO, desenharQuadro, ouvido } from '../efeitos.js';
 
 const SPR = { img: Object.assign(new Image(), { src: 'assets/sprites/enemy/boi-run.webp' }), FW: 181, FH: 143, ax: 97, n: 6 };
 const BOI = { vida: 40, dano: 9, anda: 75, corre: 190, fps: [8, 5], perto: 620, passa: 380, coleira: 560, toque: 1 }; // fps: [investindo, trotando]
@@ -15,11 +16,15 @@ const BOI = { vida: 40, dano: 9, anda: 75, corre: 190, fps: [8, 5], perto: 620, 
 export class Boi extends Bicho {
   constructor(e) { super(e, { vida: BOI.vida }); this.moving = false; }
   get cores() { return ['220,200,160', '140,30,25']; }
+  aoMorrer() { boiSom('morte', ouvido(this.x)); }
   caixa() { const y = GROUND + terrainTop(this.x); return [this.x - 62, y - 100, this.x + 62, y]; }
   perto(h) { return Math.abs(h.x - this.x) < BOI.perto && Math.abs(h.y - terrainTop(this.x)) < 120 && h.deadAt == null; }
   agir(h, dt) {
     this.t += dt; this.moving = false;
-    const perto = this.perto(h), nx = this.x + this.face * (perto ? BOI.corre : BOI.anda) * dt;
+    const perto = this.perto(h);
+    if (perto && !this.viu && B.time - (this.ultMu ?? -9) > 3) { this.ultMu = B.time; boiSom('mugido', ouvido(this.x)); } // muge ao partir para cima do herói
+    this.viu = perto;
+    const nx = this.x + this.face * (perto ? BOI.corre : BOI.anda) * dt;
     const passou = perto && (h.x - this.x) * this.face < -BOI.passa; // já passou do herói
     const frente = perto && (h.x - this.x) * this.face > 0;        // indo na direção dele: a ronda estica um pouco
     // fim da coleira: só conta se o passo o leva PARA LONGE de casa (voltando, nunca vira por ela). Antes contava sempre, e como a

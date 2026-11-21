@@ -20,7 +20,7 @@ export function tutTip() {
   // 3) o versículo: bezerro → livro → refutar
   if (rock && rock.hp > 0) return rock.hp === rock.maxHp && h.x > rock.x - 260 ? ['Destrua o bezerro de ouro com [K]'] : null;
   if (!B.deck.length) return ['Pegue o livro dourado!'];
-  if (!T.refuted) return B.arena ? ['Os versículos são suas armas. Utilize o certo para refutar e atacar.', 'Pressione [1] ou clique no card'] : null;
+  if (!T.refuted) return B.arena ? ['Refute a mentira com o versículo certo', '[1] e depois [K]: golpe com muito mais dano'] : null;
   if (!T.attacked && !T.killed) return ['Sua lâmina brilha: [K] ataque o demônio'];
   // 4) escudo: só quando aparece a cobra verde que cospe ácido
   if (B.demons.some(d => d.s.acido && d.hp > 0)) { T.acido = true; if (!T.shielded) return ['Segure [J] para erguer o escudo', 'Ele bloqueia o ácido da cobra']; }

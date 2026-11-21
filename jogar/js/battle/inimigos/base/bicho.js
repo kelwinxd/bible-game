@@ -20,7 +20,7 @@ import { darXp } from '../../xp.js';
 const naoImplementado = (classe, metodo) => { throw new Error(`${classe}.${metodo}() não implementado (contrato de Bicho)`); };
 
 export class Bicho {
-  /** @param {object} e o evento do data.js ({ tipo, x, bando? }); vida = pontos de vida */
+  /** @param {object} e o evento do data/jornadas ({ tipo, x, bando? }); vida = pontos de vida */
   constructor(e, { vida }) {
     Object.assign(this, { kind: e.tipo, bando: e.bando, x: e.x, home: e.x, face: Math.random() < .5 ? -1 : 1,
       hp: vida, maxHp: vida, state: 'walk', t: 0, flash: 0, cd: 0, ph: Math.random() * 6, dead: false });

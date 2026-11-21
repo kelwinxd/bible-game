@@ -1,7 +1,7 @@
 // ---------- Bichos soltos pela fase: a fachada ----------
 // B.frogs é a lista dos bichos (rãs, lobos, soldados, mulheres dos piolhos, bois, espantalhos), cada um um objeto de uma das
 // classes em js/battle/inimigos/bichos/ (todas herdam de Bicho, js/battle/inimigos/base/bicho.js — o contrato). Este arquivo só
-// escolhe a classe pelo tipo do data.js e repassa as chamadas do resto do jogo. Para criar um bicho novo: uma classe que herda de
+// escolhe a classe pelo tipo do data/jornadas e repassa as chamadas do resto do jogo. Para criar um bicho novo: uma classe que herda de
 // Bicho (ou de Patrulheiro, se patrulha e ataca) e uma linha em BICHOS (inimigos/bichos/index.js).
 import { B } from './state.js';
 import { overlap } from './combat.js';
