@@ -126,3 +126,18 @@ export function drawAcid() {
   });
   ctx.restore();
 }
+
+// ---------- Coluna de fogo (o rei invocando soldados) ----------
+// colunaDeFogo(x, y) = uma labareda que brota do chão em x (y = o chão): a chama do jato do rei (hazard/chama-rei.webp, 8 quadros)
+// virada para cima — cresce nos 5 primeiros quadros, tremula nos 3 últimos e some; com brilho por cima (modo "lighter")
+const CHAMA = { img: Object.assign(new Image(), { src: 'assets/sprites/hazard/chama-rei.webp' }), FW: 237, FH: 134, cy: 66 };
+const COLUNA = { dura: 1.3, cresce: .3, sc: 1.05 };
+export function colunaDeFogo(x, y) { B.fx.push({ labareda: true, x, y, t: COLUNA.dura }); }
+export function desenharColunaDeFogo(f) {
+  if (!CHAMA.img.naturalWidth) return;
+  const vivo = COLUNA.dura - f.t, q = vivo < COLUNA.cresce ? Math.min(4, Math.floor(vivo / COLUNA.cresce * 5)) : 5 + Math.floor(vivo * 12) % 3;
+  ctx.save(); ctx.globalAlpha = Math.min(1, f.t / .3); ctx.globalCompositeOperation = 'lighter';
+  ctx.translate(f.x, f.y + 6); ctx.rotate(-Math.PI / 2); ctx.scale(COLUNA.sc, COLUNA.sc);
+  ctx.drawImage(CHAMA.img, q * CHAMA.FW, 0, CHAMA.FW, CHAMA.FH, -10, -CHAMA.cy, CHAMA.FW, CHAMA.FH);
+  ctx.restore();
+}

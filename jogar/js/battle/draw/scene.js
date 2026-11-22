@@ -11,6 +11,7 @@ import { drawEstatua } from '../boss.js';
 import { B } from '../state.js';
 import { terrainTop } from '../world.js';
 import { D } from '../../core/utils.js';
+import { desenharColunaDeFogo } from '../inimigos/efeitos.js';
 
 // ---------- Desenho ----------
 // o pé acompanha o relevo da arte do chão (fora de plataformas e sem estar caindo num buraco)
@@ -122,7 +123,8 @@ export function drawBattle() {
   });
   B.fx.forEach(f => {
     ctx.save();
-    if (f.ring) { ctx.strokeStyle = D.temas.duvida.cor; ctx.shadowColor = D.temas.duvida.brilho; ctx.shadowBlur = 20; ctx.lineWidth = 10 * f.t / .3; ctx.beginPath(); ctx.arc(h.x, GROUND + h.y - 120, 110 + (1 - f.t / .3) * 60, 0, 7); ctx.stroke(); }
+    if (f.labareda) desenharColunaDeFogo(f); // coluna de fogo (o rei invocando soldados)
+    else if (f.ring) { ctx.strokeStyle = D.temas.duvida.cor; ctx.shadowColor = D.temas.duvida.brilho; ctx.shadowBlur = 20; ctx.lineWidth = 10 * f.t / .3; ctx.beginPath(); ctx.arc(h.x, GROUND + h.y - 120, 110 + (1 - f.t / .3) * 60, 0, 7); ctx.stroke(); }
     else if (f.boom) { // clarão + onda de choque
       const k = 1 - f.t / .45, R = 30 + k * 150;
       const gr = ctx.createRadialGradient(f.x, f.y, 0, f.x, f.y, R); gr.addColorStop(0, `rgba(255,250,220,${.9 * (1 - k)})`); gr.addColorStop(.4, `rgba(255,170,60,${.6 * (1 - k)})`); gr.addColorStop(1, 'rgba(255,120,30,0)');
