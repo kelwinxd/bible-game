@@ -23,7 +23,7 @@ export const ROCK_HP = 3; // golpes para quebrar a pedra
 export function startBattle(fi = 0, all = opts.all, faseObj = null) {
   show('battle');
   const fase = faseObj || D.fases[fi];
-  tocarMusicaDaFase(fase.musica); // a música da fase (ou nenhuma)
+  tocarMusicaDaFase(fase.musica, fase.musicaVol, fase.musicaIni); // a música da fase (ou nenhuma)
   if (!fase.dev) log('jornada_iniciada', { fase: fase.id }); // js/core/log.js (só em produção)
   treino.on = !!fase.treino; $('treinoPainel').classList.toggle('on', treino.on); // Treinamento: poderes do painel (js/battle/treino.js)
   $('pauseBest').hidden = !fase.dev || !!fase.treino; // Bestiário: botão de trocar de monstro na pausa

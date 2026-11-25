@@ -30,7 +30,10 @@ export const golpeNoChao = {
       L.hit = true; B.shake = .55; stoneSfx('crack', 1);
       lascas(L.x + L.face * 150 * GOLIAS.escala, GROUND - 4, 18, { cores: ['255,190,90', '120,95,70'], vel: [420, 320, 120], vida: .9, tam: [.5, .7], espalho: 80 });
       avisarUmaVez('golpeNoChao', { lines: GOLIAS.textos.avisoGolpeNoChao, t: 3.5, c: '#ffb46a' });
-      if (h.ground && h.y > -20 && !(h.dash > 0) && !B.over) tremor(h, GOLPE_NO_CHAO.dano); // no ar, numa plataforma ou no impulso: não pega
+      if (h.ground && h.y > -20 && !(h.dash > 0) && !B.over) { // no ar, numa plataforma ou no impulso: não pega
+        tremor(h, GOLPE_NO_CHAO.dano); // o escudo não segura o chão tremendo
+        const A = GOLPE_NO_CHAO.arremesso; h.kb = (Math.sign(h.x - L.x) || L.face) * A.vx; h.vy = -A.vy; h.ground = false; // e é jogado para longe dele
+      }
     }
     return L.t >= GOLPE_NO_CHAO.T;
   }

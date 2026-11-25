@@ -4,6 +4,7 @@
 //   estatua.config.js  → números e textos     estatua.attacks.js → o soco no chão e o sopro de fogo
 //   estatua.sprites.js → as artes              estatua.draw.js    → o desenho (atrás do piso) e a morte
 import { stoneSfx } from '../../../../core/audio.js';
+import { retomarMusica } from '../../../../core/musica.js';
 import { GROUND } from '../../../config.js';
 import { B } from '../../../state.js';
 import { ChefeDeArena } from '../../base/chefeDeArena.js';
@@ -32,6 +33,7 @@ export class Estatua extends ChefeDeArena {
     atualizarBolas(this, h, dt);
     this.aparece += dt;
     if (this.aparece < ESTATUA.sobe) return this.levantar(dt);
+    if (!this.musicaVoltou) { this.musicaVoltou = true; retomarMusica(); } // de pé, pronta para atacar: a música do rei volta de onde parou
     if (this.state === 'walk') { if ((this.cd -= dt) <= 0 && h.deadAt == null) this.iniciar(this.atks % 2 ? sopro.estado : soco.estado); } // alterna
     else this.executarAtaque(h, dt, this.novaEspera());
   }

@@ -5,6 +5,7 @@ export const VALE = {
   id: "vale", abre: ["exodus", "pragas"], // abre quando o herói vence o Exodus OU As Pragas
   nome: "O vale da sombra", comprimento: 11500,
   musica: "assets/audio/musics/The Lord Is My Shepherd — com flauta.mp3", // a música da fase, em loop (js/core/musica.js)
+  musicaVol: 0.35, // a música desta fase (e a da caverna) mais baixa: 35% do volume das configurações
   coruja: true, uivo: true, // ambiente: uma coruja pia e um lobo uiva ao longe de vez em quando (js/battle/ambiente.js)
   // sul de Canaã, a oeste do Mar Morto (o deserto da Judeia, onde Davi pastoreava). via: a trilha chega por terra, pela rota do
   // Êxodo — de Gósen pelo Deserto de Sur, atravessando o Sinai perto do Monte Sinai, e subindo pelo Neguebe (o Exodus entra nela)
@@ -39,6 +40,8 @@ export const VALE = {
     // na 2ª laje: a placa "Lucas 15:3-7" com a seta para baixo — a parábola da ovelha perdida (a que fugiu caiu aí dentro)
     { tipo: "estrutura", x: 5298, img: "assets/img/placa-lucas15.webp", w: 330, h: 307, sc: .38, base: -35, degraus: [] },
     { tipo: "caverna", x: 4900, w: 560, x0: 12400, x1: 17900, entrada: 12620, saida: 5560,
+      ambiente: { som: "caverna", vol: 1.3 }, // som ambiente em loop só dentro da caverna (js/battle/ambiente.js; o arquivo foi gravado baixo)
+      musica: "assets/audio/musics/Fear of the Dark.mp3", // ao cair na caverna a música troca; ao sair volta a do vale
       fundo: { img: "assets/img/fundo-caverna.webp", estica: 1, escuro: 0.25 },
       // chão de pedra da caverna: as 2 variações enviadas emendadas numa faixa só (o miolo alterna entre elas ao repetir)
       chao: { img: "assets/img/chao-caverna.webp", medidas: { cap: 330, capR: 310, capFade: 60, capOut: 50, surf: 240, band: [280, 345], fade: 160, s: 0.5, semFaixa: true } } },

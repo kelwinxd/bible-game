@@ -191,12 +191,12 @@ export function stoneSfx(kind, dano = 0) {
 // ---------- Sons gravados (assets/audio) ----------
 // escudo.mp3 (~8,7 s, um zumbido contínuo): toca EM LOOP enquanto o escudo está erguido (entra e sai com fade curto)
 // poder.mp3 (~4,2 s): o golpe com o poder do versículo (no lugar do 'laser' sintetizado, que fica de reserva até carregar)
-// bichos (gravados, assets/audio/sound-effects/<bicho>.mp3): ra = 6 coaxares · dragao = rugido de T-Rex (~1,5 s) · cobra = sibilo (~1,6 s) · lobo = 2 rosnados de pantera negra (um calmo, um forte) · uivo = uivo de lobo (~5 s) · piolho = o murmúrio da mulher dos piolhos (loop de ~10 s) · ave = grito de ave de rapina · coruja = 2 piados
+// bichos (gravados, assets/audio/sound-effects/<bicho>.mp3): ra = 6 coaxares · dragao = rugido de T-Rex (~1,5 s) · cobra = sibilo (~1,6 s) · lobo = 2 rosnados de pantera negra (um calmo, um forte) · uivo = uivo de lobo (~5 s) · piolho = o murmúrio da mulher dos piolhos (loop de ~10 s) · ave = grito de ave de rapina · coruja = 2 piados · passo = 1 passo do soldado esqueleto (~0,7 s) · gemido = o gemido do soldado (~1,2 s) · reiChamas / reiInvoca / ignicao = o lança-chamas, a invocação e a coluna de fogo do Nabucodonosor · caverna = o ambiente da caverna (gotas, eco; loop de 30 s, gravado baixo)
 const RAW = { escudo: 'assets/audio/escudo.mp3', poder: 'assets/audio/poder.mp3',
   ra: 'assets/audio/sound-effects/ra.mp3', dragao: 'assets/audio/sound-effects/dragao.mp3',
   cobra: 'assets/audio/sound-effects/cobra.mp3', lobo: 'assets/audio/sound-effects/lobo-rosnado.mp3', uivo: 'assets/audio/sound-effects/lobo-uivo.mp3', piolho: 'assets/audio/sound-effects/mulher-piolho.mp3',
   vomito: 'assets/audio/sound-effects/piolhenta-vomito.mp3', piolhentaDor: 'assets/audio/sound-effects/piolhenta-dor.mp3',
-  heroiDano: 'assets/audio/sound-effects/heroi-dano.mp3', mugido: 'assets/audio/sound-effects/boi.mp3', goliasGrito: 'assets/audio/sound-effects/golias-grito.mp3', ave: 'assets/audio/sound-effects/ave.mp3', coruja: 'assets/audio/sound-effects/coruja.mp3' }, BUF = {}, BYTES = {};
+  heroiDano: 'assets/audio/sound-effects/heroi-dano.mp3', mugido: 'assets/audio/sound-effects/boi.mp3', goliasGrito: 'assets/audio/sound-effects/golias-grito.mp3', passo: 'assets/audio/sound-effects/soldado-passo.mp3', gemido: 'assets/audio/sound-effects/soldado-gemido.mp3', reiChamas: 'assets/audio/sound-effects/rei-lanca-chamas.mp3', reiInvoca: 'assets/audio/sound-effects/rei-invocacao.mp3', ignicao: 'assets/audio/sound-effects/coluna-de-fogo.mp3', caverna: 'assets/audio/sound-effects/caverna-ambiente.mp3', ave: 'assets/audio/sound-effects/ave.mp3', coruja: 'assets/audio/sound-effects/coruja.mp3' }, BUF = {}, BYTES = {};
 for (const k in RAW) fetch(encodeURI(RAW[k])).then(r => r.ok ? r.arrayBuffer() : null).then(a => { BYTES[k] = a; decode(); }).catch(() => {});
 function decode() { // só decodifica depois que o AudioContext existe (ele nasce no 1º som, já com um clique/tecla do jogador)
   if (!actx) return;
@@ -389,7 +389,7 @@ export function dragaoSom(kind = 'rosnar', vol = 1, grave = 1) {
 // Ave de rapina (a Ave da Dúvida): 'grito' = o grito inteiro (ao chegar e no mergulho) · 'dor' = curto e agudo · 'morte' = lento
 export function aveSom(kind = 'grito', vol = 1) {
   if (!opts.sound || vol <= .01) return;
-  const P = { grito: { ini: .05, dur: 1.3, rate: 1, vol: .6 }, dor: { ini: .3, dur: .4, rate: 1.25, vol: .5 }, morte: { ini: .05, dur: 1.3, rate: .75, vol: .65 } }[kind];
+  const P = { grito: { ini: .05, dur: 1.3, rate: 1, vol: .42 }, dor: { ini: .3, dur: .4, rate: 1.25, vol: .35 }, morte: { ini: .05, dur: 1.3, rate: .75, vol: .45 } }[kind]; // volumes −30% (estavam altos)
   if (!amostra('ave', { ...P, vol: P.vol * vol })) sfx('whoosh');
 }
 // Coruja (ambiente do Vale da sombra): um dos 2 piados do arquivo, longe (abafado), do lado `pan`
@@ -472,4 +472,28 @@ export function boiSom(kind = 'mugido', vol = 1) {
   amostra('mugido', { ini: .55, dur: 1.3, rate: kind === 'morte' ? .7 : .95 + Math.random() * .1, vol: .5 * vol });
 }
 // Golias: o grito (grunhido de raiva) antes do empurrão
-export function goliasGritoSom(vol = 1) { if (opts.sound && vol > .01) amostra('goliasGrito', { ini: 0, dur: 1.5, vol: .7 * vol }); }
+export function goliasGritoSom(vol = 1) { if (opts.sound && vol > .01) amostra('goliasGrito', { ini: 0, dur: 1.5, vol: .4 * vol }); } // (era .7: estava alto)
+
+// ---------- Soldado esqueleto da Babilônia (gravados) ----------
+// Passo (soldado-passo.mp3, um pisão abafado de ~0,7 s): toca quando o pé dele bate no chão (2 vezes por volta da corrida); o tom
+// varia um pouco a cada passo para não soar igual. 'corre' = mais forte (atrás do herói); andando de ronda, mais baixo
+export function soldadoPassoSom(vol = 1, corre = false) {
+  if (!opts.sound || vol <= .01) return;
+  amostra('passo', { ini: .1, dur: .5, rate: .9 + Math.random() * .2, vol: (corre ? .55 : .35) * vol });
+}
+// Gemido (soldado-gemido.mp3, ~1,2 s): 've' = o gemido inteiro (viu o herói) · 'dor' = um pedaço curto e mais agudo · 'morte' = inteiro, lento e grave
+export function soldadoGemidoSom(kind = 've', vol = 1) {
+  if (!opts.sound || vol <= .01) return;
+  const P = { ve: { ini: 0, dur: 1.2, rate: .95 + Math.random() * .1, vol: .38 }, dor: { ini: .4, dur: .35, rate: 1.25, vol: .32 }, morte: { ini: 0, dur: 1.25, rate: .72, vol: .42 } }[kind];
+  amostra('gemido', { ...P, vol: P.vol * vol });
+}
+
+// ---------- Nabucodonosor (gravados) ----------
+// 'invoca' = o rei erguendo as mãos para invocar (rei-invocacao.mp3, ~1,8 s) · 'chamas' = o rugido do lança-chamas (rei-lanca-chamas.mp3,
+// ~1,8 s, junto com o jato) · 'coluna' = a ignição da coluna de fogo que brota do chão onde os soldados nascem (coluna-de-fogo.mp3, ~2,8 s)
+// Sem o arquivo carregado, cai no 'fire' sintetizado de sempre
+export function reiSom(kind, vol = 1) {
+  if (!opts.sound || vol <= .01) return;
+  const P = { invoca: ['reiInvoca', { ini: 0, dur: 1.9, vol: .55 }], chamas: ['reiChamas', { ini: 0, dur: 1.9, vol: .6 }], coluna: ['ignicao', { ini: 0, dur: 2.8, vol: .6 }] }[kind];
+  if (!amostra(P[0], { ...P[1], rate: .97 + Math.random() * .06, vol: P[1].vol * vol })) sfx('fire');
+}

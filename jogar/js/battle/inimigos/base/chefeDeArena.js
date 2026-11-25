@@ -7,6 +7,7 @@
 //  · invocar(tipo, n, …): ajudantes (soldados, rãs) que brotam do chão ao lado dele e somem quando ele cai.
 // Cada chefão de terra só implementa: nome, caixa(), lutar(h, dt) e desenhar() — e registra os ataques (this.ataques).
 import { sfx } from '../../../core/audio.js';
+import { tocarMusicaDaFase } from '../../../core/musica.js';
 import { GROUND } from '../../config.js';
 import { criarBicho } from '../bichos/index.js';
 import { B } from '../../state.js';
@@ -20,6 +21,7 @@ export class ChefeDeArena extends Chefe {
     super(e, { kind: 'gigante', ...op });
     this.caverna = !!e.caverna; // pode lutar dentro da caverna (o Faraó, no fim da tumba)
     this.bando = op.bando || null; // nome do bando dos ajudantes que ele invoca
+    this.musica = e.musica || null; this.musicaIni = e.musicaIni || 0; // data/jornadas → musica: ao entrar na arena, troca a música da fase por esta (de musicaIni s)
   }
   /** o anúncio quando ele entra (aviso no alto da tela) */
   get anuncio() { return this.nome.split(' · ')[0] + '!'; }
@@ -34,6 +36,7 @@ export class ChefeDeArena extends Chefe {
     B.arena = { left: this.home - 740, right: this.home + 220, boss: true };
     this.state = 'enter'; this.t = 0; this.x = B.arena.right + 160; this.face = -1; sfx('hurt');
     B.notice = { lines: [this.anuncio], t: 3, c: '#ffb46a' };
+    if (this.musica) tocarMusicaDaFase(this.musica, B.fase.musicaVol, this.musicaIni);
   }
   agir(h, dt) {
     if (this.state === 'enter') { this.x = Math.max(this.home, this.x - ENTRA_V * dt); if (this.x <= this.home) { this.state = 'walk'; this.t = 0; } return; }

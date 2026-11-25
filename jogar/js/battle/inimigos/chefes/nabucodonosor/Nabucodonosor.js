@@ -4,6 +4,8 @@
 //   nabucodonosor.config.js  → números, textos e a sequência     nabucodonosor.attacks.js → fogo dos olhos, rajada, soldados, lança-chamas
 //   nabucodonosor.sprites.js → as artes                           nabucodonosor.draw.js    → o desenho (e o jato)
 // data/jornadas → { tipo: "gigante", pele: "rei", x, vida }
+import { reiSom } from '../../../../core/audio.js';
+import { suspenderMusica } from '../../../../core/musica.js';
 import { GROUND } from '../../../config.js';
 import { startPreCena } from '../../../cena.js';
 import { B } from '../../../state.js';
@@ -26,6 +28,9 @@ export class Nabucodonosor extends ChefeDeArena {
   get imortalNoBestiario() { return false; } // no Bestiário também cai (para ver a cena e a estátua)
   get lieY() { return GROUND - REI.balaoY; }
   caixa() { const { meiaLargura: w, altura } = REI.caixa; return [this.x - w, GROUND - altura, this.x + w, GROUND]; }
+
+  aoMorrer() { super.aoMorrer(); if (this.musica) suspenderMusica(); } // a música dele PAUSA quando ele cai; volta com a estátua (Estatua.js)
+  iniciar(estado) { super.iniciar(estado); if (this.state === 'invocarSoldados') reiSom('invoca'); } // a voz da invocação ao erguer as mãos
 
   lutar(h, dt) {
     atualizarBolas(this, h, dt);

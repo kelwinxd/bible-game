@@ -4,6 +4,8 @@
 // em que a água está (esquerda/direita). Pausado, fora da jornada ou no fim dela, silencia. Chamado a cada quadro (script.js).
 // Coruja (data/jornadas/*.js → fases[].coruja): pia ao longe a cada 12–25 s, de um lado sorteado (fora da caverna, fora das pausas).
 // Uivo (fases[].uivo): um lobo uiva bem longe (abafado) a cada 30–50 s, do mesmo jeito.
+// Caverna com ambiente (evento caverna → ambiente: { som, vol }, ex.: o Vale): o som em loop toca SÓ com o herói dentro dela
+// (entra e sai suave; para nas pausas, na passagem escura e no fim). Usa o mesmo loop dos bichos, com a caverna como dona.
 // Bichos com som em loop (classe com `static VOZ = { som, vol, raio }`, ex.: a mulher dos piolhos): o som sai DELES, baixo, e cai
 // com a distância até o herói como o mar (some a `raio` px); vem do lado em que o bicho está. Morto, pausa ou fora da jornada: cala.
 import { B } from './state.js';
@@ -17,8 +19,8 @@ function coruja() {
   const agora = performance.now() / 1000, dt = Math.min(.1, agora - ultimo); ultimo = agora;
   if (!B || !(B.fase.coruja || B.fase.uivo) || B.over || halted() || B.passagem || B.zona === 'caverna') return;
   const lado = () => (Math.random() < .5 ? -1 : 1) * (.4 + Math.random() * .5);
-  if (B.fase.uivo && (uivoT -= dt) <= 0) { uivoT = 30 + Math.random() * 20; uivoSom(.18, lado(), true); }
-  if (B.fase.coruja && (corujaT -= dt) <= 0) { corujaT = 12 + Math.random() * 13; corujaSom(.25 + Math.random() * .15, (Math.random() < .5 ? -1 : 1) * (.4 + Math.random() * .5)); }
+  if (B.fase.uivo && (uivoT -= dt) <= 0) { uivoT = 30 + Math.random() * 20; uivoSom(.11, lado(), true); }
+  if (B.fase.coruja && (corujaT -= dt) <= 0) { corujaT = 12 + Math.random() * 13; corujaSom(.175 + Math.random() * .105, (Math.random() < .5 ? -1 : 1) * (.4 + Math.random() * .5)); }
 }
 
 function vozesDosBichos() {
@@ -28,6 +30,9 @@ function vozesDosBichos() {
     const d = Math.abs(o.x - B.hero.x); if (d >= V.raio) continue;
     const k = 1 - d / V.raio; (porSom[V.som] ||= []).push([o, V.vol * k * k, (o.x - B.hero.x) / V.raio * 1.4]);
   }
+  const C = B && B.caverna, A = C && C.ambiente;
+  if (A) (porSom[A.som] ||= []).push(...(B.zona === 'caverna' && !B.over && !halted() && !B.passagem ? [[C, A.vol, 0]] : []));
+  porSom.caverna ||= []; // sempre chamado: saiu da caverna ou da jornada, o loop cala
   for (const som in porSom) loopsDeBichos(som, porSom[som]);
 }
 

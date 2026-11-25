@@ -4,7 +4,7 @@
 // Ficha: vida, dano, anda/corre (px/s), perto (vê o herói), ronda/coleira (px de casa), arma/golpe (s), salto (px que avança no
 // golpe), cd (s entre golpes), ataca (arma a esta distância), colado (não chega mais perto), nArma (quadros armando), arcoAt (px
 // acima do chão por quadro do ataque), run/atk/idle (sprites; olham para a direita), sombra, som, cores (lascas ao morrer)
-import { loboSom, piolhentaSom, sfx, uivoSom } from '../../../core/audio.js';
+import { loboSom, piolhentaSom, sfx, soldadoGemidoSom, soldadoPassoSom, uivoSom } from '../../../core/audio.js';
 import { GROUND, ctx } from '../../config.js';
 import { heroBox, hitHero, overlap } from '../../combat.js';
 import { drawShadow } from '../../draw/world.js';
@@ -93,7 +93,7 @@ export class Lobo extends Patrulheiro {
   aoArmar() { loboSom('rosnar', ouvido(this.x)); }
   // uiva uma vez quando aparece na tela, se o herói ainda não está em cima dele (o lado do som segue o lado do lobo)
   agir(h, dt) {
-    if (!this.uivou && this.visivel() && Math.abs(h.x - this.x) > 260) { this.uivou = true; uivoSom(.32, (this.x - B.cam - 480) / 480); }
+    if (!this.uivou && this.visivel() && Math.abs(h.x - this.x) > 260) { this.uivou = true; uivoSom(.2, (this.x - B.cam - 480) / 480); }
     super.agir(h, dt);
   }
   sofrer(dano, cor) { super.sofrer(dano, cor); if (!this.dead && B.time - (this.ultDor ?? -9) > .5) { this.ultDor = B.time; loboSom('dor', ouvido(this.x)); } }
@@ -109,6 +109,17 @@ export class Soldado extends Patrulheiro {
   static FICHA = { vida: 40, dano: 8, anda: 50, corre: 130, perto: 230, ronda: 160, coleira: 320, arma: .45, golpe: .45, salto: 22, cd: 1.6, ataca: 145, colado: 95,
     run: { img: img(SP + 'soldado-run.webp'), FW: 127, FH: 153, ax: 59, n: 8 }, atk: { img: img(SP + 'soldado-attack.webp'), FW: 183, FH: 129, ax: 34, n: 5 }, nArma: 2, arcoAt: [0, 0, 0, 0, 0],
     caixa: (f, y) => [f.x - 30, y - 125, f.x + 30, y], sombra: 80, som: 'slash', cores: ['200,170,120', '170,40,30'] };
+  // sons (gravados, js/core/audio.js): o PASSO a cada vez que um pé bate no chão (quadros 0 e 4 da corrida, a mesma conta do desenho),
+  // só na tela; o GEMIDO ao ver o herói (no máx. 1 a cada 4 s), curto ao levar golpe e lento ao morrer; o volume cai com a distância
+  agir(h, dt) {
+    super.agir(h, dt);
+    const corre = this.cd > 0 || Math.abs(h.x - this.x) < this.P.perto, q = Math.floor(this.ph * (corre ? 12 : 7)) % this.P.run.n;
+    if (this.moving && q % 4 === 0 && q !== this.ultPasso && this.visivel()) soldadoPassoSom(ouvido(this.x), corre);
+    this.ultPasso = this.moving ? q : -1;
+  }
+  aoVer() { if (B.time - (this.ultVe ?? -9) > 4) { this.ultVe = B.time; soldadoGemidoSom('ve', ouvido(this.x)); } }
+  sofrer(dano, cor) { super.sofrer(dano, cor); if (!this.dead && B.time - (this.ultDor ?? -9) > .5) { this.ultDor = B.time; soldadoGemidoSom('dor', ouvido(this.x)); } }
+  aoMorrer() { soldadoGemidoSom('morte', ouvido(this.x)); }
   caixaGolpe() { // a ponta da lança, só nos quadros da estocada
     const fr = this.quadroAtaque(), y = GROUND + terrainTop(this.x);
     return fr >= 2 && fr <= 3 ? [Math.min(this.x, this.x + this.face * 145), y - 105, Math.max(this.x, this.x + this.face * 145), y - 40] : null;

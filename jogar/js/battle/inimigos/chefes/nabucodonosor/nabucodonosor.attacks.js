@@ -1,5 +1,5 @@
 // Nabucodonosor: os ataques. Cada um = { estado, atualizar(chefe, h, dt) → true quando acabou }
-import { sfx } from '../../../../core/audio.js';
+import { reiSom, sfx } from '../../../../core/audio.js';
 import { GROUND } from '../../../config.js';
 import { hitHero, overlap } from '../../../combat.js';
 import { B } from '../../../state.js';
@@ -34,11 +34,11 @@ export const invocarSoldados = {
   atualizar(L) {
     if (L.t < SOLDADOS.surgem - SOLDADOS.fogoAntes) L.chamas = false; // começo de cada invocação
     if (!L.chamas && L.t >= SOLDADOS.surgem - SOLDADOS.fogoAntes) { // o fogo brota do chão onde cada soldado vai nascer
-      L.chamas = true; sfx('fire');
+      L.chamas = true; reiSom('coluna');
       for (let k = 0; k < SOLDADOS.quantos; k++) colunaDeFogo(Math.max(B.arena.left + 60, Math.min(B.arena.right - 40, L.x + L.face * (110 + k * 90))), GROUND);
     }
     if (!L.tiros && L.t >= SOLDADOS.surgem) {
-      L.tiros = 1; sfx('fire'); B.shake = .25;
+      L.tiros = 1; B.shake = .25; // (o som é a ignição da coluna, que já está tocando)
       L.invocar('soldado', SOLDADOS.quantos, { d0: 110, passo: 90, cores: ['255,170,60', '255,80,20'], prepara: s => { s.cd = .8; } });
       avisarUmaVez('reiInvoca', { lines: REI.textos.avisoSoldados, t: 2.5, c: '#ffb46a' });
     }
@@ -52,7 +52,7 @@ export const lancaChamas = {
   atualizar(L, h, dt) {
     const tj = L.t - CHAMAS.arma;
     if (tj >= 0 && tj < CHAMAS.dura) {
-      if (tj - dt < 0) { sfx('fire'); L.tique = 0; }
+      if (tj - dt < 0) { reiSom('chamas'); L.tique = 0; }
       if ((L.tique -= dt) <= 0 && jatoPega(L, tj, caixaHeroi(h))) { hitHero(CHAMAS.dano); L.tique = CHAMAS.tique; }
     }
     return L.t >= CHAMAS.arma + CHAMAS.dura + .25;

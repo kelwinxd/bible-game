@@ -7,6 +7,7 @@ import { DASH_CD, DASH_SPEED, ESPR, GRAV, GROUND, HERO_QUEDA, SPIT_ANIM, SHIELD_
 import { B, keys } from './state.js';
 import { ENEMY_GAP, stepIdol, collectBook, fallInHole, floorAt, hitRock, makeDemon, moveX, pickLie, restoreLie, rockBox, terrainTop } from './world.js';
 import { sfx } from '../core/audio.js';
+import { tocarMusicaDaFase } from '../core/musica.js';
 import { escudoAtual } from '../core/progress.js';
 import { $, D, reduced } from '../core/utils.js';
 import { setShield } from '../input/controls.js';
@@ -73,7 +74,8 @@ export function updateBattle(rdt) {
       B.ghosts.push({ x: h.x, y: h.y, face: h.face, t: .32 });
       if (h.dash <= 0 && h.faceAfter) { h.face = h.faceAfter; h.faceAfter = 0; }
     } else {
-      h.x = moveX(h, Math.max(lo, Math.min(hi, h.x + mx * sp * dt)));
+      h.x = moveX(h, Math.max(lo, Math.min(hi, h.x + (mx * sp + (h.kb || 0)) * dt))); // kb = arremessado (o golpe no chão do Golias)
+      if (h.kb) { h.kb *= Math.exp(-2 * dt); if (Math.abs(h.kb) < 30) h.kb = 0; }
       if (mx && h.swing <= 0 && !B.shield) h.face = mx;
     }
     const floor = floorAt(h);
@@ -88,6 +90,7 @@ export function updateBattle(rdt) {
     if (C && !B.zona && h.x > C.x && h.x < C.x + C.w && h.y > 90) { // caiu na boca do vale: despenca dentro da caverna
       sfx('hurt');
       B.passagem = { t: 0, acao: () => { // no escuro: já está lá embaixo, caindo do teto da caverna
+        if (C.musica) tocarMusicaDaFase(C.musica, B.fase.musicaVol); // a caverna com música própria (o Vale: Fear of the Dark)
         B.zona = 'caverna'; h.x = C.entrada; h.y = -300; h.vy = 0; h.safe = { x: C.entrada, y: 0 }; B.cam = C.x0;
         B.notice = { lines: C.aviso || ['Você caiu na caverna escura!', 'Ache a Palavra aqui embaixo e a saída do outro lado'], t: 4, c: '#ffb46a' };
       } };
@@ -99,6 +102,7 @@ export function updateBattle(rdt) {
     } else if (C && B.zona === 'caverna' && h.ground && h.x >= C.x1 - 160) { // subiu a rampa do fim: sai logo depois do vale
       h.vy = 0;
       B.passagem = { t: 0, acao: () => {
+        if (C.musica) tocarMusicaDaFase(B.fase.musica, B.fase.musicaVol, B.fase.musicaIni); // de volta à música da fase
         B.zona = null; h.x = C.saida; h.y = 0; h.vy = 0; h.safe = { x: C.saida, y: 0 }; B.cam = Math.max(0, h.x - 360);
         B.notice = { lines: C.saiu || ['Você saiu da caverna', 'Siga pelo vale'], t: 3, c: '#9fc3ff' };
       } };

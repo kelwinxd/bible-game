@@ -23,7 +23,8 @@ export const GOLIAS = {
 };
 // cada ataque: T = duração (s), acerta = quando fere (s), dano, quadros = [[t, quadro], …] da arte
 export const ESTOCADA = { T: 1.05, acerta: [.52, .68], dano: 18, quadros: [[0, 0], [.15, 1], [.35, 2], [.52, 3], [.78, 4]] };
-export const GOLPE_NO_CHAO = { T: 1.45, acerta: .76, dano: 14, quadros: [[0, 0], [.15, 1], [.35, 2], [.6, 3], [.76, 4], [1.02, 5]] }; // 4 = a lança bate (faísca) na hora do acerto, 5 = a poeira
+export const GOLPE_NO_CHAO = { T: 1.45, acerta: .76, dano: 14, arremesso: { vx: 520, vy: 520 }, // o tremor JOGA o herói para longe dele (mesmo de escudo): ~170 px num arco
+  quadros: [[0, 0], [.15, 1], [.35, 2], [.6, 3], [.76, 4], [1.02, 5]] }; // 4 = a lança bate (faísca) na hora do acerto, 5 = a poeira
 // 2ª fase (sem capacete)
 // PERDE_CAPACETE: a troca de fase — ele cambaleia cansado (sem levar golpe) e volta com a 2ª vida
 export const PERDE_CAPACETE = { T: 1.6 };

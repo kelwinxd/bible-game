@@ -5,6 +5,7 @@ export const BABILONIA = {
   // (1 Pedro 5:6, Provérbios 3:5) e 4 inimigos — só leões e harpias.
   id: "babilonia", abre: ["vale"], nivelMin: 2, // abre vencendo o Vale E com o herói no nível 2 ou mais (sistema de XP)
   nome: "Babilônia", comprimento: 9900,
+  musica: "assets/audio/musics/Babylon Has Fallen.mp3", musicaIni: 20, // a música da fase, em loop, começando (e voltando ao repetir) dos 20 s (js/core/musica.js)
   // Babilônia, no Eufrates. via: a rota do cativeiro de Judá (2 Reis 25) — sobe por Canaã, passa pela Síria e desce o Eufrates
   mapa: { x: 86, y: 22, icone: "zigurate", cor: "#d9a441", via: { vale: [[56, 32], [62, 16], [72, 13], [80, 18]] } },
   // fundo: a cidade com o zigurate, a estátua e fumaça, esticada pela fase (parallax lento)
@@ -51,7 +52,7 @@ export const BABILONIA = {
     // fim da fase: o piso de pedra queimada diante da FORNALHA ARDENTE (Daniel 3), arte inteira que substitui o chão normal
     // (o chão termina numa ponta antes dela); o herói pisa no piso (y≈297 da arte), a fornalha e a escada ficam ao fundo; a cruz fica diante dela
     // chefão: Nabucodonosor, diante da fornalha (a arena trava sobre o piso de pedra; a cruz só depois que ele cai)
-    { tipo: "gigante", pele: "rei", x: 9480, vida: 60 },
+    { tipo: "gigante", pele: "rei", x: 9480, vida: 60, musica: "assets/audio/musics/Babylon Has Fallen - rock version.mp3", musicaIni: 20 }, // a música do chefão (dos 20 s, e volta aos 20 s ao repetir): toca quando ele entra, pausa quando cai e volta quando a estátua começa a atacar
     { tipo: "estrutura", x: 8988, img: "assets/img/chao-forno-babilonia.webp", w: 1086, h: 362, sc: 0.84, base: 54, substitui: true, corte: 30, degraus: [] }
   ]
 };
