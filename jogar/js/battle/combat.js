@@ -143,12 +143,17 @@ export function startFatal(d, v, espirito = false) {
   B.fatal = { t, dur: t, d, v, espirito }; // espirito: morto pelo Impulso → frase azul
 }
 export function endFatal() {
-  B.demons = B.demons.filter(d => d !== B.fatal.d); B.fatal = null;
-  if (!B.demons.length && B.arena) {
-    const gr = B.arena.gr; if (gr && gr.ras) rainFrogs(gr.ras, B.arena); // data/jornadas ras: N → rãs caem do céu quando a arena acaba
-    B.arena = null; B.hp = Math.min(B.hpMax, B.hp + 20);
-    B.floats.push({ x: B.hero.x, y: GROUND - 250, t: 1.2, s: '+20', c: '#7dff8a' });
-  }
+  // tira TODOS os mortos, não só o da cena: dois monstros mortos no mesmo golpe (o impulso, o rasgo ou a espada pegando os dois)
+  // disparam 2 cenas e a 2ª toma o lugar da 1ª — o 1º ficava na lista, morto e invisível, e a arena nunca abria
+  B.demons = B.demons.filter(d => d !== B.fatal.d && d.state !== 'dead'); B.fatal = null;
+  liberarArena();
+}
+/** a arena da luta (não a do chefão) abre quando não sobra monstro: +20 de vida (e a chuva de rãs, se o grupo tiver) */
+export function liberarArena() {
+  if (B.demons.length || !B.arena || B.arena.boss) return;
+  const gr = B.arena.gr; if (gr && gr.ras) rainFrogs(gr.ras, B.arena); // data/jornadas ras: N → rãs caem do céu quando a arena acaba
+  B.arena = null; B.hp = Math.min(B.hpMax, B.hp + 20);
+  B.floats.push({ x: B.hero.x, y: GROUND - 250, t: 1.2, s: '+20', c: '#7dff8a' });
 }
 export function endScreen(win) {
   if (!B) return; // saiu da batalha antes da tela final

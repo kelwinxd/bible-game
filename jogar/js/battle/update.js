@@ -2,7 +2,7 @@ import { cleanFrogs, frogsIn, hitFrog, makeFrog, updateFrogs } from './frog.js';
 import { updateSheep } from './sheep.js';
 import { updateCena, updatePreCena } from './cena.js';
 import { bossAlive, bossBlocksWin, bossBox, damageBoss, spitAcid, updateAcid, updateBoss } from './boss.js';
-import { attack, damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, overlap, startDash, swingHit } from './combat.js';
+import { attack, damageDemon, dashHits, demonBox, endFatal, endScreen, heroBox, hitHero, liberarArena, overlap, startDash, swingHit } from './combat.js';
 import { DASH_CD, DASH_SPEED, ESPR, GRAV, GROUND, HERO_QUEDA, SPIT_ANIM, SHIELD_REGEN, SPEED, SWING, SWING_HIT } from './config.js';
 import { B, keys } from './state.js';
 import { ENEMY_GAP, stepIdol, collectBook, fallInHole, floorAt, hitRock, makeDemon, moveX, pickLie, restoreLie, rockBox, terrainTop } from './world.js';
@@ -35,6 +35,7 @@ export function updateBattle(rdt) {
   for (const k in B.cd) B.cd[k] = Math.max(0, B.cd[k] - rdt);
 
   if (B.fatal) { B.fatal.t -= rdt; if (B.fatal.t <= 0) endFatal(); }
+  else if (B.arena && !B.arena.boss && B.demons.length && B.demons.every(d => d.state === 'dead')) { B.demons = []; liberarArena(); } // rede de segurança: só sobrou monstro morto na lista
   if (B.trans > 0) B.trans -= dt;
 
   updateBoss(dt); // Leviatã no mar
