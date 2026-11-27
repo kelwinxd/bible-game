@@ -42,6 +42,10 @@ Vitest, em `testes/` (o `npm run build` roda os testes antes e não publica se a
 
 Cada falha diz o que está errado e onde (ex.: `Exodus, evento 2 (pedra x 1500): versículo "ex20-99" não existe`). Ao criar um tipo de evento novo no `world.js`, acrescente-o em `TIPOS` no `dados.test.js`.
 
+### Ferramentas de desenvolvedor (só no local)
+
+Imortalidade, Bestiário, "Forjar tudo (teste)" e "Tudo liberado" (elementos com `data-dev` no `jogar/index.html`) só aparecem com o jogo rodando no seu computador (`npm run dev`, `localhost`, `127.0.0.1` ou Live Server). No site publicado somem e a imortalidade fica desligada. Para forçar: `VITE_FERRAMENTAS=1` mostra também no site publicado (ex.: num deploy de teste na Vercel) e `VITE_FERRAMENTAS=0` esconde até no local. Regra em `jogar/js/core/options.js` (`DEV`).
+
 ### Logs de uso (PostHog, só em produção)
 
 `jogar/js/core/log.js`: `log('evento', {dados})` em pontos-chave do jogo. No `npm run dev` só aparece no console (`[log] …`); no build, envia ao PostHog (carregado sob demanda, num arquivo à parte). Para ligar: crie um projeto em posthog.com, copie `.env.example` para `.env.production` e coloque a chave (`VITE_POSTHOG_KEY`, pública) e a região. Sem a chave, nada é enviado. Anônimo (id aleatório por aparelho), sem gravação de tela nem captura automática de cliques; o jogador pode desligar em Configurações → "Dados de uso anônimos".

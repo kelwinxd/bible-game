@@ -1,6 +1,8 @@
 /* Overlays: pausa, controles, configurações, fim de batalha */
 .overlay { position:fixed; inset:0; display:none; place-items:center; background:#000c; z-index:5; text-align:center; padding:16px; }
 .overlay.on { display:grid; }
+/* ferramentas de desenvolvedor fora do local (js/core/options.js → DEV): somem de vez, mesmo com display definido no CSS */
+[data-dev][hidden] { display:none !important; }
 /* tela de carregamento das jornadas: por cima de tudo (até da tela final, de onde sai o "Jogar de novo") */
 #carregando { z-index:7; background:#000e; }
 .carregando { min-width:min(340px, 86vw); }

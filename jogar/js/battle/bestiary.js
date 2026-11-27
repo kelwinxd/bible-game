@@ -1,4 +1,5 @@
 import { $, D } from '../core/utils.js';
+import { DEV } from '../core/options.js';
 import { show } from '../ui/screens.js';
 import { startBattle } from './world.js';
 import { aguardarFase } from '../ui/carregando.js';
@@ -54,6 +55,7 @@ function faseDe(m) {
   return f;
 }
 export async function startBestiary(id) {
+  if (!DEV) return; // só no local (js/core/options.js)
   const m = BESTIARIO.find(m => m.id === id); if (!m) return;
   const f = faseDe(m); if (!await aguardarFase(f)) return; // tela de carregamento até as artes chegarem
   startBattle(-1, true, f);
@@ -63,6 +65,7 @@ export async function startBestiary(id) {
   }
 }
 export function openBestiary() {
+  if (!DEV) return;
   $('bestGrid').innerHTML = BESTIARIO.map(m => {
     const [src, n, rows] = m.thumb;
     return `<button class="best-card${m.boss ? ' boss' : ''}" onclick="startBestiary('${m.id}')">

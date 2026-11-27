@@ -21,7 +21,7 @@
       <button onclick="habView('hub')">Habilidades<small>Versículos, fé e armadura</small></button>
       <button onclick="showMenuView('settings')">Configurações</button>
       <button onclick="startTreino()">Treinamento<small>Todos os poderes no máximo (ajustáveis) e espantalhos para testar ataques e movimentos</small></button>
-      <button class="menu-dev" onclick="openBestiary()">🛠 Bestiário<small>Teste de desenvolvedor: lute com um monstro só</small></button>
+      <button class="menu-dev" data-dev onclick="openBestiary()">🛠 Bestiário<small>Teste de desenvolvedor: lute com um monstro só</small></button>
     </nav>
     <!-- rádio: a mesma playlist do site, em loop (../musics/radio.js), só nos menus: ao entrar no jogo ainda não tem música, e nas jornadas ele para (lá vão tocar as músicas de cada fase) -->
     <div class="menu-radio" data-radio aria-label="Rádio"></div>
@@ -36,10 +36,10 @@
         <input type="range" id="optMusicVol" min="0" max="100" step="5" value="60" aria-label="Volume da música"></label>
       <label class="setting"><span><b>Dados de uso anônimos</b><span class="muted">Ajuda a melhorar o jogo: onde os jogadores param, morrem ou vencem. Sem nome nem e-mail</span></span>
         <input type="checkbox" id="optAnalytics" checked><span class="switch"></span></label>
-      <h3 class="setting-sec">Desenvolvedor</h3>
-      <label class="setting"><span><b>Imortalidade</b><span class="muted">Ligada: a vida não cai. Desligada: o jogo de verdade (dá para morrer)</span></span>
+      <h3 class="setting-sec" data-dev>Desenvolvedor</h3>
+      <label class="setting" data-dev><span><b>Imortalidade</b><span class="muted">Ligada: a vida não cai. Desligada: o jogo de verdade (dá para morrer)</span></span>
         <input type="checkbox" id="optGod" checked><span class="switch"></span></label>
-      <details class="menu-test">
+      <details class="menu-test" data-dev>
         <summary>Opções de teste do protótipo</summary>
         <label class="setting"><span><b>Faixa da forja</b><span class="muted">Velocidade das palavras ao martelar</span></span>
           <select id="optForge"><option value="normal">Normal</option><option value="calma">Calma</option><option value="sempressa">Parada</option></select></label>
@@ -90,7 +90,7 @@
       </div>
       <div class="vlist vscroll" id="vlist"></div>
       <p class="muted vhidden" id="vhidden"></p>
-      <div class="row"><button onclick="forgeAll()">Forjar tudo (teste)</button></div>
+      <div class="row" data-dev><button onclick="forgeAll()">Forjar tudo (teste)</button></div>
     </div>
     <!-- Exercitar a fé -->
     <div class="hab-panel hab-fe">
@@ -312,7 +312,7 @@
         <input type="checkbox" id="pauseMusic" checked><span class="switch"></span></label>
       <label class="setting setting-vol"><span><b>Volume da música</b><output class="muted" id="pauseMusicVolTxt">60%</output></span>
         <input type="range" id="pauseMusicVol" min="0" max="100" step="5" value="60" aria-label="Volume da música"></label>
-      <label class="setting"><span><b>Imortalidade</b><span class="muted">Desenvolvedor · a vida não cai (vale na hora)</span></span>
+      <label class="setting" data-dev><span><b>Imortalidade</b><span class="muted">Desenvolvedor · a vida não cai (vale na hora)</span></span>
         <input type="checkbox" id="pauseGod" checked><span class="switch"></span></label>
     </div>
   </div>

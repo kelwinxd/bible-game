@@ -1,6 +1,7 @@
 import { BASE_DMG } from '../battle/config.js';
 import { barsHTML, dashDmg, found, venceu, xp, nivel, proxNivel, vidaMax, powerDur, progOf, saveProg, shieldMax, spiritLvl, verseMult } from '../core/progress.js';
 import { $, D, ICONE_MARTELO } from '../core/utils.js';
+import { DEV } from '../core/options.js';
 import { show } from '../ui/screens.js';
 
 // cadeado em traço dourado (mesmo estilo dos ícones dos títulos)
@@ -65,7 +66,9 @@ function renderHeroStats(vs) {
     stat('🕮', 'Palavra', `${vs.length}/${D.versiculos.length}`, vs.length ? `até ${n(best)} de dano · ${longest}s de poder` : 'nenhum versículo ainda') +
     stat('🗺', 'Jornadas', `${D.fases.filter(f => venceu(f.id)).length}/${D.fases.length}`, 'vencidas') + '</div>';
 }
-export function forgeAll() { D.versiculos.filter(v => found.includes(v.id)).forEach(v => { const p = progOf(v.id); p.forja = Math.max(1, p.forja); }); saveProg(); renderList(); }
+export function forgeAll() {
+  if (!DEV) return; // botão de teste: só no local (js/core/options.js)
+  D.versiculos.filter(v => found.includes(v.id)).forEach(v => { const p = progOf(v.id); p.forja = Math.max(1, p.forja); }); saveProg(); renderList(); }
 
 // ---------- Vistas das Habilidades ----------
 // hub = templário no centro + 3 entradas na frente; cada entrada abre uma vista isolada
