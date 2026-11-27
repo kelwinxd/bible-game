@@ -1,0 +1,27 @@
+# Testes automáticos: a cada push na main (e em pull request) o GitHub roda os testes e o build.
+# Se algo quebrar, o commit fica com ❌ no GitHub (e chega e-mail); passando, ✅. Ver em: aba "Actions" do repositório.
+#   1. npm test     → conteúdo (jogar/data/), arquivos citados, progresso e a BATALHA rodando sem tela (testes/batalha/)
+#   2. vite build   → o jogo empacota sem erro (o mesmo dist/ que vai para a AWS; aqui só confere, não publica)
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Testes
+        run: npm test
+      - name: Build
+        run: npx vite build
