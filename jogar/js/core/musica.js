@@ -27,7 +27,14 @@ function irPara(t) {
   else au.addEventListener('loadedmetadata', () => { au.currentTime = t; }, { once: true });
 }
 au.addEventListener('ended', () => { if (!inicio) return; irPara(inicio); if (ligada) au.play().catch(() => {}); });
-export const pararMusica = () => { suspensa = false; au.pause(); };
+// jogo fora da tela (outra aba, navegador minimizado, celular em outro app ou com a tela bloqueada): a música PAUSA e, ao voltar,
+// continua de onde parou — só se estava tocando (pausada pelo chefão, desligada ou fora da jornada, continua parada)
+let escondida = false;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (!au.paused) { escondida = true; au.pause(); } }
+  else if (escondida) { escondida = false; if (ligada && !suspensa && au.src) au.play().catch(() => {}); }
+});
+export const pararMusica = () => { suspensa = false; escondida = false; au.pause(); };
 // pausa no meio (guarda onde parou) e retoma do mesmo ponto — o chefão da Babilônia: a música dele para quando ele cai e volta
 // quando a estátua começa a atacar. Suspensa, ligar a Música nas configurações não a retoma
 let suspensa = false;

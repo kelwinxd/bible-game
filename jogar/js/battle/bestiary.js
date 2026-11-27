@@ -1,6 +1,7 @@
 import { $, D } from '../core/utils.js';
 import { show } from '../ui/screens.js';
 import { startBattle } from './world.js';
+import { aguardarFase } from '../ui/carregando.js';
 import { B } from './state.js';
 import { giantDies } from './boss.js';
 
@@ -52,9 +53,10 @@ function faseDe(m) {
   if ('chaoCor' in b) f.chaoCor = b.chaoCor; // sem a chave = tingimento padrão do chão
   return f;
 }
-export function startBestiary(id) {
+export async function startBestiary(id) {
   const m = BESTIARIO.find(m => m.id === id); if (!m) return;
-  startBattle(-1, true, faseDe(m));
+  const f = faseDe(m); if (!await aguardarFase(f)) return; // tela de carregamento até as artes chegarem
+  startBattle(-1, true, f);
   if (m.pular) { // pula a luta com o rei: ele já cai (afunda) e em seguida vem a cena e a estátua
     const L = B.boss; B.hero.x = L.home - 520; L.x = L.home; L.hp = 0; L.cenaVista = false; L.lie = null; L.lieIn = 0;
     giantDies(L); B.notice = null; B.trans = 0;

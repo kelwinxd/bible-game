@@ -20,6 +20,12 @@
   carrega();
   au.addEventListener('ended', () => R.proxima()); // playlist em loop
   ['play', 'pause', 'volumechange'].forEach(ev => au.addEventListener(ev, () => desenha()));
+  // página fora da tela (outra aba, minimizada, celular em outro app ou bloqueado): o rádio pausa e volta ao reaparecer, se tocava
+  let escondido = false;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { if (!au.paused) { escondido = true; au.pause(); } }
+    else if (escondido) { escondido = false; if (!R.emJornada) R.tocar(); }
+  });
 
   const R = {
     tocando: () => !au.paused,

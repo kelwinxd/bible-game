@@ -3,6 +3,7 @@ import { escudoAtual, treino, verseMult, vidaMax } from '../core/progress.js';
 import { FIRE_MAX } from './config.js';
 import { renderFires } from './combat.js';
 import { buildHotbar } from './hud.js';
+import { aguardarFase } from '../ui/carregando.js';
 import { B } from './state.js';
 import { startBattle } from './world.js';
 
@@ -24,9 +25,10 @@ const fase = () => {
     eventos: [{ tipo: 'espantalho', x: 900 }, { tipo: 'terreno', x: 1350, w: 360, altura: 90 }, { tipo: 'plataforma', x: 1850, w: 170, altura: 150 },
       { tipo: 'espantalho', x: 2300 }] };
 };
-export function startTreino() {
+export async function startTreino() {
   if (treino.forja == null) Object.assign(treino, maximo()); // 1ª vez na sessão: tudo no máximo
-  startBattle(-1, true, fase());
+  const f = fase(); if (!await aguardarFase(f)) return; // tela de carregamento até as artes chegarem
+  startBattle(-1, true, f);
   B.notice = { lines: ['Treinamento: todos os poderes no máximo', 'Ajuste no painel à direita · os espantalhos não morrem'], t: 5, c: '#9fc3ff' };
   renderTreino();
 }

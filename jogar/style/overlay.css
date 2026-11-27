@@ -1,6 +1,13 @@
 /* Overlays: pausa, controles, configurações, fim de batalha */
 .overlay { position:fixed; inset:0; display:none; place-items:center; background:#000c; z-index:5; text-align:center; padding:16px; }
 .overlay.on { display:grid; }
+/* tela de carregamento das jornadas: por cima de tudo (até da tela final, de onde sai o "Jogar de novo") */
+#carregando { z-index:7; background:#000e; }
+.carregando { min-width:min(340px, 86vw); }
+.carregando h2 { font-family:Cinzel, serif; color:#f2c84b; margin:.2em 0 .7em; }
+.carregando-trilho { height:10px; border-radius:6px; background:#2a1a12; border:1px solid #6b4a32; overflow:hidden; }
+#carregandoBarra { height:100%; width:0; background:linear-gradient(90deg, #b8862b, #f2c84b); transition:width .15s linear; }
+#carregandoPct { margin:.6em 0 0; font-size:.9em; }
 .overlay .box { background:var(--panel); border:1px solid #6b4a32; border-radius:12px; padding:24px; max-width:460px; }
 #pauseOverlay .box { max-width:620px; width:100%; max-height:90vh; display:flex; flex-direction:column; padding:0; text-align:left; overflow:hidden; }
 .pause-head { display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:1px solid #3d2c20; flex-shrink:0; }
