@@ -452,7 +452,7 @@ export function loopsDeBichos(k, lista) {
 }
 
 // ---------- Herói, mulher dos piolhos, boi e o grito do Golias (gravados) ----------
-// Herói levando dano (heroi-dano.mp3: só os 2 s iniciais valem, o resto do arquivo é descartado): o gemido toca A CADA 2 GOLPES
+// Herói levando dano (heroi-dano.mp3: o arquivo já foi cortado nos 2 s que valem): o gemido toca A CADA 2 GOLPES
 // recebidos (no 2º, 4º, 6º…); nos outros fica o som curto sintetizado de sempre. Devolve false quando quem chama deve tocar o sintetizado
 let golpesNoHeroi = 0;
 export function heroiDanoSom() {

@@ -15,14 +15,14 @@ export const ESPR = {
   leao: { attack: new Image(), run: new Image(), FW: 284, FH: 166, ax: 128, nRun: 6, ext: 'webp' },
   verde: { attack: new Image(), run: new Image(), FW: 270, FH: 292, ax: 100, nRun: 4, nAtk: 8, ext: 'webp', topo: 240, boca: [96, -106], sc: .8 } // sc: desenhada a 80% (era grande demais); boca/topo já na escala
 };
-for (const k in ESPR) { const e = ESPR[k].ext || 'png'; ESPR[k].attack.src = `assets/sprites/enemy/${k}-attack.${e}`; ESPR[k].run.src = `assets/sprites/enemy/${k}-${ESPR[k].runName || 'run'}.${e}`; }
+for (const k in ESPR) { const e = ESPR[k].ext || 'webp'; ESPR[k].attack.src = `assets/sprites/enemy/${k}-attack.${e}`; ESPR[k].run.src = `assets/sprites/enemy/${k}-${ESPR[k].runName || 'run'}.${e}`; }
 // Herói atual (templário): tiras de mesmo quadro; ax = x do tronco no quadro, pés na base. Olha para a direita.
 // run: 8 quadros · jump: 0 parecido c/ corrida, 1 subindo, 2 espada erguida, 3 estocada, 4 descendo · death: 5 (cai até deitar)
 export const HERO = { run: new Image(), jump: new Image(), death: new Image(), FW: 267, FH: 221, ax: 116 };
-for (const k of ['run', 'jump', 'death']) HERO[k].src = `assets/sprites/hero/${k}.png`;
+for (const k of ['run', 'jump', 'death']) HERO[k].src = `assets/sprites/hero/${k}.webp`;
 // parado (idle): 4 quadros, em pé; tira com quadro próprio (mais estreito), mesma escala visual das outras
 export const HERO_IDLE = { img: new Image(), FW: 148, FH: 211, ax: 83, n: 4 };
-HERO_IDLE.img.src = 'assets/sprites/hero/idle.png';
+HERO_IDLE.img.src = 'assets/sprites/hero/idle.webp';
 // defesa (escudo [J]): 5 quadros erguendo o escudo e agachando; para no último enquanto J estiver apertado.
 // Arte enviada reduzida a 54% (o 1º quadro, em pé, com a altura do idle), cada quadro alinhado pelo meio dos pés
 export const HERO_DEF = { img: new Image(), FW: 182, FH: 210, ax: 109, n: 5, step: .06 };
@@ -58,7 +58,7 @@ export const COMBO_WIN = .3; // apertar K até 0,3 s depois do golpe acabar aind
 // bezerro-pecas.png caem: [sx, sy, w, h, x, y no quadro]
 export const IDOL = { img: new Image(), pecas: new Image(), W: 420, H: 580, foot: 566, cx: 210, sc: .32,
   pieces: [[0, 0, 210, 293, 43, 96], [212, 0, 29, 33, 217, 196], [243, 0, 44, 52, 253, 224], [289, 0, 159, 159, 224, 279], [450, 0, 52, 64, 39, 341], [504, 0, 21, 24, 387, 374], [527, 0, 26, 28, 100, 390]] };
-IDOL.img.src = 'assets/sprites/object/bezerro.png'; IDOL.pecas.src = 'assets/sprites/object/bezerro-pecas.png';
+IDOL.img.src = 'assets/sprites/object/bezerro.webp'; IDOL.pecas.src = 'assets/sprites/object/bezerro-pecas.webp';
 export const HERO_THRUST = 3; // quadro da estocada: golpe e impulso
 export const HERO_SCALE = .78; // tamanho do templário no jogo (~150 px correndo)
 export const CALLOUT_T = 1.1; // segundos da referência escolhida acima do herói

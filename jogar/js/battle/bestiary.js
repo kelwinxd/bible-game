@@ -13,12 +13,12 @@ const COBRA_VERDE = { sprite: 'verde', acido: true, tell: 0.7, cadencia: 2, pass
 const SP = 'assets/sprites/enemy/';
 // thumb = [tira, quadros, linhas] → o 1º quadro vira a figura do card
 export const BESTIARIO = [
-  { id: 'serpente', nome: 'Serpente', sub: 'Demônio da Tentação · bote corpo a corpo', base: 0, inimigo: 'tentacao', thumb: [SP + 'serpente-run.png', 7, 1] },
+  { id: 'serpente', nome: 'Serpente', sub: 'Demônio da Tentação · bote corpo a corpo', base: 0, inimigo: 'tentacao', thumb: [SP + 'serpente-run.webp', 7, 1] },
   { id: 'piolhenta', nome: 'Mulher dos piolhos', sub: 'As Pragas · corre e cospe uma nuvem de piolhos de longe', base: 1, bicho: 'piolhenta', thumb: [SP + 'piolhenta-run.webp', 6, 1] },
   { id: 'boi', nome: 'Boi morto', sub: 'As Pragas · só corre: investe, vira e investe de novo', base: 1, bicho: 'boi', thumb: [SP + 'boi-run.webp', 6, 1] },
   { id: 'verde', nome: 'Cobra verde', sub: 'Mentira · cospe ácido de longe', base: 0, inimigo: 'mentira', aparencia: COBRA_VERDE, thumb: [SP + 'verde-run.webp', 4, 1] },
-  { id: 'ave', nome: 'Ave da Dúvida', sub: 'Paira no alto e mergulha', base: 2, inimigo: 'duvida', thumb: [SP + 'ave-fly.png', 8, 1] },
-  { id: 'vermelha', nome: 'Cobra vermelha', sub: 'Dúvida no chão · bote', base: 2, inimigo: 'duvida', aparencia: COBRA_VERMELHA, thumb: [SP + 'serpente-run.png', 7, 1] },
+  { id: 'ave', nome: 'Ave da Dúvida', sub: 'Paira no alto e mergulha', base: 2, inimigo: 'duvida', thumb: [SP + 'ave-fly.webp', 8, 1] },
+  { id: 'vermelha', nome: 'Cobra vermelha', sub: 'Dúvida no chão · bote', base: 2, inimigo: 'duvida', aparencia: COBRA_VERMELHA, thumb: [SP + 'serpente-run.webp', 7, 1] },
   { id: 'leao', nome: 'Leão do Orgulho', sub: 'Babilônia · salta com as garras e fala de força própria', base: 3, inimigo: 'orgulho', thumb: [SP + 'leao-run.webp', 6, 1] },
   { id: 'leviata', nome: 'Leviatã', sub: 'Antigo chefão do mar (fora das jornadas) · mordida, mergulho e ácido', base: 0, boss: 'leviata', thumb: [SP + 'leviata.webp', 8, 2] },
   { id: 'naja', nome: 'Naja do mar', sub: 'Chefona da jornada 1 · bote, mergulho, jato de ácido e mentiras', base: 0, boss: 'leviata', pele: 'naja', thumb: [SP + 'naja-run.webp', 8, 1] },

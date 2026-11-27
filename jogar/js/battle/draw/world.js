@@ -299,7 +299,7 @@ export function drawHole(o) {
 // Buraco = 3 mãos em chamas (sprite com o próprio fogo) saindo do fundo: sobem e agarram quando o herói chega perto,
 // afundam quando ele se afasta; cada uma com seu ritmo. Em buraco com laje, ficam nos vãos livres.
 export const HAND = { img: new Image(), FW: 177, FH: 209, ax: 89, n: 3, scale: .55 }; // quadros 0–4: agarrando (loop) · 5–9: afundando
-HAND.img.src = 'assets/sprites/hazard/mao-fogo.png';
+HAND.img.src = 'assets/sprites/hazard/mao-fogo.webp';
 // Mar: buraco cheio de ondas (4 quadros 470×206 em loop). Os quadros se repetem lado a lado, um normal e o seguinte
 // espelhado (as bordas emendam sem corte); as cristas passam um pouco acima da borda do chão, por trás das lajes
 export const SEA = { img: new Image(), FW: 470, FH: 206, n: 4, sc: .5, fps: 5 };
